@@ -1,5 +1,5 @@
-from abidria.exceptions import InvalidEntityException, EntityDoesNotExistException
-from abidria.decorators import serialize_exceptions
+from pachatary.exceptions import InvalidEntityException, EntityDoesNotExistException
+from pachatary.decorators import serialize_exceptions
 
 
 class TestSerializeExpceptionsDecorator:

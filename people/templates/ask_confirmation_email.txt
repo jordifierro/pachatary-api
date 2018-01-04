@@ -1,7 +1,7 @@
-Hi {{ username }}, welcome to Abidria!
+Hi {{ username }}, welcome to Pachatary!
 
 Click this link to confirm your email and finish your register process:
 
 {{ confirmation_url }}
 
-If you haven't registered on Abidria app, just ignore this mail. We won't mail you again.
+If you haven't registered on Pachatary app, just ignore this mail. We won't mail you again.

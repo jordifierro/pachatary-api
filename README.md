@@ -1,6 +1,6 @@
-# Abidria API
+# Pachatary API
 
-This repo contains the backend code for Abidria project.
+This repo contains the backend code for Pachatary project.
 This simple app aims to be a reference
 to discover interesting places
 and also to record our past experiences,
@@ -19,7 +19,7 @@ There is no password, so login will be implemented using email token system.
 A `person` can `save` their favourite `experiences`.
 
 For the moment, the api is only consumed by
-[abidria-android](https://github.com/jordifierro/abidria-android) project.
+[pachatary-android](https://github.com/jordifierro/pachatary-android) project.
 
 ## API Endpoints
 
@@ -456,11 +456,11 @@ Follow these instructions to start working locally on the project:
 
 * Download code cloning this repo:
 ```bash
-git clone https://github.com/jordifierro/abidria-api.git
+git clone https://github.com/jordifierro/pachatary-api.git
 ```
 * Install postgres and run:
 ```bash
-./abidria/setup/postgres.sh
+./pachatary/setup/postgres.sh
 ```
 to create user and database.
 * Run postgres:
@@ -474,7 +474,7 @@ virtualenv -p `which python3.6` ../env
 ```
 * Add this to the end of `../env/bin/activate` file:
 ```bash
-source abidria/setup/envvars.sh
+source pachatary/setup/envvars.sh
 ```
 * Get into the environment:
 ```bash
@@ -501,5 +501,5 @@ python manage.py test # django tests
 Once we have made the first time setup,
 we can start everything up running:
 ```bash
-source abidria/setup/startup.sh
+source pachatary/setup/startup.sh
 ```

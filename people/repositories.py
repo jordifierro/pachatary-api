@@ -1,4 +1,4 @@
-from abidria.exceptions import EntityDoesNotExistException
+from pachatary.exceptions import EntityDoesNotExistException
 from .models import ORMPerson, ORMAuthToken, ORMConfirmationToken
 from .entities import Person, AuthToken
 

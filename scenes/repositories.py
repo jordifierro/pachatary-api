@@ -1,5 +1,5 @@
-from abidria.entities import Picture
-from abidria.exceptions import EntityDoesNotExistException
+from pachatary.entities import Picture
+from pachatary.exceptions import EntityDoesNotExistException
 from .models import ORMScene
 from .entities import Scene
 

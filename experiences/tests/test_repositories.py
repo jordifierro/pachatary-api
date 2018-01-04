@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from abidria.exceptions import EntityDoesNotExistException
+from pachatary.exceptions import EntityDoesNotExistException
 from experiences.entities import Experience
 from experiences.models import ORMExperience, ORMSave
 from experiences.repositories import ExperienceRepo

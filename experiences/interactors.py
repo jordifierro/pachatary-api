@@ -1,6 +1,6 @@
 from enum import Enum
 
-from abidria.exceptions import ConflictException
+from pachatary.exceptions import ConflictException
 from experiences.entities import Experience
 
 

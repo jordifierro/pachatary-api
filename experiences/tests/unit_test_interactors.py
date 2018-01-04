@@ -1,6 +1,6 @@
 from mock import Mock
 
-from abidria.exceptions import InvalidEntityException, EntityDoesNotExistException, NoLoggedException, \
+from pachatary.exceptions import InvalidEntityException, EntityDoesNotExistException, NoLoggedException, \
         NoPermissionException, ConflictException
 from experiences.entities import Experience
 from experiences.interactors import GetAllExperiencesInteractor, CreateNewExperienceInteractor, \

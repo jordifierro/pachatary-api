@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from mock import Mock
 
-from abidria.entities import Picture
+from pachatary.entities import Picture
 from scenes.entities import Scene
 from scenes.views import ScenesView, SceneView, UploadScenePictureView
 from scenes.serializers import SceneSerializer, MultipleScenesSerializer

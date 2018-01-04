@@ -1,6 +1,6 @@
 from mock import Mock
 
-from abidria.exceptions import InvalidEntityException, NoPermissionException
+from pachatary.exceptions import InvalidEntityException, NoPermissionException
 from experiences.validators import ExperienceValidator, ExperiencePermissionsValidator
 from experiences.entities import Experience
 

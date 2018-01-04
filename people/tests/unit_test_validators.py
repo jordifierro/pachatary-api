@@ -1,6 +1,6 @@
 from mock import Mock
 
-from abidria.exceptions import InvalidEntityException, NoLoggedException, NoPermissionException, \
+from pachatary.exceptions import InvalidEntityException, NoLoggedException, NoPermissionException, \
         EntityDoesNotExistException
 from people.validators import ClientSecretKeyValidator, PersonValidator, PersonPermissionsValidator
 from people.entities import Person
@@ -106,7 +106,7 @@ class TestPersonValidator:
 
     def test_username_that_contains_project_name(self):
         TestPersonValidator.ScenarioMaker() \
-                .given_a_username('asdf_abidria_asdf') \
+                .given_a_username('asdf_pachatary_asdf') \
                 .given_an_email('e@m.c') \
                 .given_a_person_with_that_params() \
                 .given_a_repo_that_raises_entity_does_not_exists() \
@@ -207,7 +207,7 @@ class TestPersonValidator:
 
         def given_a_person_validator_with_forbidden_usernames_and_email_domains(self, forbidden_usernames,
                                                                                 forbidden_email_domains):
-            self.validator = PersonValidator(project_name='abidria', forbidden_usernames=forbidden_usernames,
+            self.validator = PersonValidator(project_name='pachatary', forbidden_usernames=forbidden_usernames,
                                              forbidden_email_domains=forbidden_email_domains,
                                              person_repo=self.person_repo)
             return self

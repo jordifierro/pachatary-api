@@ -1,4 +1,4 @@
-class AbidriaException(Exception):
+class PachataryException(Exception):
 
     def __init__(self, source, code, message):
         super().__init__(message)
@@ -14,27 +14,27 @@ class AbidriaException(Exception):
         return self._code
 
 
-class InvalidEntityException(AbidriaException):
+class InvalidEntityException(PachataryException):
     pass
 
 
-class ConflictException(AbidriaException):
+class ConflictException(PachataryException):
     pass
 
 
-class NoLoggedException(AbidriaException):
+class NoLoggedException(PachataryException):
 
     def __init__(self):
         super().__init__(source='authentication', code='required', message='Authentication required')
 
 
-class EntityDoesNotExistException(AbidriaException):
+class EntityDoesNotExistException(PachataryException):
 
     def __init__(self):
         super().__init__(source='entity', code='not_found', message='Entity not found')
 
 
-class NoPermissionException(AbidriaException):
+class NoPermissionException(PachataryException):
 
     def __init__(self):
         super().__init__(source='permission', code='denied', message='Permission denied')

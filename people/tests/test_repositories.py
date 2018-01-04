@@ -2,7 +2,7 @@ import uuid
 
 from django.test import TestCase
 
-from abidria.exceptions import EntityDoesNotExistException
+from pachatary.exceptions import EntityDoesNotExistException
 from people.models import ORMPerson, ORMAuthToken, ORMConfirmationToken
 from people.repositories import PersonRepo, AuthTokenRepo, ConfirmationTokenRepo
 from people.entities import Person

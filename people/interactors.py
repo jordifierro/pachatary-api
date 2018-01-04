@@ -1,4 +1,4 @@
-from abidria.exceptions import EntityDoesNotExistException, ConflictException, NoLoggedException, \
+from pachatary.exceptions import EntityDoesNotExistException, ConflictException, NoLoggedException, \
         InvalidEntityException
 from people.entities import Person
 

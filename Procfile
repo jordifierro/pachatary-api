@@ -1,1 +1,1 @@
-web: gunicorn abidria.wsgi --log-file -
+web: gunicorn pachatary.wsgi --log-file -

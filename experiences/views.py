@@ -1,4 +1,4 @@
-from abidria.decorators import serialize_exceptions
+from pachatary.decorators import serialize_exceptions
 from .serializers import MultipleExperiencesSerializer, ExperienceSerializer
 from .interactors import SaveUnsaveExperienceInteractor
 

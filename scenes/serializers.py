@@ -1,4 +1,4 @@
-from abidria.serializers import PictureSerializer
+from pachatary.serializers import PictureSerializer
 
 
 class MultipleScenesSerializer:

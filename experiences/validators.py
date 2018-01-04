@@ -1,4 +1,4 @@
-from abidria.exceptions import InvalidEntityException, NoPermissionException
+from pachatary.exceptions import InvalidEntityException, NoPermissionException
 
 
 class ExperienceValidator:

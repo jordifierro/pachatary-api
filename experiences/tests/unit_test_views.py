@@ -1,6 +1,6 @@
 from mock import Mock
 
-from abidria.entities import Picture
+from pachatary.entities import Picture
 from experiences.entities import Experience
 from experiences.views import ExperiencesView, ExperienceView, UploadExperiencePictureView, SaveExperienceView
 from experiences.serializers import ExperienceSerializer, MultipleExperiencesSerializer

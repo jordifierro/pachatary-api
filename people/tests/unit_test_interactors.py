@@ -1,6 +1,6 @@
 from mock import Mock
 
-from abidria.exceptions import InvalidEntityException, EntityDoesNotExistException, ConflictException, \
+from pachatary.exceptions import InvalidEntityException, EntityDoesNotExistException, ConflictException, \
         NoLoggedException
 from people.entities import Person, AuthToken
 from people.interactors import CreateGuestPersonAndReturnAuthTokenInteractor, AuthenticateInteractor, \

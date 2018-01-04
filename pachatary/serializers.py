@@ -12,7 +12,7 @@ class PictureSerializer:
                }
 
 
-class AbidriaExceptionSerializer:
+class PachataryExceptionSerializer:
 
     @staticmethod
     def serialize(exception):

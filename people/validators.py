@@ -1,6 +1,6 @@
 import re
 
-from abidria.exceptions import InvalidEntityException, NoLoggedException, NoPermissionException, \
+from pachatary.exceptions import InvalidEntityException, NoLoggedException, NoPermissionException, \
         EntityDoesNotExistException
 
 

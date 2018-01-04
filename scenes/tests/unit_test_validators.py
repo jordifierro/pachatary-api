@@ -1,6 +1,6 @@
 from mock import Mock
 
-from abidria.exceptions import InvalidEntityException, EntityDoesNotExistException
+from pachatary.exceptions import InvalidEntityException, EntityDoesNotExistException
 from scenes.validators import SceneValidator, ScenePermissionsValidator
 from scenes.entities import Scene
 

@@ -17,7 +17,7 @@ class MailerService:
         plain_text_message = get_template('ask_confirmation_email.txt').render(context_params)
         html_message = get_template('ask_confirmation_email.html').render(context_params)
 
-        subject, origin_email, target_email = 'Abidria account confirmation', settings.EMAIL_HOST_USER, email
+        subject, origin_email, target_email = 'Pachatary account confirmation', settings.EMAIL_HOST_USER, email
 
         mail.send_mail(subject,
                        plain_text_message,

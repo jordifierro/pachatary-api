@@ -1,4 +1,4 @@
-from abidria.exceptions import InvalidEntityException, EntityDoesNotExistException
+from pachatary.exceptions import InvalidEntityException, EntityDoesNotExistException
 
 
 class SceneValidator:

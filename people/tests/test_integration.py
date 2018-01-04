@@ -200,7 +200,7 @@ class ModifyPersonTestCase(TestCase):
             return self
 
         def then_ask_confirmation_email_should_be_sent(self):
-            assert mail.outbox[0].subject == 'Abidria account confirmation'
+            assert mail.outbox[0].subject == 'Pachatary account confirmation'
             confirmation_token = ORMConfirmationToken.objects.get(person_id=self.orm_person.id).token
             confirmation_reverse_url = self.response.wsgi_request.build_absolute_uri(reverse('email-confirmation'))
             confirmation_url = "{}?token={}".format(confirmation_reverse_url, confirmation_token)

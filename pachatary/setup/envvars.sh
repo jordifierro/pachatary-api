@@ -3,8 +3,8 @@
 export DEBUG='1'
 export LOCAL_DEPLOY='1'
 
-export DATABASE_NAME='abidria_db'
-export DATABASE_USER='abidria_user'
+export DATABASE_NAME='pachatary_db'
+export DATABASE_USER='pachatary_user'
 export DATABASE_PASS='password'
 
 export SECRET_KEY='39#j7n^$06yb=t-3u!-h(q)25sq&_2_hwq8zw@*r5p%tu=y1uj'
@@ -20,5 +20,5 @@ export EMAIL_PORT='123'
 # export ALLOWED_HOSTS='example.com'
 # export AWS_ACCESS_KEY_ID='amazon_key'
 # export AWS_SECRET_ACCESS_KEY='amazon_secret'
-# export AWS_STORAGE_BUCKET_NAME='abidria-bucket'
+# export AWS_STORAGE_BUCKET_NAME='pachatary-bucket'
 # export DATABASE_URL='postgres://amazonaws.com'
