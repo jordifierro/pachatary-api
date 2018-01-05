@@ -42,7 +42,7 @@ class TestMailerService(TestCase):
 
         def given_a_request_that_builds_absolute_uri(self):
             self.request = Mock()
-            self.url = 'https://base/url/confirmation/path'
+            self.url = 'https://domain/confirmation/path'
             self.request.build_absolute_uri.return_value = self.url
             return self
 

@@ -7,6 +7,7 @@ from experiences.factories import create_experiences_view, create_experience_vie
         create_upload_experience_picture_view, create_save_experience_view
 from scenes.factories import create_scenes_view, create_scene_view, create_upload_scene_picture_view
 from people.factories import create_people_view, create_person_view, create_email_confirmation_view
+from people.django_views import email_confirmation_redirect
 
 from .views import ViewWrapper
 
@@ -55,6 +56,10 @@ urlpatterns = [
     url(r'^people/me/email-confirmation$',
         ViewWrapper.as_view(view_creator_func=create_email_confirmation_view),
         name='email-confirmation'),
+
+    url(r'^people/me/email-confirmation/redirect$',
+        email_confirmation_redirect,
+        name='email-confirmation-redirect'),
 ]
 
 if settings.LOCAL_DEPLOY:

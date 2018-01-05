@@ -426,6 +426,22 @@ _200_
 }
 ```
 
+### `GET /people/me/email-confirmation/redirect?token=ABXZ`
+
+This endpoint is to let Android app catch url to get the token and
+call the previous endpoint, or if the user opens this link with a browser,
+it redirects to 'app://pachatary.com/...' to force open deeplink
+(both urls must be defined on Android app).
+
+_Request:_
+
+`token` as query param.
+
+_Response:_
+
+_304_
+
+Location: 'app://pachatary.com/people/me/email-confirmation?token=ABXZ'
 
 ## Documentation
 

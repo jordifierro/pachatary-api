@@ -34,8 +34,9 @@ CLIENT_SECRET_KEY = os.environ['CLIENT_SECRET_KEY']
 DEBUG = bool(int(os.environ['DEBUG']))
 
 if not LOCAL_DEPLOY:
-    ALLOWED_HOSTS = [os.environ['ALLOWED_HOSTS'], ]
+    ALLOWED_HOSTS = [os.environ['HOST'], ]
 
+ANDROID_DEEPLINK_DOMAIN = os.environ['ANDROID_DEEPLINK_DOMAIN']
 
 # Application definition
 

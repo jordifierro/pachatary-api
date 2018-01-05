@@ -16,8 +16,10 @@ export EMAIL_HOST_PASSWORD='my_secret_password'
 export EMAIL_HOST_USER='email@example.com'
 export EMAIL_PORT='123'
 
+export ANDROID_DEEPLINK_DOMAIN='app://local-pachatary.com'
+
 # Remote deployment extra env vars
-# export ALLOWED_HOSTS='example.com'
+# export HOST='domain.host.com'
 # export AWS_ACCESS_KEY_ID='amazon_key'
 # export AWS_SECRET_ACCESS_KEY='amazon_secret'
 # export AWS_STORAGE_BUCKET_NAME='pachatary-bucket'

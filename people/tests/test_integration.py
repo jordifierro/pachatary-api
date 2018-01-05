@@ -9,6 +9,7 @@ from django.core import mail
 from django.template.loader import get_template
 
 from people.models import ORMAuthToken, ORMPerson, ORMConfirmationToken
+from people.django_views import ANDROID_DEEPLINK_PATH
 
 
 class CreatePersonTestCase(TestCase):
@@ -202,7 +203,8 @@ class ModifyPersonTestCase(TestCase):
         def then_ask_confirmation_email_should_be_sent(self):
             assert mail.outbox[0].subject == 'Pachatary account confirmation'
             confirmation_token = ORMConfirmationToken.objects.get(person_id=self.orm_person.id).token
-            confirmation_reverse_url = self.response.wsgi_request.build_absolute_uri(reverse('email-confirmation'))
+            confirmation_reverse_url = self.response.wsgi_request.build_absolute_uri(
+                    reverse('email-confirmation-redirect'))
             confirmation_url = "{}?token={}".format(confirmation_reverse_url, confirmation_token)
             context_params = {'username': self.username, 'confirmation_url': confirmation_url}
             plain_text_message = get_template('ask_confirmation_email.txt').render(context_params)
@@ -345,4 +347,25 @@ class PostEmailConfirmationTestCase(TestCase):
 
         def then_person_should_have_is_email_confirmed_false(self):
             assert ORMPerson.objects.get(id=self.orm_person.id).is_email_confirmed is False
+            return self
+
+
+class RedirectConfirmEmailTestCase(TestCase):
+
+    def test_when_called_redirect_view_redirects_to_apps_url(self):
+        RedirectConfirmEmailTestCase.ScenarioMaker() \
+                .when_call_get_email_confirmation() \
+                .then_response_should_be_a_redirect_to_app_deeplink_with_params()
+
+    class ScenarioMaker:
+
+        def when_call_get_email_confirmation(self):
+            client = Client()
+            self.response = client.get('{}?{}'.format(reverse('email-confirmation-redirect'), 'token=ABXZ'))
+            return self
+
+        def then_response_should_be_a_redirect_to_app_deeplink_with_params(self):
+            assert self.response.status_code == 302
+            assert self.response['Location'] == '{}{}?token=ABXZ'.format(settings.ANDROID_DEEPLINK_DOMAIN,
+                                                                         ANDROID_DEEPLINK_PATH)
             return self

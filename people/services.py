@@ -10,8 +10,8 @@ class MailerService:
         self.request = request
 
     def send_ask_confirmation_mail(self, confirmation_token, email, username):
-        confirmation_url = "{}?token={}".format(self.request.build_absolute_uri(reverse('email-confirmation')),
-                                                confirmation_token)
+        url = self.request.build_absolute_uri(reverse('email-confirmation-redirect'))
+        confirmation_url = "{}?token={}".format(url, confirmation_token)
 
         context_params = {'username': username, 'confirmation_url': confirmation_url}
         plain_text_message = get_template('ask_confirmation_email.txt').render(context_params)
