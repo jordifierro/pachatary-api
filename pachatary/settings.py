@@ -67,6 +67,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
 ]
 
 ROOT_URLCONF = 'pachatary.urls'
@@ -180,3 +181,12 @@ EMAIL_HOST = os.environ['EMAIL_HOST']
 EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
 EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
 EMAIL_PORT = int(os.environ['EMAIL_PORT'])
+
+if not LOCAL_DEPLOY:
+    ROLLBAR = {
+        'access_token': os.environ['ROLLBAR_ACCESS_TOKEN'],
+        'environment': 'development' if DEBUG else 'production',
+        'root': BASE_DIR,
+    }
+    import rollbar
+    rollbar.init(**ROLLBAR)
