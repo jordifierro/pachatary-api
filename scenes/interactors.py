@@ -14,7 +14,9 @@ class GetScenesFromExperienceInteractor:
 
     def execute(self):
         self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
-        return self.scene_repo.get_scenes(experience_id=self.experience_id)
+        scenes = self.scene_repo.get_scenes(experience_id=self.experience_id)
+        scenes.sort(key=lambda x: x.id, reverse=False)
+        return scenes
 
 
 class CreateNewSceneInteractor:

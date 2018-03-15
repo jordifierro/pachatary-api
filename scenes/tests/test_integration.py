@@ -30,21 +30,21 @@ class ExperienceDetailTestCase(TestCase):
         body = json.loads(response.content)
         assert body == [
                             {
-                                'id': str(scene_e.id),
-                                'title': 'Scene e',
-                                'description': 'E',
-                                'picture': None,
-                                'latitude': 5.6,
-                                'longitude': -7.8,
-                                'experience_id': str(exp_c.id),
-                            },
-                            {
                                 'id': str(scene_d.id),
                                 'title': 'Scene d',
                                 'description': 'D',
                                 'picture': None,
                                 'latitude': 1.2,
                                 'longitude': -3.4,
+                                'experience_id': str(exp_c.id),
+                            },
+                            {
+                                'id': str(scene_e.id),
+                                'title': 'Scene e',
+                                'description': 'E',
+                                'picture': None,
+                                'latitude': 5.6,
+                                'longitude': -7.8,
                                 'experience_id': str(exp_c.id),
                             },
                        ]

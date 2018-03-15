@@ -19,7 +19,7 @@ class TestGetScenesFromExperience:
                 .when_interactor_is_executed() \
                 .then_permissions_should_be_validated() \
                 .then_get_scenes_should_be_called_with_experience_id() \
-                .then_result_should_be_both_scenes()
+                .then_result_should_be_both_scenes_sorted_by_id()
 
     def test_no_logged_returns_exception(self):
         TestGetScenesFromExperience.ScenarioMaker() \
@@ -49,8 +49,8 @@ class TestGetScenesFromExperience:
             return self
 
         def given_two_scenes(self):
-            self.scene_a = Scene(id=2, title='', description='', picture=None, latitude=1, longitude=0, experience_id=1)
-            self.scene_b = Scene(id=3, title='', description='', picture=None, latitude=1, longitude=0, experience_id=1)
+            self.scene_a = Scene(id=3, title='', description='', picture=None, latitude=1, longitude=0, experience_id=1)
+            self.scene_b = Scene(id=2, title='', description='', picture=None, latitude=1, longitude=0, experience_id=1)
             return self
 
         def given_scene_repo_that_returns_both(self):
@@ -75,8 +75,8 @@ class TestGetScenesFromExperience:
             self.scene_repo.get_scenes.assert_called_once_with(experience_id=self.experience_id)
             return self
 
-        def then_result_should_be_both_scenes(self):
-            assert self.result == [self.scene_a, self.scene_b]
+        def then_result_should_be_both_scenes_sorted_by_id(self):
+            assert self.result == [self.scene_b, self.scene_a]
             return self
 
         def then_permissions_should_be_validated(self):
