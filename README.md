@@ -23,40 +23,47 @@ For the moment, the api is only consumed by
 
 ## API Endpoints
 
-### `GET /experiences`
+### `GET /experiences?mine=false&saved=false&limit=20`
 _Request:_
 You can specify `mine` filter param to fetch only experiences you have created.
 You can also specify `saved` filter param to fetch only experiences you have saved.
 Both params are set to `false` by default, you can ignore them.
+You can also define a `limit` to let server know
+how many elements you do want on each page
+(if you skip this param server will return 20).
 
 _Response:_
 ```json
-[
-    {
-        "id": "2",
-        "title": "Baboon",
-        "description": "Mystical place...",
-        "picture": {
-            "small_url": "https://experiences/8c29.small.jpg",
-            "medium_url": "https://experiences/8c29.medium.jpg",
-            "large_url": "https://experiences/8c29.large.jpg"
-        },
-        "author_id": "3",
-        "author_username": "usr.nam",
-        "is_mine": false,
-        "is_saved": false
-    },
-    {
-        "id": "3",
-        "title": "Magic Castle of Lost Swamps",
-        "description": "Don't even try to go there!",
-        "picture": null,
-        "author_id": "5",
-        "author_username": "da_usr",
-        "is_mine": false,
-        "is_saved": false
-    }
-]
+{
+    "results":
+        [
+            {
+                "id": "2",
+                "title": "Baboon",
+                "description": "Mystical place...",
+                "picture": {
+                    "small_url": "https://experiences/8c29.small.jpg",
+                    "medium_url": "https://experiences/8c29.medium.jpg",
+                    "large_url": "https://experiences/8c29.large.jpg"
+                },
+                "author_id": "3",
+                "author_username": "usr.nam",
+                "is_mine": false,
+                "is_saved": false
+            },
+            {
+                "id": "3",
+                "title": "Magic Castle of Lost Swamps",
+                "description": "Don't even try to go there!",
+                "picture": null,
+                "author_id": "5",
+                "author_username": "da_usr",
+                "is_mine": false,
+                "is_saved": false
+            }
+        ],
+    "next_url": "https://base_url/experiences/?mine=false&saved=false&limit=2&offset=2"
+}
 ```
 
 ### `POST /experiences`
