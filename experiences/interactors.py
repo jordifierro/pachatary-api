@@ -6,6 +6,8 @@ from experiences.entities import Experience
 
 class GetAllExperiencesInteractor:
 
+    MAX_PAGINATION_LIMIT = 20
+
     def __init__(self, experience_repo, permissions_validator):
         self.experience_repo = experience_repo
         self.permissions_validator = permissions_validator
@@ -21,6 +23,8 @@ class GetAllExperiencesInteractor:
     def execute(self):
         self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
 
+        if self.limit > GetAllExperiencesInteractor.MAX_PAGINATION_LIMIT:
+            self.limit = GetAllExperiencesInteractor.MAX_PAGINATION_LIMIT
         result = self.experience_repo.get_all_experiences(mine=self.mine, saved=self.saved,
                                                           limit=self.limit, offset=self.offset,
                                                           logged_person_id=self.logged_person_id)

@@ -25,6 +25,22 @@ class TestGetAllExperiences:
                 .then_validate_permissions_should_be_called_with_logged_person_id() \
                 .then_result_should_be_both_experiences_and_next_offset_and_same_limit()
 
+    def test_when_limit_is_higher_that_interactor_maximum(self):
+        TestGetAllExperiences.ScenarioMaker() \
+                .given_a_logged_person_id() \
+                .given_mine_true() \
+                .given_saved_true() \
+                .given_a_big_pagination_limit_and_offset() \
+                .given_a_permission_validator_that_returns_true() \
+                .given_an_experience() \
+                .given_another_experience() \
+                .given_a_next_offset() \
+                .given_a_repo_that_returns_both_experiences_and_next_offset() \
+                .when_interactor_is_executed() \
+                .then_should_call_get_all_experience_with_params_but_limit_at_20() \
+                .then_validate_permissions_should_be_called_with_logged_person_id() \
+                .then_result_should_be_both_experiences_and_next_offset_and_limit_20()
+
     def test_no_logged_raises_exception(self):
         TestGetAllExperiences.ScenarioMaker() \
                 .given_a_permission_validator_that_raises_exception() \
@@ -56,6 +72,11 @@ class TestGetAllExperiences:
 
         def given_a_pagination_limit_and_offset(self):
             self.limit = 7
+            self.offset = 4
+            return self
+
+        def given_a_big_pagination_limit_and_offset(self):
+            self.limit = 25
             self.offset = 4
             return self
 
@@ -105,9 +126,21 @@ class TestGetAllExperiences:
                                      "next_limit": self.limit}
             return self
 
+        def then_result_should_be_both_experiences_and_next_offset_and_limit_20(self):
+            assert self.response == {"results": [self.experience_a, self.experience_b],
+                                     "next_offset": self.next_offset,
+                                     "next_limit": 20}
+            return self
+
         def then_should_call_get_all_experience_with_logged_person_id_and_mine_params_and_limit_and_offset(self):
             self.experience_repo.get_all_experiences.assert_called_once_with(mine=self.mine, saved=self.saved,
                                                                              limit=self.limit, offset=self.offset,
+                                                                             logged_person_id=self.logged_person_id)
+            return self
+
+        def then_should_call_get_all_experience_with_params_but_limit_at_20(self):
+            self.experience_repo.get_all_experiences.assert_called_once_with(mine=self.mine, saved=self.saved,
+                                                                             limit=20, offset=self.offset,
                                                                              logged_person_id=self.logged_person_id)
             return self
 
