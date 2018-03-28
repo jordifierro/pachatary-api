@@ -13,10 +13,10 @@ class ExperiencesView:
     def get(self, mine='false', saved='false', logged_person_id=None):
         mine = (mine == 'true')
         saved = (saved == 'true')
-        experiences = self.get_all_experiences_interactor.set_params(mine=mine, saved=saved,
-                                                                     logged_person_id=logged_person_id).execute()
+        experiences_result = self.get_all_experiences_interactor.set_params(mine=mine, saved=saved,
+                                                                            logged_person_id=logged_person_id).execute()
 
-        body = MultipleExperiencesSerializer.serialize(experiences)
+        body = MultipleExperiencesSerializer.serialize(experiences_result)
         status = 200
         return body, status
 

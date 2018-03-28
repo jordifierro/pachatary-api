@@ -4,8 +4,8 @@ from pachatary.serializers import PictureSerializer
 class MultipleExperiencesSerializer:
 
     @staticmethod
-    def serialize(experiences):
-        return [ExperienceSerializer.serialize(experience) for experience in experiences]
+    def serialize(experiences_result):
+        return [ExperienceSerializer.serialize(experience) for experience in experiences_result["results"]]
 
 
 class ExperienceSerializer:

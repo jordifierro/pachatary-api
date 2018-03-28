@@ -25,9 +25,9 @@ class ExperiencesTestCase(TestCase):
         body = json.loads(response.content)
         assert body == [
                            {
-                               'id': str(exp_b.id),
-                               'title': 'Exp b',
-                               'description': 'other description',
+                               'id': str(exp_a.id),
+                               'title': 'Exp a',
+                               'description': 'some description',
                                'picture': None,
                                'author_id': orm_person.id,
                                'author_username': orm_person.username,
@@ -35,9 +35,9 @@ class ExperiencesTestCase(TestCase):
                                'is_saved': False
                            },
                            {
-                               'id': str(exp_a.id),
-                               'title': 'Exp a',
-                               'description': 'some description',
+                               'id': str(exp_b.id),
+                               'title': 'Exp b',
+                               'description': 'other description',
                                'picture': None,
                                'author_id': orm_person.id,
                                'author_username': orm_person.username,

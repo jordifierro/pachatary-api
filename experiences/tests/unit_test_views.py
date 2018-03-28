@@ -56,7 +56,8 @@ class TestExperiencesView:
         def given_an_interactor_that_returns_that_experiences(self):
             self.interactor_mock = Mock()
             self.interactor_mock.set_params.return_value = self.interactor_mock
-            self.interactor_mock.execute.return_value = [self.experience_a, self.experience_b]
+            self.interactor_mock.execute.return_value = {"results": [self.experience_a, self.experience_b],
+                                                         "next_offset": None}
             return self
 
         def when_get_experiences(self, logged_person_id, mine, saved):
@@ -74,7 +75,9 @@ class TestExperiencesView:
             return self
 
         def then_response_body_should_be_experiences_serialized(self):
-            assert self.body == MultipleExperiencesSerializer.serialize([self.experience_a, self.experience_b])
+            assert self.body == MultipleExperiencesSerializer.serialize({"results": [self.experience_a,
+                                                                                     self.experience_b],
+                                                                         "next_offset": None})
             return self
 
     def test_post_returns_experience_serialized_and_200(self):
