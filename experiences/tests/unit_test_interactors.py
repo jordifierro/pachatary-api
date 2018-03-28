@@ -14,13 +14,16 @@ class TestGetAllExperiences:
                 .given_a_logged_person_id() \
                 .given_mine_true() \
                 .given_saved_true() \
+                .given_a_pagination_limit_and_offset() \
                 .given_a_permission_validator_that_returns_true() \
                 .given_an_experience() \
                 .given_another_experience() \
-                .given_a_repo_that_returns_both_experiences() \
+                .given_a_next_offset() \
+                .given_a_repo_that_returns_both_experiences_and_next_offset() \
                 .when_interactor_is_executed() \
+                .then_should_call_get_all_experience_with_logged_person_id_and_mine_params_and_limit_and_offset() \
                 .then_validate_permissions_should_be_called_with_logged_person_id() \
-                .then_result_should_be_both_experiences()
+                .then_result_should_be_both_experiences_and_next_offset_and_same_limit()
 
     def test_no_logged_raises_exception(self):
         TestGetAllExperiences.ScenarioMaker() \
@@ -34,9 +37,10 @@ class TestGetAllExperiences:
         def __init__(self):
             self.logged_person_id = None
             self.experience_repo = None
-            self.permissions_validator = None
-            self.mine = None
-            self.saved = None
+            self.mine = False
+            self.saved = False
+            self.limit = 0
+            self.offset = 0
 
         def given_a_logged_person_id(self):
             self.logged_person_id = '0'
@@ -50,6 +54,11 @@ class TestGetAllExperiences:
             self.saved = True
             return self
 
+        def given_a_pagination_limit_and_offset(self):
+            self.limit = 7
+            self.offset = 4
+            return self
+
         def given_an_experience(self):
             self.experience_a = Experience(id=1, title='A', description='some',
                                            picture=None, author_id='1', author_username='usr')
@@ -58,6 +67,10 @@ class TestGetAllExperiences:
         def given_another_experience(self):
             self.experience_b = Experience(id=2, title='B', description='other',
                                            picture=None, author_id='1', author_username='usr')
+            return self
+
+        def given_a_next_offset(self):
+            self.next_offset = 7
             return self
 
         def given_a_permission_validator_that_returns_true(self):
@@ -70,27 +83,33 @@ class TestGetAllExperiences:
             self.permissions_validator.validate_permissions.side_effect = NoLoggedException()
             return self
 
-        def given_a_repo_that_returns_both_experiences(self):
+        def given_a_repo_that_returns_both_experiences_and_next_offset(self):
             self.experience_repo = Mock()
-            self.experience_repo.get_all_experiences.return_value = [self.experience_a, self.experience_b]
+            self.experience_repo.get_all_experiences.return_value = {"results": [self.experience_a, self.experience_b],
+                                                                     "next_offset": self.next_offset}
             return self
 
         def when_interactor_is_executed(self):
             try:
                 self.response = GetAllExperiencesInteractor(experience_repo=self.experience_repo,
                                                             permissions_validator=self.permissions_validator) \
-                        .set_params(mine=self.mine, saved=self.saved, logged_person_id=self.logged_person_id).execute()
+                        .set_params(mine=self.mine, saved=self.saved, logged_person_id=self.logged_person_id,
+                                    limit=self.limit, offset=self.offset).execute()
             except Exception as e:
                 self.error = e
             return self
 
-        def then_result_should_be_both_experiences(self):
-            assert self.response == [self.experience_a, self.experience_b]
+        def then_result_should_be_both_experiences_and_next_offset_and_same_limit(self):
+            assert self.response == {"results": [self.experience_a, self.experience_b],
+                                     "next_offset": self.next_offset,
+                                     "next_limit": self.limit}
             return self
 
-        def then_should_call_get_all_experience_with_logged_person_id_and_mine_params(self):
+        def then_should_call_get_all_experience_with_logged_person_id_and_mine_params_and_limit_and_offset(self):
             self.experience_repo.get_all_experiences.assert_called_once_with(mine=self.mine, saved=self.saved,
+                                                                             limit=self.limit, offset=self.offset,
                                                                              logged_person_id=self.logged_person_id)
+            return self
 
         def then_validate_permissions_should_be_called_with_logged_person_id(self):
             self.permissions_validator.validate_permissions \
@@ -391,7 +410,6 @@ class TestModifyExperience:
                     .set_params(id=self.id, title=None, description=self.description,
                                 logged_person_id=self.logged_person_id).execute()
             except Exception as e:
-                print(e)
                 self.error = e
             return self
 
