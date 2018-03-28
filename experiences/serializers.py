@@ -1,11 +1,23 @@
 from pachatary.serializers import PictureSerializer
 
 
+class ExperiencesResponseSerializer:
+
+    @staticmethod
+    def serialize(experiences, base_url, mine, saved, next_limit, next_offset):
+        if next_offset is not None:
+            next_url = '{}?mine={}&saved={}&limit={}&offset={}'.format(base_url, mine, saved, next_limit, next_offset)
+        else:
+            next_url = None
+
+        return {'results': MultipleExperiencesSerializer.serialize(experiences), 'next_url': next_url}
+
+
 class MultipleExperiencesSerializer:
 
     @staticmethod
-    def serialize(experiences_result):
-        return [ExperienceSerializer.serialize(experience) for experience in experiences_result["results"]]
+    def serialize(experiences):
+        return [ExperienceSerializer.serialize(experience) for experience in experiences]
 
 
 class ExperienceSerializer:

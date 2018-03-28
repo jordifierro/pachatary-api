@@ -1,22 +1,31 @@
 from pachatary.decorators import serialize_exceptions
-from .serializers import MultipleExperiencesSerializer, ExperienceSerializer
+from .serializers import ExperiencesResponseSerializer, ExperienceSerializer
 from .interactors import SaveUnsaveExperienceInteractor
 
 
 class ExperiencesView:
 
-    def __init__(self, get_all_experiences_interactor=None, create_new_experience_interactor=None):
+    def __init__(self, get_all_experiences_interactor=None, get_experiences_base_url=None,
+                 create_new_experience_interactor=None):
         self.get_all_experiences_interactor = get_all_experiences_interactor
+        self.get_experiences_base_url = get_experiences_base_url
         self.create_new_experience_interactor = create_new_experience_interactor
 
     @serialize_exceptions
-    def get(self, mine='false', saved='false', logged_person_id=None):
-        mine = (mine == 'true')
-        saved = (saved == 'true')
-        experiences_result = self.get_all_experiences_interactor.set_params(mine=mine, saved=saved,
-                                                                            logged_person_id=logged_person_id).execute()
+    def get(self, mine='false', saved='false', logged_person_id=None, limit='20', offset='0'):
+        boolean_mine = (mine == 'true')
+        boolean_saved = (saved == 'true')
+        limit = int(limit)
+        offset = int(offset)
+        experiences_result = self.get_all_experiences_interactor.set_params(mine=boolean_mine, saved=boolean_saved,
+                                                                            logged_person_id=logged_person_id,
+                                                                            limit=limit, offset=offset).execute()
 
-        body = MultipleExperiencesSerializer.serialize(experiences_result)
+        body = ExperiencesResponseSerializer.serialize(experiences=experiences_result["results"],
+                                                       base_url=self.get_experiences_base_url,
+                                                       mine=mine, saved=saved,
+                                                       next_limit=experiences_result['next_limit'],
+                                                       next_offset=experiences_result['next_offset'])
         status = 200
         return body, status
 

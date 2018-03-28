@@ -1,3 +1,5 @@
+from django.urls import reverse
+
 from people.factories import create_person_permissions_validator
 from .repositories import ExperienceRepo
 from .validators import ExperienceValidator, ExperiencePermissionsValidator
@@ -47,6 +49,7 @@ def create_save_unsave_experience_interactor():
 
 def create_experiences_view(request, **kwargs):
     return ExperiencesView(get_all_experiences_interactor=create_get_all_experiences_interactor(),
+                           get_experiences_base_url=request.build_absolute_uri(reverse('experiences')),
                            create_new_experience_interactor=create_create_new_experience_interactor())
 
 
