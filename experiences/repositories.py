@@ -27,9 +27,9 @@ class ExperienceRepo:
         if saved:
             db_experiences = \
                 [save.experience for save
-                    in ORMSave.objects.order_by('id').select_related('experience').filter(person_id=logged_person_id)]
+                    in ORMSave.objects.order_by('-id').select_related('experience').filter(person_id=logged_person_id)]
         else:
-            all_db_experiences = ORMExperience.objects.order_by('id').select_related('author').all()
+            all_db_experiences = ORMExperience.objects.order_by('-id').select_related('author').all()
             if mine:
                 db_experiences = all_db_experiences.filter(author_id=logged_person_id)
             else:

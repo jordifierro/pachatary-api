@@ -14,9 +14,9 @@ class ExperiencesTestCase(TestCase):
     def test_mine_experiences_returns_my_experiences(self):
         orm_person = ORMPerson.objects.create(username='usr')
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
-        exp_a = ORMExperience.objects.create(title='Exp a', description='some description', author=orm_person)
-        exp_b = ORMExperience.objects.create(title='Exp b', description='other description', author=orm_person)
         ORMExperience.objects.create(title='Exp c', description='other description', author=orm_person)
+        exp_b = ORMExperience.objects.create(title='Exp b', description='other description', author=orm_person)
+        exp_a = ORMExperience.objects.create(title='Exp a', description='some description', author=orm_person)
 
         client = Client()
         auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }
@@ -54,9 +54,9 @@ class ExperiencesTestCase(TestCase):
         orm_person = ORMPerson.objects.create(username='usr')
         orm_person_b = ORMPerson.objects.create(username='nme')
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person_b)
-        exp_a = ORMExperience.objects.create(title='Exp a', description='some description', author=orm_person)
-        exp_b = ORMExperience.objects.create(title='Exp b', description='other description', author=orm_person)
         ORMExperience.objects.create(title='Exp c', description='other description', author=orm_person)
+        exp_b = ORMExperience.objects.create(title='Exp b', description='other description', author=orm_person)
+        exp_a = ORMExperience.objects.create(title='Exp a', description='some description', author=orm_person)
 
         client = Client()
         auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }

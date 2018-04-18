@@ -21,7 +21,7 @@ class ExperienceRepoTestCase(TestCase):
                 .given_a_fourth_experience_created_by_second_person_and_saved_by_second() \
                 .given_logged_person_id_is_first_person_id() \
                 .when_get_all_experiences(mine=False) \
-                .then_repo_should_return_just_second_two_experience_and_fourth_with_saved_mine_false()
+                .then_repo_should_return_second_two_experience_and_fourth_with_saved_mine_false_ordered_asc_by_create()
 
     def test_get_all_experiences_with_mine_true_returns_mine_experiences(self):
         ExperienceRepoTestCase.ScenarioMaker() \
@@ -33,7 +33,7 @@ class ExperienceRepoTestCase(TestCase):
                 .given_another_experience_created_by_second_person_in_db() \
                 .given_logged_person_id_is_first_person_id() \
                 .when_get_all_experiences(mine=True) \
-                .then_repo_should_return_just_first_two_experience_with_mine_true()
+                .then_repo_should_return_just_first_two_experience_with_mine_true_ordered_asc_by_create()
 
     def test_get_all_experiences_with_saved_true_returns_only_saved_experiences(self):
         ExperienceRepoTestCase.ScenarioMaker() \
@@ -43,10 +43,12 @@ class ExperienceRepoTestCase(TestCase):
                 .given_another_person_in_db() \
                 .given_an_experience_created_by_second_person_in_db() \
                 .given_another_experience_created_by_second_person_in_db() \
+                .given_a_third_experience_created_by_second_person_in_db() \
+                .given_a_save_to_third_second_person_experience_from_first_person() \
                 .given_a_save_to_first_second_person_experience_from_first_person() \
                 .given_logged_person_id_is_first_person_id() \
                 .when_get_all_experiences(saved=True) \
-                .then_repo_should_return_just_first_second_person_experience_with_saved_true()
+                .then_repo_should_return_second_person_experience_with_saved_true_ordered_asc_by_saved()
 
     def test_get_all_experiences_with_no_experiences_returns_empty(self):
         ExperienceRepoTestCase.ScenarioMaker() \
@@ -205,6 +207,14 @@ class ExperienceRepoTestCase(TestCase):
                                            author_username=self.second_orm_person.username)
             return self
 
+        def given_a_third_experience_created_by_second_person_in_db(self):
+            self.orm_experience_e = ORMExperience.objects.create(title='Exp e', description='description',
+                                                                 author=self.second_orm_person)
+            self.experience_e = Experience(id=self.orm_experience_e.id, title='Exp e', description='description',
+                                           author_id=self.second_orm_person.id,
+                                           author_username=self.second_orm_person.username)
+            return self
+
         def given_a_third_experience_created_by_second_person_and_saved_by_first(self):
             self.orm_experience_e = ORMExperience.objects.create(title='Exp e', description='description',
                                                                  author=self.second_orm_person)
@@ -261,6 +271,10 @@ class ExperienceRepoTestCase(TestCase):
             ORMSave.objects.create(person=self.orm_person, experience=self.orm_experience_c)
             return self
 
+        def given_a_save_to_third_second_person_experience_from_first_person(self):
+            ORMSave.objects.create(person=self.orm_person, experience=self.orm_experience_e)
+            return self
+
         def when_get_all_experiences(self, mine=False, saved=False, offset=0, limit=100):
             self.result = ExperienceRepo().get_all_experiences(self.logged_person_id, offset, limit,
                                                                mine=mine, saved=saved)
@@ -301,21 +315,22 @@ class ExperienceRepoTestCase(TestCase):
                 self.error = e
             return self
 
-        def then_repo_should_return_just_first_two_experience_with_mine_true(self):
-            assert self.result["results"] == [self.experience_a.builder().is_mine(True).build(),
-                                              self.experience_b.builder().is_mine(True).build()]
+        def then_repo_should_return_just_first_two_experience_with_mine_true_ordered_asc_by_create(self):
+            assert self.result["results"] == [self.experience_b.builder().is_mine(True).build(),
+                                              self.experience_a.builder().is_mine(True).build()]
             return self
 
-        def then_repo_should_return_just_second_two_experience_and_fourth_with_saved_mine_false(self):
-            assert self.result["results"] == [self.experience_c, self.experience_d, self.experience_f]
+        def then_repo_should_return_second_two_experience_and_fourth_with_saved_mine_false_ordered_asc_by_create(self):
+            assert self.result["results"] == [self.experience_f, self.experience_d, self.experience_c]
             return self
 
         def then_repo_should_return_just_second_two_experience(self):
             assert self.result["results"] == [self.experience_c, self.experience_d]
             return self
 
-        def then_repo_should_return_just_first_second_person_experience_with_saved_true(self):
-            assert self.result["results"] == [self.experience_c.builder().is_saved(True).build()]
+        def then_repo_should_return_second_person_experience_with_saved_true_ordered_asc_by_saved(self):
+            assert self.result["results"] == [self.experience_c.builder().is_saved(True).build(),
+                                              self.experience_e.builder().is_saved(True).build()]
             return self
 
         def then_repo_should_return_experience(self):
@@ -338,17 +353,17 @@ class ExperienceRepoTestCase(TestCase):
             return self
 
         def then_repo_should_return_that_experiences_but_not_next_offset(self):
-            assert self.result["results"] == self.experiences
+            assert self.result["results"] == list(reversed(self.experiences))
             assert self.result["next_offset"] is None
             return self
 
         def then_repo_should_return_two_experiences_and_next_offset_2(self):
-            assert self.result["results"] == self.experiences[0:2]
+            assert self.result["results"] == list(reversed(self.experiences))[0:2]
             assert self.result["next_offset"] == 2
             return self
 
         def then_repo_should_return_third_and_fourth_experiences_and_offset_4(self):
-            assert self.result["results"] == self.experiences[2:4]
+            assert self.result["results"] == list(reversed(self.experiences))[2:4]
             assert self.result["next_offset"] == 4
             return self
 
