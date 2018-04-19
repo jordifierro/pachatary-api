@@ -1,3 +1,5 @@
+from django.db.models import F
+
 from pachatary.entities import Picture
 from pachatary.exceptions import EntityDoesNotExistException
 from .models import ORMExperience, ORMSave
@@ -21,7 +23,8 @@ class ExperienceRepo:
                           author_id=db_experience.author.id,
                           author_username=db_experience.author.username,
                           is_mine=is_mine,
-                          is_saved=is_saved)
+                          is_saved=is_saved,
+                          saves_count=db_experience.saves_count)
 
     def get_all_experiences(self, logged_person_id, offset=0, limit=100, mine=False, saved=False):
         if saved:
@@ -78,8 +81,12 @@ class ExperienceRepo:
     def save_experience(self, person_id, experience_id):
         if not ORMSave.objects.filter(person_id=person_id, experience_id=experience_id).exists():
             ORMSave.objects.create(person_id=person_id, experience_id=experience_id)
+            ORMExperience.objects.filter(id=experience_id).update(saves_count=F('saves_count') + 1)
         return True
 
     def unsave_experience(self, person_id, experience_id):
-        ORMSave.objects.filter(person_id=person_id, experience_id=experience_id).delete()
+        deleted = ORMSave.objects.filter(person_id=person_id, experience_id=experience_id).delete()
+        if deleted[0] == 1:
+            ORMExperience.objects.filter(id=experience_id).update(saves_count=F('saves_count') - 1)
+
         return True

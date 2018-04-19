@@ -15,6 +15,7 @@ class ORMExperience(models.Model):
                             blank=True)
     author = models.ForeignKey(ORMPerson, on_delete=models.CASCADE)
 
+    saves_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

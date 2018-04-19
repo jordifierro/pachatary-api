@@ -6,6 +6,7 @@ from django.test import Client
 from django.urls import reverse
 
 from experiences.models import ORMExperience, ORMSave
+from experiences.repositories import ExperienceRepo
 from people.models import ORMPerson, ORMAuthToken
 
 
@@ -34,7 +35,8 @@ class ExperiencesTestCase(TestCase):
                                'author_id': orm_person.id,
                                'author_username': orm_person.username,
                                'is_mine': True,
-                               'is_saved': False
+                               'is_saved': False,
+                               'saves_count': 0
                            },
                            {
                                'id': str(exp_b.id),
@@ -44,7 +46,8 @@ class ExperiencesTestCase(TestCase):
                                'author_id': orm_person.id,
                                'author_username': orm_person.username,
                                'is_mine': True,
-                               'is_saved': False
+                               'is_saved': False,
+                               'saves_count': 0
                            },
                        ],
                 'next_url': 'http://testserver/experiences/?mine=true&saved=false&limit=2&offset=2'
@@ -74,7 +77,8 @@ class ExperiencesTestCase(TestCase):
                                'author_id': orm_person.id,
                                'author_username': orm_person.username,
                                'is_mine': False,
-                               'is_saved': False
+                               'is_saved': False,
+                               'saves_count': 0
                            },
                            {
                                'id': str(exp_b.id),
@@ -84,7 +88,8 @@ class ExperiencesTestCase(TestCase):
                                'author_id': orm_person.id,
                                'author_username': orm_person.username,
                                'is_mine': False,
-                               'is_saved': False
+                               'is_saved': False,
+                               'saves_count': 0
                            },
                        ],
                 'next_url': 'http://testserver/experiences/?mine=false&saved=false&limit=2&offset=2'
@@ -96,7 +101,7 @@ class ExperiencesTestCase(TestCase):
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
         exp_a = ORMExperience.objects.create(title='Exp a', description='some description', author=orm_person_b)
         ORMExperience.objects.create(title='Exp b', description='other description', author=orm_person_b)
-        ORMSave.objects.create(person=orm_person, experience=exp_a)
+        ExperienceRepo().save_experience(orm_person.id, exp_a.id)
 
         client = Client()
         auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }
@@ -114,7 +119,8 @@ class ExperiencesTestCase(TestCase):
                                'author_id': orm_person_b.id,
                                'author_username': orm_person_b.username,
                                'is_mine': False,
-                               'is_saved': True
+                               'is_saved': True,
+                               'saves_count': 1
                            }
                        ],
                 'next_url': None
@@ -144,7 +150,8 @@ class CreateExperienceTestCase(TestCase):
                            'author_id': orm_person.id,
                            'author_username': orm_person.username,
                            'is_mine': True,
-                           'is_saved': False
+                           'is_saved': False,
+                           'saves_count': 0
                        }
 
     def test_wrong_attributes_doesnt_create_and_returns_error(self):
@@ -190,7 +197,8 @@ class ModifyExperienceTestCase(TestCase):
                            'author_id': orm_person.id,
                            'author_username': orm_person.username,
                            'is_mine': True,
-                           'is_saved': False
+                           'is_saved': False,
+                           'saves_count': 0
                        }
 
     def test_wrong_attributes_doesnt_update_and_returns_error(self):

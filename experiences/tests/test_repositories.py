@@ -125,7 +125,8 @@ class ExperienceRepoTestCase(TestCase):
                 .given_an_experience_in_db() \
                 .when_save_that_experience() \
                 .then_result_should_be_true() \
-                .then_save_should_be_created_for_that_experience_and_person()
+                .then_save_should_be_created_for_that_experience_and_person() \
+                .then_experience_saves_count_should_be(1)
 
     def test_save_twice_doesnt_create_2_saves(self):
         ExperienceRepoTestCase.ScenarioMaker() \
@@ -134,7 +135,8 @@ class ExperienceRepoTestCase(TestCase):
                 .given_a_save_for_that_person_and_experience() \
                 .when_save_that_experience() \
                 .then_result_should_be_true() \
-                .then_save_for_that_experience_and_person_should_be_only_one()
+                .then_save_for_that_experience_and_person_should_be_only_one() \
+                .then_experience_saves_count_should_be(1)
 
     def test_unsave_experience(self):
         ExperienceRepoTestCase.ScenarioMaker() \
@@ -143,7 +145,8 @@ class ExperienceRepoTestCase(TestCase):
                 .given_a_save_for_that_person_and_experience() \
                 .when_unsave_that_experience() \
                 .then_result_should_be_true() \
-                .then_save_should_be_deleted_from_db()
+                .then_save_should_be_deleted_from_db() \
+                .then_experience_saves_count_should_be(0)
 
     class ScenarioMaker:
 
@@ -230,7 +233,7 @@ class ExperienceRepoTestCase(TestCase):
             self.experience_f = Experience(id=self.orm_experience_f.id, title='Exp f', description='description',
                                            author_id=self.second_orm_person.id,
                                            author_username=self.second_orm_person.username)
-            ORMSave.objects.create(person=self.second_orm_person, experience=self.orm_experience_f)
+            ExperienceRepo().save_experience(self.second_orm_person.id, self.orm_experience_f.id)
             return self
 
         def given_logged_person_id_is_first_person_id(self):
@@ -264,15 +267,15 @@ class ExperienceRepoTestCase(TestCase):
             return self
 
         def given_a_save_for_that_person_and_experience(self):
-            ORMSave.objects.create(person=self.orm_person, experience=self.orm_experience_a)
+            ExperienceRepo().save_experience(self.orm_person.id, self.orm_experience_a.id)
             return self
 
         def given_a_save_to_first_second_person_experience_from_first_person(self):
-            ORMSave.objects.create(person=self.orm_person, experience=self.orm_experience_c)
+            ExperienceRepo().save_experience(self.orm_person.id, self.orm_experience_c.id)
             return self
 
         def given_a_save_to_third_second_person_experience_from_first_person(self):
-            ORMSave.objects.create(person=self.orm_person, experience=self.orm_experience_e)
+            ExperienceRepo().save_experience(self.orm_person.id, self.orm_experience_e.id)
             return self
 
         def when_get_all_experiences(self, mine=False, saved=False, offset=0, limit=100):
@@ -321,7 +324,8 @@ class ExperienceRepoTestCase(TestCase):
             return self
 
         def then_repo_should_return_second_two_experience_and_fourth_with_saved_mine_false_ordered_asc_by_create(self):
-            assert self.result["results"] == [self.experience_f, self.experience_d, self.experience_c]
+            assert self.result["results"] == [self.experience_f.builder().saves_count(1).build(),
+                                              self.experience_d, self.experience_c]
             return self
 
         def then_repo_should_return_just_second_two_experience(self):
@@ -329,8 +333,8 @@ class ExperienceRepoTestCase(TestCase):
             return self
 
         def then_repo_should_return_second_person_experience_with_saved_true_ordered_asc_by_saved(self):
-            assert self.result["results"] == [self.experience_c.builder().is_saved(True).build(),
-                                              self.experience_e.builder().is_saved(True).build()]
+            assert self.result["results"] == [self.experience_c.builder().is_saved(True).saves_count(1).build(),
+                                              self.experience_e.builder().is_saved(True).saves_count(1).build()]
             return self
 
         def then_repo_should_return_experience(self):
@@ -401,3 +405,7 @@ class ExperienceRepoTestCase(TestCase):
         def then_save_should_be_deleted_from_db(self):
             assert not ORMSave.objects.filter(person=self.orm_person, experience=self.orm_experience_a).exists()
             return self
+
+        def then_experience_saves_count_should_be(self, saves_count):
+            self.orm_experience_a.refresh_from_db()
+            assert self.orm_experience_a.saves_count == saves_count

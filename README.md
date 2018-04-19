@@ -45,7 +45,8 @@ _Response:_
                 "author_id": "5",
                 "author_username": "da_usr",
                 "is_mine": false,
-                "is_saved": false
+                "is_saved": false,
+                "saves_count": 5
             },
             {
                 "id": "2",
@@ -59,7 +60,8 @@ _Response:_
                 "author_id": "3",
                 "author_username": "usr.nam",
                 "is_mine": false,
-                "is_saved": false
+                "is_saved": false,
+                "saves_count": 32
             }
         ],
     "next_url": "https://base_url/experiences/?mine=false&saved=false&limit=2&offset=2"
@@ -88,7 +90,8 @@ _201_
     "author_id": "8",
     "author_username": "my.name",
     "is_mine": true,
-    "is_saved": false
+    "is_saved": false,
+    "saves_count": 2
 }
 ```
 
@@ -127,7 +130,8 @@ _200_
     "author_id": "8",
     "author_username": "my.name",
     "is_mine": true,
-    "is_saved": false
+    "is_saved": false,
+    "saves_count": 8
 }
 ```
 

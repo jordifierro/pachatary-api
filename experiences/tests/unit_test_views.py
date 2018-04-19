@@ -57,13 +57,13 @@ class TestExperiencesView:
         def given_an_experience_a(self):
             picture_a = Picture(small_url='small.a', medium_url='medium.a', large_url='large.a')
             self.experience_a = Experience(id=1, title='A', description='some', picture=picture_a,
-                                           author_id='4', author_username='usr')
+                                           author_id='4', author_username='usr', saves_count=4)
             return self
 
         def given_an_experience_b(self):
             picture_b = Picture(small_url='small.b', medium_url='medium.b', large_url='large.b')
             self.experience_b = Experience(id=2, title='B', description='other', picture=picture_b,
-                                           author_id='5', author_username='nms')
+                                           author_id='5', author_username='nms', saves_count=9)
             return self
 
         def given_a_next_limit_and_offset(self):
@@ -103,7 +103,8 @@ class TestExperiencesView:
             return self
 
     def test_post_returns_experience_serialized_and_200(self):
-        experience = Experience(id='1', title='B', description='some', author_id='6', author_username='usr')
+        experience = Experience(id='1', title='B', description='some',
+                                author_id='6', author_username='usr', saves_count=8)
 
         interactor_mock = Mock()
         interactor_mock.set_params.return_value = interactor_mock
@@ -122,14 +123,16 @@ class TestExperiencesView:
                            'author_id': '6',
                            'author_username': 'usr',
                            'is_mine': False,
-                           'is_saved': False
+                           'is_saved': False,
+                           'saves_count': 8
                        }
 
 
 class TestExperienceView:
 
     def test_patch_returns_experience_serialized_and_200(self):
-        experience = Experience(id='1', title='B', description='some', author_id='8', author_username='usrnm')
+        experience = Experience(id='1', title='B', description='some',
+                                author_id='8', author_username='usrnm', saves_count=8)
 
         interactor_mock = Mock()
         interactor_mock.set_params.return_value = interactor_mock
@@ -148,7 +151,8 @@ class TestExperienceView:
                            'author_id': '8',
                            'author_username': 'usrnm',
                            'is_mine': False,
-                           'is_saved': False
+                           'is_saved': False,
+                           'saves_count': 8
                        }
 
 
