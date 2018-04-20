@@ -1,7 +1,10 @@
+from elasticsearch import Elasticsearch
+
 from django.urls import reverse
+from django.conf import settings
 
 from people.factories import create_person_permissions_validator
-from .repositories import ExperienceRepo
+from .repositories import ExperienceRepo, ExperienceSearchRepo
 from .validators import ExperienceValidator, ExperiencePermissionsValidator
 from .interactors import GetAllExperiencesInteractor, CreateNewExperienceInteractor, \
         ModifyExperienceInteractor, UploadExperiencePictureInteractor, SaveUnsaveExperienceInteractor
@@ -10,6 +13,11 @@ from .views import ExperiencesView, ExperienceView, UploadExperiencePictureView,
 
 def create_experience_repo():
     return ExperienceRepo()
+
+
+def create_experience_elastic_repo():
+    elastic_client = Elasticsearch([settings.ELASTICSEARCH_URL])
+    return ExperienceSearchRepo(elastic_client)
 
 
 def create_experience_validator():

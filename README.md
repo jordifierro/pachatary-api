@@ -494,6 +494,11 @@ to create user and database.
 ```bash
 postgres -D /usr/local/var/postgres &
 ```
+* Download elasticsearch-6.2.4, extract it inside `../env` folder
+and then run:
+```bash
+../env/elasticsearch-6.2.4/bin/elasticsearch &
+```
 * Install python version specified on `runtime.txt`
 and run:
 ```bash

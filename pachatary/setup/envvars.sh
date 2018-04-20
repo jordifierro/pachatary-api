@@ -18,6 +18,8 @@ export EMAIL_PORT='123'
 
 export ANDROID_DEEPLINK_DOMAIN='app://local-pachatary.com'
 
+export ELASTICSEARCH_URL='http://localhost:9200/'
+
 # Remote deployment extra env vars
 # export HOST='domain.host.com'
 # export AWS_ACCESS_KEY_ID='amazon_key'

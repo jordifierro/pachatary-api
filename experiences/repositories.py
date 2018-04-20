@@ -90,3 +90,59 @@ class ExperienceRepo:
             ORMExperience.objects.filter(id=experience_id).update(saves_count=F('saves_count') - 1)
 
         return True
+
+
+class ExperienceSearchRepo(object):
+
+    EXPERIENCE_INDEX = 'experience_index'
+    EXPERIENCE_DOC_TYPE = 'experience'
+
+    def __init__(self, elastic_client):
+        self.elastic_client = elastic_client
+
+    def _create_experience_index(self):
+        index = ExperienceSearchRepo.EXPERIENCE_INDEX
+        body = {
+            "settings": {
+                "index": {
+                    "number_of_shards": 3,
+                    "number_of_replicas": 1
+                }
+            },
+            "mappings": {
+                ExperienceSearchRepo.EXPERIENCE_DOC_TYPE: {
+                    "_source": {"enabled": False},
+                    "properties": {
+                        "title": {"type": "text"},
+                        "description": {"type": "text"},
+                        "scenes_titles": {"type": "text"},
+                        "scenes_descriptions": {"type": "text"},
+                        "author_id": {"type": "keyword"},
+                        "saves_count": {"type": "integer"},
+                        "center_location": {"type": "geo_point"}
+                    }
+                }
+            }
+        }
+        self.elastic_client.indices.create(index=index, body=body)
+
+    def _delete_experience_index(self):
+        self.elastic_client.indices.delete(index=ExperienceSearchRepo.EXPERIENCE_INDEX)
+
+    def index_experience_and_its_scenes(self, experience, scenes):
+        doc = {
+                'title': experience.title,
+                'description': experience.description,
+                'scenes_titles': ' '.join([scene.title for scene in scenes]),
+                'scenes_descriptions': ' '.join([scene.description for scene in scenes]),
+                'author_id': experience.author_id,
+                'saves_count': experience.saves_count,
+                'center_location': self._get_center_of_points([(scene.latitude, scene.longitude) for scene in scenes])
+              }
+        self.elastic_client.index(index=ExperienceSearchRepo.EXPERIENCE_INDEX,
+                                  doc_type=ExperienceSearchRepo.EXPERIENCE_DOC_TYPE,
+                                  body=doc, id=experience.id)
+
+    def _get_center_of_points(self, points):
+        return [sum([p[0] for p in points]) / len(points),
+                sum([p[1] for p in points]) / len(points)]

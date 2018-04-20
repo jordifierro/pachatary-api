@@ -182,6 +182,8 @@ EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
 EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
 EMAIL_PORT = int(os.environ['EMAIL_PORT'])
 
+ELASTICSEARCH_URL = os.environ['ELASTICSEARCH_URL']
+
 if not LOCAL_DEPLOY:
     ROLLBAR = {
         'access_token': os.environ['ROLLBAR_ACCESS_TOKEN'],
