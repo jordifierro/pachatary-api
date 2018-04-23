@@ -4,6 +4,8 @@ from pachatary.exceptions import EntityDoesNotExistException
 from experiences.entities import Experience
 from experiences.models import ORMExperience, ORMSave
 from experiences.repositories import ExperienceRepo
+from experiences.factories import create_experience_elastic_repo
+from scenes.entities import Scene
 from people.models import ORMPerson
 
 
@@ -409,3 +411,210 @@ class ExperienceRepoTestCase(TestCase):
         def then_experience_saves_count_should_be(self, saves_count):
             self.orm_experience_a.refresh_from_db()
             assert self.orm_experience_a.saves_count == saves_count
+
+
+class ExperienceElasticRepoTestCase(TestCase):
+
+    BARCELONA = (41.385064, 2.173403)
+    BERLIN = (52.520007, 13.404954)
+    CUSCO = (-13.531950, -71.967463)
+
+    def test_search_by_title(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience(title='bike routes') \
+                .given_an_experience(title='mountain bike') \
+                .given_an_experience(title='barcelona restaurants') \
+                .given_an_experience(title='romanic monuments') \
+                .when_index_everything_and_search(word='mountain') \
+                .then_should_return_experiences(['2'])
+
+    def test_search_by_description(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience(description='bike routes') \
+                .given_an_experience(description='alpinism mountain') \
+                .given_an_experience(description='barcelona restaurants') \
+                .given_an_experience(description='romanic monuments') \
+                .when_index_everything_and_search(word='mountain') \
+                .then_should_return_experiences(['2'])
+
+    def test_search_by_scene_title(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience() \
+                .given_an_scene(title='eco tour', experience_id_of_number=1) \
+                .given_an_experience() \
+                .given_an_scene(title='science museums', experience_id_of_number=2) \
+                .given_an_experience() \
+                .given_an_scene(title='ruta del bacalao', experience_id_of_number=3) \
+                .when_index_everything_and_search(word='eco') \
+                .then_should_return_experiences(['1'])
+
+    def test_search_by_scene_description(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience() \
+                .given_an_scene(description='eco markets', experience_id_of_number=1) \
+                .given_an_experience() \
+                .given_an_scene(description='science museums', experience_id_of_number=2) \
+                .given_an_experience() \
+                .given_an_scene(description='ruta del bacalao', experience_id_of_number=3) \
+                .when_index_everything_and_search(word='eco') \
+                .then_should_return_experiences(['1'])
+
+    def test_search_by_title_accepts_typos(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience(title='bike routes') \
+                .given_an_experience(title='mountein bike') \
+                .given_an_experience(title='barcelona restaurants') \
+                .given_an_experience(title='romanic monuments') \
+                .when_index_everything_and_search(word='mountain') \
+                .then_should_return_experiences(['2'])
+
+    def test_search_by_description_accepts_typos(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience(description='bike routes') \
+                .given_an_experience(description='alpinism mountains') \
+                .given_an_experience(description='barcelona restaurants') \
+                .given_an_experience(description='romanic monuments') \
+                .when_index_everything_and_search(word='mountain') \
+                .then_should_return_experiences(['2'])
+
+    def test_search_by_scene_title_accepts_typos(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience() \
+                .given_an_scene(title='eko tour', experience_id_of_number=1) \
+                .given_an_experience() \
+                .given_an_scene(title='science museums', experience_id_of_number=2) \
+                .given_an_experience() \
+                .given_an_scene(title='ruta del bacalao', experience_id_of_number=3) \
+                .when_index_everything_and_search(word='eco') \
+                .then_should_return_experiences(['1'])
+
+    def test_search_by_scene_description_accepts_typos(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience() \
+                .given_an_scene(description='ecoo markets', experience_id_of_number=1) \
+                .given_an_experience() \
+                .given_an_scene(description='science museums', experience_id_of_number=2) \
+                .given_an_experience() \
+                .given_an_scene(description='ruta del bacalao', experience_id_of_number=3) \
+                .when_index_everything_and_search(word='eco') \
+                .then_should_return_experiences(['1'])
+
+    def test_search_by_title_sorts_by_length(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience(title='bike routes') \
+                .given_an_experience(title='mountain bike routes for everyone') \
+                .given_an_experience(title='mountain') \
+                .given_an_experience(title='barcelona restaurants') \
+                .given_an_experience(title='romanic monuments') \
+                .when_index_everything_and_search(word='mountain') \
+                .then_should_return_experiences(['3', '2'])
+
+    def test_search_by_description_sorts_by_length(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience(description='mountain bike routes') \
+                .given_an_experience(description='bike routes') \
+                .given_an_experience(description='alpinism mountain') \
+                .given_an_experience(description='barcelona restaurants') \
+                .given_an_experience(description='romanic monuments') \
+                .when_index_everything_and_search(word='mountain') \
+                .then_should_return_experiences(['3', '1'])
+
+    def test_search_by_scene_title_sorts_by_length(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience() \
+                .given_an_scene(title='eco tour', experience_id_of_number=1) \
+                .given_an_experience() \
+                .given_an_scene(title='eco markets in your town', experience_id_of_number=2) \
+                .given_an_experience() \
+                .given_an_scene(title='science museums', experience_id_of_number=3) \
+                .given_an_experience() \
+                .given_an_scene(title='ruta del bacalao', experience_id_of_number=4) \
+                .when_index_everything_and_search(word='eco') \
+                .then_should_return_experiences(['1', '2'])
+
+    def test_search_by_scene_description_sorts_by_length(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience() \
+                .given_an_scene(description='eco markets in your town', experience_id_of_number=1) \
+                .given_an_experience() \
+                .given_an_scene(description='science museums', experience_id_of_number=2) \
+                .given_an_experience() \
+                .given_an_scene(description='correbars', experience_id_of_number=3) \
+                .given_an_experience() \
+                .given_an_scene(description='eco tour', experience_id_of_number=4) \
+                .when_index_everything_and_search(word='eco') \
+                .then_should_return_experiences(['4', '1'])
+
+    def test_search_boosts_by_saves_count(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience(title='bike shopping center', saves_count=1000) \
+                .given_an_experience(title='bike tour', saves_count=100) \
+                .given_an_experience(title='bike route', saves_count=10000) \
+                .when_index_everything_and_search(word='bike') \
+                .then_should_return_experiences(['3', '1', '2'])
+
+    def test_search_boosts_by_location_proximity(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience() \
+                .given_an_scene(description='eco tour', latitude=ExperienceElasticRepoTestCase.BARCELONA[0],
+                                longitude=ExperienceElasticRepoTestCase.BARCELONA[1], experience_id_of_number=1) \
+                .given_an_experience() \
+                .given_an_scene(description='eco markets', latitude=ExperienceElasticRepoTestCase.CUSCO[0],
+                                longitude=ExperienceElasticRepoTestCase.CUSCO[1], experience_id_of_number=2) \
+                .given_an_experience() \
+                .given_an_scene(description='eco shops', latitude=ExperienceElasticRepoTestCase.BERLIN[0],
+                                longitude=ExperienceElasticRepoTestCase.BERLIN[1], experience_id_of_number=3) \
+                .when_index_everything_and_search(word='eco', location=ExperienceElasticRepoTestCase.BARCELONA) \
+                .then_should_return_experiences(['1', '3', '2'])
+
+    def test_search_location_boost_is_more_important_than_saves(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience(saves_count=1000) \
+                .given_an_scene(description='barcelona restaurants',
+                                latitude=ExperienceElasticRepoTestCase.BARCELONA[0],
+                                longitude=ExperienceElasticRepoTestCase.BARCELONA[1], experience_id_of_number=1) \
+                .given_an_experience(saves_count=1000000) \
+                .given_an_scene(description='cusco restaurants',
+                                latitude=ExperienceElasticRepoTestCase.CUSCO[0],
+                                longitude=ExperienceElasticRepoTestCase.CUSCO[1], experience_id_of_number=2) \
+                .given_an_experience(saves_count=100000) \
+                .given_an_scene(description='berlin restaurants',
+                                latitude=ExperienceElasticRepoTestCase.BERLIN[0],
+                                longitude=ExperienceElasticRepoTestCase.BERLIN[1], experience_id_of_number=3) \
+                .when_index_everything_and_search(word='restaurants',
+                                                  location=ExperienceElasticRepoTestCase.BARCELONA) \
+                .then_should_return_experiences(['1', '3', '2'])
+
+    class ScenarioMaker:
+
+        def __init__(self):
+            self.repo = create_experience_elastic_repo()
+            self.repo._delete_experience_index()
+            self.repo._create_experience_index()
+            self.experiences = []
+            self.scenes = []
+
+        def given_an_experience(self, title='', description='', saves_count=0):
+            experience = Experience(id=str(len(self.experiences)+1), title=title,
+                                    description=description, author_id='0', saves_count=saves_count)
+            self.experiences.append(experience)
+            return self
+
+        def given_an_scene(self, title='', description='', latitude=0.0, longitude=0.0, experience_id_of_number=1):
+            scene = Scene(id=str(len(self.scenes)+1), title=title,
+                          description=description, latitude=latitude, longitude=longitude,
+                          experience_id=self.experiences[experience_id_of_number-1].id)
+            self.scenes.append(scene)
+            return self
+
+        def when_index_everything_and_search(self, word, location=None):
+            for experience in self.experiences:
+                experience_scenes = [scene for scene in self.scenes if scene.experience_id == experience.id]
+                self.repo.index_experience_and_its_scenes(experience, experience_scenes)
+            self.repo._refresh_experience_index()
+            self.result = self.repo.search_experiences(word=word, location=location)
+            return self
+
+        def then_should_return_experiences(self, experience_ids):
+            assert self.result == experience_ids
+            return self

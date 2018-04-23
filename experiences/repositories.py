@@ -126,15 +126,20 @@ class ExperienceSearchRepo(object):
         }
         self.elastic_client.indices.create(index=index, body=body)
 
+    def _refresh_experience_index(self):
+        self.elastic_client.indices.refresh(index=ExperienceSearchRepo.EXPERIENCE_INDEX)
+
     def _delete_experience_index(self):
         self.elastic_client.indices.delete(index=ExperienceSearchRepo.EXPERIENCE_INDEX)
 
     def index_experience_and_its_scenes(self, experience, scenes):
+        scenes_titles = ' '.join([scene.title for scene in scenes])
+        scenes_descriptions = ' '.join([scene.description for scene in scenes])
         doc = {
                 'title': experience.title,
                 'description': experience.description,
-                'scenes_titles': ' '.join([scene.title for scene in scenes]),
-                'scenes_descriptions': ' '.join([scene.description for scene in scenes]),
+                'scenes_titles': scenes_titles,
+                'scenes_descriptions': scenes_descriptions,
                 'author_id': experience.author_id,
                 'saves_count': experience.saves_count,
                 'center_location': self._get_center_of_points([(scene.latitude, scene.longitude) for scene in scenes])
@@ -143,6 +148,71 @@ class ExperienceSearchRepo(object):
                                   doc_type=ExperienceSearchRepo.EXPERIENCE_DOC_TYPE,
                                   body=doc, id=experience.id)
 
+    def search_experiences(self, word, location=None):
+        search_query = {
+            'query': {
+                'function_score': {
+                    'query': {
+                        'bool': {
+                            'must': {
+                                'bool': {
+                                    'should': [
+                                        {'match': {
+                                            'title': {
+                                                'query': word,
+                                                'fuzziness': 'AUTO'
+                                            }
+                                        }},
+                                        {'match': {
+                                            'description': {
+                                                'query': word,
+                                                'fuzziness': 'AUTO'
+                                            }
+                                        }},
+                                        {'match': {
+                                            'scenes_titles': {
+                                                'query': word,
+                                                'fuzziness': 'AUTO'
+                                            }
+                                        }},
+                                        {'match': {
+                                            'scenes_descriptions': {
+                                                'query': word,
+                                                'fuzziness': 'AUTO'
+                                            }
+                                        }}
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    'functions': [
+                        {'field_value_factor': {
+                            'field': 'saves_count',
+                            'modifier': 'log2p',
+                            'factor': 0.1
+                        }}
+                    ]
+                }
+            }
+        }
+
+        if location is not None:
+            location_decay = {'gauss': {
+                'center_location': {
+                    'origin': [location[0], location[1]],
+                    'scale': '100km',
+                    'offset': '0km',
+                    'decay': 0.9
+                }
+            }}
+            search_query['query']['function_score']['functions'].append(location_decay)
+
+        res = self.elastic_client.search(index=ExperienceSearchRepo.EXPERIENCE_INDEX, body=search_query)
+        return [x['_id'] for x in res['hits']['hits']]
+
     def _get_center_of_points(self, points):
+        if len(points) == 0:
+            return [0.0, 0.0]
         return [sum([p[0] for p in points]) / len(points),
                 sum([p[1] for p in points]) / len(points)]
