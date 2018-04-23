@@ -148,8 +148,10 @@ class ExperienceSearchRepo(object):
                                   doc_type=ExperienceSearchRepo.EXPERIENCE_DOC_TYPE,
                                   body=doc, id=experience.id)
 
-    def search_experiences(self, word, location=None):
+    def search_experiences(self, word, location=None, offset=0, limit=20):
         search_query = {
+            'from': offset,
+            'size': limit,
             'query': {
                 'function_score': {
                     'query': {

@@ -585,6 +585,18 @@ class ExperienceElasticRepoTestCase(TestCase):
                                                   location=ExperienceElasticRepoTestCase.BARCELONA) \
                 .then_should_return_experiences(['1', '3', '2'])
 
+    def test_search_pagination(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience(title='bike routes') \
+                .given_an_experience(title='mountain bike routes for everyone') \
+                .given_an_experience(title='mountain') \
+                .given_an_experience(title='barcelona restaurants') \
+                .given_an_experience(title='romanic monuments') \
+                .when_index_everything_and_search(word='mountain', offset=0, limit=1) \
+                .then_should_return_experiences(['3']) \
+                .when_index_everything_and_search(word='mountain', offset=1, limit=1) \
+                .then_should_return_experiences(['2'])
+
     class ScenarioMaker:
 
         def __init__(self):
@@ -607,12 +619,12 @@ class ExperienceElasticRepoTestCase(TestCase):
             self.scenes.append(scene)
             return self
 
-        def when_index_everything_and_search(self, word, location=None):
+        def when_index_everything_and_search(self, word, location=None, offset=0, limit=20):
             for experience in self.experiences:
                 experience_scenes = [scene for scene in self.scenes if scene.experience_id == experience.id]
                 self.repo.index_experience_and_its_scenes(experience, experience_scenes)
             self.repo._refresh_experience_index()
-            self.result = self.repo.search_experiences(word=word, location=location)
+            self.result = self.repo.search_experiences(word=word, location=location, offset=offset, limit=limit)
             return self
 
         def then_should_return_experiences(self, experience_ids):
