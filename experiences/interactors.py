@@ -53,7 +53,8 @@ class SearchExperiencesInteractor:
 
         if self.limit > SearchExperiencesInteractor.MAX_PAGINATION_LIMIT:
             self.limit = SearchExperiencesInteractor.MAX_PAGINATION_LIMIT
-        result = self.experience_repo.search_experiences(self.query, location=self.location,
+        result = self.experience_repo.search_experiences(self.logged_person_id,
+                                                         self.query, location=self.location,
                                                          limit=self.limit, offset=self.offset)
         result.update({"next_limit": self.limit})
         return result

@@ -9,6 +9,7 @@ from experiences.models import ORMExperience, ORMSave
 from experiences.entities import Experience
 from experiences.repositories import ExperienceRepo
 from experiences.factories import create_experience_elastic_repo
+from experiences.serializers import MultipleExperiencesSerializer
 from people.models import ORMPerson, ORMAuthToken
 from scenes.entities import Scene
 
@@ -301,7 +302,7 @@ class SearchExperiencesTestCase(TestCase):
         SearchExperiencesTestCase.ScenarioMaker() \
                 .given_a_person_with_auth_token() \
                 .given_an_experience(title='bike routes') \
-                .given_an_experience(title='mountain bike routes for everyone') \
+                .given_an_experience(title='mountain bike routes lot') \
                 .given_an_experience(title='mountain') \
                 .given_an_experience(title='barcelona restaurants') \
                 .given_an_experience(title='romanic monuments') \
@@ -354,8 +355,16 @@ class SearchExperiencesTestCase(TestCase):
 
         def given_an_experience(self, title='', description='', saves_count=0):
             experience = Experience(id=str(len(self.experiences)+1), title=title,
-                                    description=description, author_id='0', saves_count=saves_count)
+                                    description=description, author_id=self.orm_person.id,
+                                    author_username=self.orm_person.username,
+                                    saves_count=saves_count, is_mine=True)
+
+            db_experience = ExperienceRepo().create_experience(experience)
+            ORMExperience.objects.filter(id=db_experience.id).update(saves_count=saves_count)
+
+            experience = experience.builder().id(db_experience.id).build()
             self.experiences.append(experience)
+
             return self
 
         def given_an_scene(self, title='', description='', latitude=0.0, longitude=0.0, experience_id_of_number=1):
@@ -381,17 +390,21 @@ class SearchExperiencesTestCase(TestCase):
             return self
 
         def then_should_return_experiences_and_next_url_null(self, experiences_ids):
+            experiences = [self.experiences[int(i)-1] for i in experiences_ids]
             assert self.response.status_code == 200
-            assert json.loads(self.response.content) == {'results': experiences_ids, 'next_url': None}
+            assert json.loads(self.response.content) == {
+                    'results': MultipleExperiencesSerializer.serialize(experiences), 'next_url': None}
             return self
 
         def then_should_return_experiences_and_next_url(self, experiences_ids, query,
                                                         offset, limit, latitude=None, longitude=None):
-            assert self.response.status_code == 200
+            experiences = [self.experiences[int(i)-1] for i in experiences_ids]
             next_url = 'http://testserver/experiences/search?query={}&limit={}&offset={}'.format(query, offset, limit)
             if latitude is not None:
                 next_url = "{}&latitude={}".format(next_url, latitude)
             if longitude is not None:
                 next_url = "{}&longitude={}".format(next_url, longitude)
-            assert json.loads(self.response.content) == {'results': experiences_ids, 'next_url': next_url}
+            assert self.response.status_code == 200
+            assert json.loads(self.response.content) == {
+                    'results': MultipleExperiencesSerializer.serialize(experiences), 'next_url': next_url}
             return self

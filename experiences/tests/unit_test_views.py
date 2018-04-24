@@ -391,5 +391,8 @@ class TestSearchExperiencesView:
             if longitude is not None:
                 next_url = '{}&longitude={}'.format(next_url, longitude)
 
-            assert self.body == {'results': [self.experience_a, self.experience_b], 'next_url': next_url}
+            assert self.body == {
+                'results': MultipleExperiencesSerializer.serialize([self.experience_a, self.experience_b]),
+                'next_url': next_url
+            }
             return self

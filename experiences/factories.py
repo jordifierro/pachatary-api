@@ -13,13 +13,13 @@ from .views import ExperiencesView, ExperienceView, UploadExperiencePictureView,
         SearchExperiencesView
 
 
-def create_experience_repo():
-    return ExperienceRepo()
-
-
 def create_experience_elastic_repo():
     elastic_client = Elasticsearch([settings.ELASTICSEARCH_URL])
     return ExperienceSearchRepo(elastic_client)
+
+
+def create_experience_repo():
+    return ExperienceRepo(search_repo=create_experience_elastic_repo())
 
 
 def create_experience_validator():
@@ -37,7 +37,7 @@ def create_get_all_experiences_interactor():
 
 
 def create_search_experiences_interactor():
-    return SearchExperiencesInteractor(experience_repo=create_experience_elastic_repo(),
+    return SearchExperiencesInteractor(experience_repo=create_experience_repo(),
                                        permissions_validator=create_experience_permissions_validator())
 
 

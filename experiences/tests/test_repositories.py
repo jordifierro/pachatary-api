@@ -1,3 +1,5 @@
+from mock import Mock
+
 from django.test import TestCase
 
 from pachatary.exceptions import EntityDoesNotExistException
@@ -150,6 +152,20 @@ class ExperienceRepoTestCase(TestCase):
                 .then_save_should_be_deleted_from_db() \
                 .then_experience_saves_count_should_be(0)
 
+    def test_search_experiences_populates_correcty(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db() \
+                .given_another_person_in_db() \
+                .given_logged_person_id_is_first_person_id() \
+                .given_a_mine_experience() \
+                .given_a_saved_experience() \
+                .given_another_user_experience() \
+                .given_a_word_location_limit_and_offset() \
+                .given_a_search_repo_that_returns_these_3_experience_ids_and_7_as_next_offset() \
+                .when_search_experiences() \
+                .then_should_call_search_repo_search_experiences_with_correct_params() \
+                .then_should_return_that_experiences_populated_and_7_as_next_offset()
+
     class ScenarioMaker:
 
         def __init__(self):
@@ -161,6 +177,39 @@ class ExperienceRepoTestCase(TestCase):
             self.result = None
             self.entity_does_not_exist_error = None
             self.experience_to_create = None
+
+        def given_a_mine_experience(self):
+            self.orm_mine_experience = ORMExperience.objects.create(title='a', description='desc',
+                                                                    author=self.orm_person)
+            self.mine_experience = Experience(id=self.orm_mine_experience.id, title='a', description='desc',
+                                              author_id=self.orm_person.id, author_username=self.orm_person.username,
+                                              is_mine=True)
+            return self
+
+        def given_a_saved_experience(self):
+            self.orm_saved_experience = ORMExperience.objects.create(title='b', description='d',
+                                                                     author=self.second_orm_person)
+            ExperienceRepo().save_experience(person_id=self.orm_person.id, experience_id=self.orm_saved_experience.id)
+            self.saved_experience = Experience(id=self.orm_saved_experience.id, title='b', description='d',
+                                               author_id=self.second_orm_person.id,
+                                               author_username=self.second_orm_person.username,
+                                               saves_count=1, is_saved=True)
+            return self
+
+        def given_another_user_experience(self):
+            self.orm_other_experience = ORMExperience.objects.create(title='c', description='t',
+                                                                     author=self.second_orm_person)
+            self.other_experience = Experience(id=self.orm_other_experience.id, title='c', description='t',
+                                               author_id=self.second_orm_person.id,
+                                               author_username=self.second_orm_person.username)
+            return self
+
+        def given_a_word_location_limit_and_offset(self):
+            self.word = 'culture'
+            self.location = (5.4, -0.8)
+            self.offset = 4
+            self.limit = 10
+            return self
 
         def given_a_person_in_db(self):
             self.orm_person = ORMPerson.objects.create(username='usr')
@@ -280,6 +329,14 @@ class ExperienceRepoTestCase(TestCase):
             ExperienceRepo().save_experience(self.orm_person.id, self.orm_experience_e.id)
             return self
 
+        def given_a_search_repo_that_returns_these_3_experience_ids_and_7_as_next_offset(self):
+            self.search_repo = Mock()
+            self.search_repo.search_experiences.return_value = {
+                'results': [self.mine_experience.id, self.saved_experience.id, self.other_experience.id],
+                'next_offset': 7
+            }
+            return self
+
         def when_get_all_experiences(self, mine=False, saved=False, offset=0, limit=100):
             self.result = ExperienceRepo().get_all_experiences(self.logged_person_id, offset, limit,
                                                                mine=mine, saved=saved)
@@ -318,6 +375,11 @@ class ExperienceRepoTestCase(TestCase):
                                                                  experience_id=self.orm_experience_a.id)
             except Exception as e:
                 self.error = e
+            return self
+
+        def when_search_experiences(self):
+            self.result = ExperienceRepo(self.search_repo).search_experiences(self.logged_person_id, self.word,
+                                                                              self.location, self.offset, self.limit)
             return self
 
         def then_repo_should_return_just_first_two_experience_with_mine_true_ordered_asc_by_create(self):
@@ -411,6 +473,17 @@ class ExperienceRepoTestCase(TestCase):
         def then_experience_saves_count_should_be(self, saves_count):
             self.orm_experience_a.refresh_from_db()
             assert self.orm_experience_a.saves_count == saves_count
+
+        def then_should_call_search_repo_search_experiences_with_correct_params(self):
+            self.search_repo.search_experiences.assert_called_once_with(self.word, self.location,
+                                                                        self.offset, self.limit)
+            return self
+
+        def then_should_return_that_experiences_populated_and_7_as_next_offset(self):
+            assert self.result == {
+                'results': [self.mine_experience, self.saved_experience, self.other_experience],
+                'next_offset': 7
+            }
 
 
 class ExperienceElasticRepoTestCase(TestCase):

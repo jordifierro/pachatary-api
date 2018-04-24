@@ -8,6 +8,9 @@ from .entities import Experience
 
 class ExperienceRepo:
 
+    def __init__(self, search_repo=None):
+        self.search_repo = search_repo
+
     def _decode_db_experience(self, db_experience, is_mine=False, is_saved=False):
         if not db_experience.picture:
             picture = None
@@ -90,6 +93,19 @@ class ExperienceRepo:
             ORMExperience.objects.filter(id=experience_id).update(saves_count=F('saves_count') - 1)
 
         return True
+
+    def search_experiences(self, logged_person_id, word, location=None, offset=0, limit=20):
+        result = self.search_repo.search_experiences(word, location, offset, limit)
+        experiences = self._populate(logged_person_id, result['results'])
+        return {'results': experiences, 'next_offset': result['next_offset']}
+
+    def _populate(self, logged_person_id, experiences_ids):
+        orm_experiences = ORMExperience.objects.filter(id__in=experiences_ids)
+        orm_saves = list(ORMSave.objects.filter(experience_id__in=experiences_ids, person_id=logged_person_id))
+        return [self._decode_db_experience(experience,
+                                           experience.author_id == logged_person_id,
+                                           len([x for x in orm_saves if x.experience_id == experience.id]) > 0)
+                for experience in orm_experiences]
 
 
 class ExperienceSearchRepo(object):

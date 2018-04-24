@@ -281,12 +281,14 @@ class TestSearchExperiences:
             return self
 
         def then_should_call_search_experiences_query_location_and_limit_and_offset(self):
-            self.experience_repo.search_experiences.assert_called_once_with(self.query, location=self.location,
+            self.experience_repo.search_experiences.assert_called_once_with(self.logged_person_id,
+                                                                            self.query, location=self.location,
                                                                             limit=self.limit, offset=self.offset)
             return self
 
         def then_should_call_search_experiences_with_params_but_limit_at_20(self):
-            self.experience_repo.search_experiences.assert_called_once_with(self.query, location=self.location,
+            self.experience_repo.search_experiences.assert_called_once_with(self.logged_person_id,
+                                                                            self.query, location=self.location,
                                                                             limit=20, offset=self.offset)
             return self
 

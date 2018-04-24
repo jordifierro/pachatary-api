@@ -26,7 +26,7 @@ class ExperiencesSearchResponseSerializer:
         else:
             next_url = None
 
-        return {'results': experiences, 'next_url': next_url}
+        return {'results': MultipleExperiencesSerializer.serialize(experiences), 'next_url': next_url}
 
 
 class MultipleExperiencesSerializer:
