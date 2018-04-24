@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from experiences.factories import create_experiences_view, create_experience_view, \
-        create_upload_experience_picture_view, create_save_experience_view
+        create_upload_experience_picture_view, create_save_experience_view, create_search_experiences_view
 from scenes.factories import create_scenes_view, create_scene_view, create_upload_scene_picture_view
 from people.factories import create_people_view, create_person_view, create_email_confirmation_view
 from people.django_views import email_confirmation_redirect
@@ -18,6 +18,10 @@ urlpatterns = [
     url(r'^experiences/$',
         ViewWrapper.as_view(view_creator_func=create_experiences_view),
         name='experiences'),
+
+    url(r'^experiences/search$',
+        ViewWrapper.as_view(view_creator_func=create_search_experiences_view),
+        name='search-experiences'),
 
     url(r'^experiences/(?P<experience_id>[0-9]+)$',
         ViewWrapper.as_view(view_creator_func=create_experience_view),

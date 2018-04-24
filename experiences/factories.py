@@ -7,8 +7,10 @@ from people.factories import create_person_permissions_validator
 from .repositories import ExperienceRepo, ExperienceSearchRepo
 from .validators import ExperienceValidator, ExperiencePermissionsValidator
 from .interactors import GetAllExperiencesInteractor, CreateNewExperienceInteractor, \
-        ModifyExperienceInteractor, UploadExperiencePictureInteractor, SaveUnsaveExperienceInteractor
-from .views import ExperiencesView, ExperienceView, UploadExperiencePictureView, SaveExperienceView
+        ModifyExperienceInteractor, UploadExperiencePictureInteractor, SaveUnsaveExperienceInteractor, \
+        SearchExperiencesInteractor
+from .views import ExperiencesView, ExperienceView, UploadExperiencePictureView, SaveExperienceView, \
+        SearchExperiencesView
 
 
 def create_experience_repo():
@@ -31,6 +33,11 @@ def create_experience_permissions_validator():
 
 def create_get_all_experiences_interactor():
     return GetAllExperiencesInteractor(experience_repo=create_experience_repo(),
+                                       permissions_validator=create_experience_permissions_validator())
+
+
+def create_search_experiences_interactor():
+    return SearchExperiencesInteractor(experience_repo=create_experience_elastic_repo(),
                                        permissions_validator=create_experience_permissions_validator())
 
 
@@ -59,6 +66,11 @@ def create_experiences_view(request, **kwargs):
     return ExperiencesView(get_all_experiences_interactor=create_get_all_experiences_interactor(),
                            get_experiences_base_url=request.build_absolute_uri(reverse('experiences')),
                            create_new_experience_interactor=create_create_new_experience_interactor())
+
+
+def create_search_experiences_view(request, **kwargs):
+    return SearchExperiencesView(search_experiences_interactor=create_search_experiences_interactor(),
+                                 search_experiences_base_url=request.build_absolute_uri(reverse('search-experiences')))
 
 
 def create_experience_view(request, **kwargs):

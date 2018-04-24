@@ -2,7 +2,8 @@ from mock import Mock
 
 from pachatary.entities import Picture
 from experiences.entities import Experience
-from experiences.views import ExperiencesView, ExperienceView, UploadExperiencePictureView, SaveExperienceView
+from experiences.views import ExperiencesView, ExperienceView, UploadExperiencePictureView, SaveExperienceView, \
+        SearchExperiencesView
 from experiences.serializers import ExperienceSerializer, MultipleExperiencesSerializer
 from experiences.interactors import SaveUnsaveExperienceInteractor
 
@@ -284,4 +285,111 @@ class TestSaveExperienceView:
 
         def then_response_status_is_201(self):
             assert self.status == 201
+            return self
+
+
+class TestSearchExperiencesView:
+
+    def test_returns_experiences_serialized_and_200(self):
+        TestSearchExperiencesView.ScenarioMaker() \
+                .given_a_search_experiences_base_url() \
+                .given_an_experience_a() \
+                .given_an_experience_b() \
+                .given_a_next_limit_and_offset() \
+                .given_an_interactor_that_returns_that_experiences_and_next_limit_and_offset() \
+                .when_search_experiences(logged_person_id='9', query='culture', latitude='9.43',
+                                         longitude='-4.88', limit='4', offset='3') \
+                .then_should_call_interactor_set_params(logged_person_id='9', query='culture',
+                                                        location=(9.43, -4.88), limit='4', offset='3') \
+                .then_status_code_should_be_200() \
+                .then_response_body_should_be_experiences_and_next_url_serialized(query='culture', latitude='9.43',
+                                                                                  longitude='-4.88')
+
+    def test_no_latitude_calls_with_location_none(self):
+        TestSearchExperiencesView.ScenarioMaker() \
+                .given_a_search_experiences_base_url() \
+                .given_an_experience_a() \
+                .given_an_experience_b() \
+                .given_a_next_limit_and_offset() \
+                .given_an_interactor_that_returns_that_experiences_and_next_limit_and_offset() \
+                .when_search_experiences(logged_person_id='9', query='culture', latitude=None,
+                                         longitude='-4.88', limit='4', offset='3') \
+                .then_should_call_interactor_set_params(logged_person_id='9', query='culture',
+                                                        location=None, limit='4', offset='3') \
+                .then_status_code_should_be_200() \
+                .then_response_body_should_be_experiences_and_next_url_serialized(query='culture', latitude=None,
+                                                                                  longitude='-4.88')
+
+    def test_no_longitude_calls_with_location_none(self):
+        TestSearchExperiencesView.ScenarioMaker() \
+                .given_a_search_experiences_base_url() \
+                .given_an_experience_a() \
+                .given_an_experience_b() \
+                .given_a_next_limit_and_offset() \
+                .given_an_interactor_that_returns_that_experiences_and_next_limit_and_offset() \
+                .when_search_experiences(logged_person_id='9', query='culture', latitude='9.43',
+                                         longitude=None, limit='4', offset='3') \
+                .then_should_call_interactor_set_params(logged_person_id='9', query='culture',
+                                                        location=None, limit='4', offset='3') \
+                .then_status_code_should_be_200() \
+                .then_response_body_should_be_experiences_and_next_url_serialized(query='culture', latitude='9.43',
+                                                                                  longitude=None)
+
+    class ScenarioMaker:
+
+        def given_a_search_experiences_base_url(self):
+            self.experiences_base_url = "base_url"
+            return self
+
+        def given_an_experience_a(self):
+            picture_a = Picture(small_url='small.a', medium_url='medium.a', large_url='large.a')
+            self.experience_a = Experience(id=1, title='A', description='some', picture=picture_a,
+                                           author_id='4', author_username='usr', saves_count=4)
+            return self
+
+        def given_an_experience_b(self):
+            picture_b = Picture(small_url='small.b', medium_url='medium.b', large_url='large.b')
+            self.experience_b = Experience(id=2, title='B', description='other', picture=picture_b,
+                                           author_id='5', author_username='nms', saves_count=9)
+            return self
+
+        def given_a_next_limit_and_offset(self):
+            self.next_limit = 8
+            self.next_offset = 7
+            return self
+
+        def given_an_interactor_that_returns_that_experiences_and_next_limit_and_offset(self):
+            self.interactor_mock = Mock()
+            self.interactor_mock.set_params.return_value = self.interactor_mock
+            self.interactor_mock.execute.return_value = {"results": [self.experience_a, self.experience_b],
+                                                         "next_offset": self.next_offset,
+                                                         "next_limit": self.next_limit}
+            return self
+
+        def when_search_experiences(self, logged_person_id, query, latitude, longitude, limit, offset):
+            self.body, self.status = SearchExperiencesView(search_experiences_interactor=self.interactor_mock,
+                                                           search_experiences_base_url=self.experiences_base_url) \
+                    .get(logged_person_id=logged_person_id, query=query,
+                         latitude=latitude, longitude=longitude, limit=limit, offset=offset)
+            return self
+
+        def then_should_call_interactor_set_params(self, logged_person_id, query, location, limit, offset):
+            self.interactor_mock.set_params.assert_called_once_with(logged_person_id=logged_person_id, query=query,
+                                                                    location=location, limit=int(limit),
+                                                                    offset=int(offset))
+            return self
+
+        def then_status_code_should_be_200(self):
+            assert self.status == 200
+            return self
+
+        def then_response_body_should_be_experiences_and_next_url_serialized(self, query, latitude, longitude):
+            next_url = '{}?query={}&limit={}&offset={}'.format(self.experiences_base_url, query,
+                                                               self.next_limit, self.next_offset)
+            if latitude is not None:
+                next_url = '{}&latitude={}'.format(next_url, latitude)
+            if longitude is not None:
+                next_url = '{}&longitude={}'.format(next_url, longitude)
+
+            assert self.body == {'results': [self.experience_a, self.experience_b], 'next_url': next_url}
             return self

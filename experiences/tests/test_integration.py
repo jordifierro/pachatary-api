@@ -6,8 +6,11 @@ from django.test import Client
 from django.urls import reverse
 
 from experiences.models import ORMExperience, ORMSave
+from experiences.entities import Experience
 from experiences.repositories import ExperienceRepo
+from experiences.factories import create_experience_elastic_repo
 from people.models import ORMPerson, ORMAuthToken
+from scenes.entities import Scene
 
 
 class ExperiencesTestCase(TestCase):
@@ -285,4 +288,110 @@ class SaveUnsaveExperienceTestCase(TestCase):
         def then_response_should_be_204(self):
             assert self.response.status_code == 204
             assert len(self.response.content) == 0
+            return self
+
+
+class SearchExperiencesTestCase(TestCase):
+
+    BARCELONA = (41.385064, 2.173403)
+    BERLIN = (52.520007, 13.404954)
+    CUSCO = (-13.531950, -71.967463)
+
+    def test_search_experiences_returns_them_pagination_and_200(self):
+        SearchExperiencesTestCase.ScenarioMaker() \
+                .given_a_person_with_auth_token() \
+                .given_an_experience(title='bike routes') \
+                .given_an_experience(title='mountain bike routes for everyone') \
+                .given_an_experience(title='mountain') \
+                .given_an_experience(title='barcelona restaurants') \
+                .given_an_experience(title='romanic monuments') \
+                .when_index_everything_and_search(word='mountain', offset=0, limit=1) \
+                .then_should_return_experiences_and_next_url(['3'], 'mountain', 1, 1) \
+                .when_index_everything_and_search(word='mountain', offset=1, limit=1) \
+                .then_should_return_experiences_and_next_url_null(['2'])
+
+    def test_search_with_location(self):
+        SearchExperiencesTestCase.ScenarioMaker() \
+                .given_a_person_with_auth_token() \
+                .given_an_experience(saves_count=1000) \
+                .given_an_scene(description='barcelona restaurants',
+                                latitude=SearchExperiencesTestCase.BARCELONA[0],
+                                longitude=SearchExperiencesTestCase.BARCELONA[1], experience_id_of_number=1) \
+                .given_an_experience(saves_count=1000000) \
+                .given_an_scene(description='cusco restaurants',
+                                latitude=SearchExperiencesTestCase.CUSCO[0],
+                                longitude=SearchExperiencesTestCase.CUSCO[1], experience_id_of_number=2) \
+                .given_an_experience(saves_count=100000) \
+                .given_an_scene(description='berlin restaurants',
+                                latitude=SearchExperiencesTestCase.BERLIN[0],
+                                longitude=SearchExperiencesTestCase.BERLIN[1], experience_id_of_number=3) \
+                .when_index_everything_and_search(word='restaurants',
+                                                  latitude=SearchExperiencesTestCase.BARCELONA[0],
+                                                  longitude=SearchExperiencesTestCase.BARCELONA[1],
+                                                  offset=0, limit=2) \
+                .then_should_return_experiences_and_next_url(['1', '3'], 'restaurants', 2, 2,
+                                                             latitude=SearchExperiencesTestCase.BARCELONA[0],
+                                                             longitude=SearchExperiencesTestCase.BARCELONA[1]) \
+                .when_index_everything_and_search(word='restaurants',
+                                                  latitude=SearchExperiencesTestCase.BARCELONA[0],
+                                                  longitude=SearchExperiencesTestCase.BARCELONA[1],
+                                                  offset=2, limit=2) \
+                .then_should_return_experiences_and_next_url_null(['2'])
+
+    class ScenarioMaker:
+
+        def __init__(self):
+            self.repo = create_experience_elastic_repo()
+            self.repo._delete_experience_index()
+            self.repo._create_experience_index()
+            self.experiences = []
+            self.scenes = []
+
+        def given_a_person_with_auth_token(self):
+            self.orm_person = ORMPerson.objects.create()
+            self.orm_auth_token = ORMAuthToken.objects.create(person_id=self.orm_person.id)
+            return self
+
+        def given_an_experience(self, title='', description='', saves_count=0):
+            experience = Experience(id=str(len(self.experiences)+1), title=title,
+                                    description=description, author_id='0', saves_count=saves_count)
+            self.experiences.append(experience)
+            return self
+
+        def given_an_scene(self, title='', description='', latitude=0.0, longitude=0.0, experience_id_of_number=1):
+            scene = Scene(id=str(len(self.scenes)+1), title=title,
+                          description=description, latitude=latitude, longitude=longitude,
+                          experience_id=self.experiences[experience_id_of_number-1].id)
+            self.scenes.append(scene)
+            return self
+
+        def when_index_everything_and_search(self, word, latitude=None, longitude=None, offset=0, limit=20):
+            for experience in self.experiences:
+                experience_scenes = [scene for scene in self.scenes if scene.experience_id == experience.id]
+                self.repo.index_experience_and_its_scenes(experience, experience_scenes)
+            self.repo._refresh_experience_index()
+            client = Client()
+            auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(self.orm_auth_token.access_token), }
+            search_url = "{}?query={}&offset={}&limit={}".format(reverse('search-experiences'), word, offset, limit)
+            if latitude is not None:
+                search_url = "{}&latitude={}".format(search_url, latitude)
+            if longitude is not None:
+                search_url = "{}&longitude={}".format(search_url, longitude)
+            self.response = client.get(search_url, **auth_headers)
+            return self
+
+        def then_should_return_experiences_and_next_url_null(self, experiences_ids):
+            assert self.response.status_code == 200
+            assert json.loads(self.response.content) == {'results': experiences_ids, 'next_url': None}
+            return self
+
+        def then_should_return_experiences_and_next_url(self, experiences_ids, query,
+                                                        offset, limit, latitude=None, longitude=None):
+            assert self.response.status_code == 200
+            next_url = 'http://testserver/experiences/search?query={}&limit={}&offset={}'.format(query, offset, limit)
+            if latitude is not None:
+                next_url = "{}&latitude={}".format(next_url, latitude)
+            if longitude is not None:
+                next_url = "{}&longitude={}".format(next_url, longitude)
+            assert json.loads(self.response.content) == {'results': experiences_ids, 'next_url': next_url}
             return self

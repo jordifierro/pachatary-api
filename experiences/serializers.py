@@ -13,6 +13,22 @@ class ExperiencesResponseSerializer:
         return {'results': MultipleExperiencesSerializer.serialize(experiences), 'next_url': next_url}
 
 
+class ExperiencesSearchResponseSerializer:
+
+    @staticmethod
+    def serialize(experiences, base_url, query, latitude, longitude, next_limit, next_offset):
+        if next_offset is not None:
+            next_url = '{}?query={}&limit={}&offset={}'.format(base_url, query, next_limit, next_offset)
+            if latitude is not None:
+                next_url = "{}&latitude={}".format(next_url, latitude)
+            if longitude is not None:
+                next_url = "{}&longitude={}".format(next_url, longitude)
+        else:
+            next_url = None
+
+        return {'results': experiences, 'next_url': next_url}
+
+
 class MultipleExperiencesSerializer:
 
     @staticmethod

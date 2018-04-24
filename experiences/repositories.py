@@ -151,7 +151,7 @@ class ExperienceSearchRepo(object):
     def search_experiences(self, word, location=None, offset=0, limit=20):
         search_query = {
             'from': offset,
-            'size': limit,
+            'size': limit + 1,
             'query': {
                 'function_score': {
                     'query': {
@@ -211,7 +211,13 @@ class ExperienceSearchRepo(object):
             search_query['query']['function_score']['functions'].append(location_decay)
 
         res = self.elastic_client.search(index=ExperienceSearchRepo.EXPERIENCE_INDEX, body=search_query)
-        return [x['_id'] for x in res['hits']['hits']]
+
+        next_offset = None
+        if len(res['hits']['hits']) == limit + 1:
+            next_offset = offset + limit
+
+        return {'results': [x['_id'] for x in res['hits']['hits'][0:limit]],
+                'next_offset': next_offset}
 
     def _get_center_of_points(self, points):
         if len(points) == 0:

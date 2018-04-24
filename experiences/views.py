@@ -1,12 +1,12 @@
 from pachatary.decorators import serialize_exceptions
-from .serializers import ExperiencesResponseSerializer, ExperienceSerializer
+from .serializers import ExperiencesResponseSerializer, ExperienceSerializer, ExperiencesSearchResponseSerializer
 from .interactors import SaveUnsaveExperienceInteractor
 
 
 class ExperiencesView:
 
-    def __init__(self, get_all_experiences_interactor=None, get_experiences_base_url=None,
-                 create_new_experience_interactor=None):
+    def __init__(self, get_all_experiences_interactor=None,
+                 get_experiences_base_url=None, create_new_experience_interactor=None):
         self.get_all_experiences_interactor = get_all_experiences_interactor
         self.get_experiences_base_url = get_experiences_base_url
         self.create_new_experience_interactor = create_new_experience_interactor
@@ -17,15 +17,17 @@ class ExperiencesView:
         boolean_saved = (saved == 'true')
         limit = int(limit)
         offset = int(offset)
+
         experiences_result = self.get_all_experiences_interactor.set_params(mine=boolean_mine, saved=boolean_saved,
                                                                             logged_person_id=logged_person_id,
                                                                             limit=limit, offset=offset).execute()
 
-        body = ExperiencesResponseSerializer.serialize(experiences=experiences_result["results"],
+        body = ExperiencesResponseSerializer.serialize(experiences=experiences_result['results'],
                                                        base_url=self.get_experiences_base_url,
                                                        mine=mine, saved=saved,
                                                        next_limit=experiences_result['next_limit'],
                                                        next_offset=experiences_result['next_offset'])
+
         status = 200
         return body, status
 
@@ -88,4 +90,28 @@ class SaveExperienceView:
                             experience_id=experience_id, logged_person_id=logged_person_id).execute()
         body = None
         status = 204
+        return body, status
+
+
+class SearchExperiencesView:
+
+    def __init__(self, search_experiences_interactor=None, search_experiences_base_url=None):
+        self.search_experiences_interactor = search_experiences_interactor
+        self.search_experiences_base_url = search_experiences_base_url
+
+    @serialize_exceptions
+    def get(self, query=None, latitude=None, longitude=None, logged_person_id=None, limit='20', offset='0'):
+        limit = int(limit)
+        offset = int(offset)
+        location = (float(latitude), float(longitude)) if latitude is not None and longitude is not None else None
+        experiences_result = self.search_experiences_interactor.set_params(query=query, location=location,
+                                                                           logged_person_id=logged_person_id,
+                                                                           limit=limit, offset=offset).execute()
+        body = ExperiencesSearchResponseSerializer.serialize(experiences=experiences_result['results'],
+                                                             base_url=self.search_experiences_base_url,
+                                                             query=query, latitude=latitude, longitude=longitude,
+                                                             next_limit=experiences_result['next_limit'],
+                                                             next_offset=experiences_result['next_offset'])
+
+        status = 200
         return body, status

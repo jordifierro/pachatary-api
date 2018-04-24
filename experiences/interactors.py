@@ -32,6 +32,33 @@ class GetAllExperiencesInteractor:
         return result
 
 
+class SearchExperiencesInteractor:
+
+    MAX_PAGINATION_LIMIT = 20
+
+    def __init__(self, experience_repo, permissions_validator):
+        self.experience_repo = experience_repo
+        self.permissions_validator = permissions_validator
+
+    def set_params(self, query, location, logged_person_id, limit, offset):
+        self.query = query
+        self.location = location
+        self.logged_person_id = logged_person_id
+        self.limit = limit
+        self.offset = offset
+        return self
+
+    def execute(self):
+        self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
+
+        if self.limit > SearchExperiencesInteractor.MAX_PAGINATION_LIMIT:
+            self.limit = SearchExperiencesInteractor.MAX_PAGINATION_LIMIT
+        result = self.experience_repo.search_experiences(self.query, location=self.location,
+                                                         limit=self.limit, offset=self.offset)
+        result.update({"next_limit": self.limit})
+        return result
+
+
 class CreateNewExperienceInteractor:
 
     def __init__(self, experience_repo, experience_validator, permissions_validator):
