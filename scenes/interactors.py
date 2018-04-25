@@ -1,3 +1,4 @@
+from pachatary.exceptions import EntityDoesNotExistException
 from .entities import Scene
 
 
@@ -96,3 +97,25 @@ class UploadScenePictureInteractor:
         self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id,
                                                         has_permissions_to_modify_scene=self.scene_id)
         return self.scene_repo.attach_picture_to_scene(scene_id=self.scene_id, picture=self.picture)
+
+
+class IndexExperiencesInteractor:
+
+    def __init__(self, experience_repo, experience_search_repo, scene_repo):
+        self.experience_repo = experience_repo
+        self.experience_search_repo = experience_search_repo
+        self.scene_repo = scene_repo
+
+    def set_params(self, from_id, to_id):
+        self.from_id = from_id
+        self.to_id = to_id
+        return self
+
+    def execute(self):
+        for i in range(self.from_id, self.to_id + 1):
+            try:
+                experience = self.experience_repo.get_experience(str(i))
+                scenes = self.scene_repo.get_scenes(str(i))
+                self.experience_search_repo.index_experience_and_its_scenes(experience, scenes)
+            except EntityDoesNotExistException:
+                pass

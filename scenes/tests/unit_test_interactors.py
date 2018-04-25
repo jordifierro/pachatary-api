@@ -1,10 +1,11 @@
-from mock import Mock
+from mock import Mock, call
 
 from pachatary.exceptions import InvalidEntityException, EntityDoesNotExistException, NoLoggedException, \
         NoPermissionException
 from scenes.interactors import GetScenesFromExperienceInteractor, CreateNewSceneInteractor, ModifySceneInteractor, \
-        UploadScenePictureInteractor
+        UploadScenePictureInteractor, IndexExperiencesInteractor
 from scenes.entities import Scene
+from experiences.entities import Experience
 
 
 class TestGetScenesFromExperience:
@@ -516,4 +517,70 @@ class TestUploadScenePictureInteractor:
 
         def then_should_raise_no_permissions_exception(self):
             assert type(self.error) is NoPermissionException
+            return self
+
+
+class TestIndexExperiencesInteractor:
+
+    def test_indexes_existent_with_their_scenes_and_ignore_others(self):
+        TestIndexExperiencesInteractor.ScenarioMaker() \
+                .given_an_experience(id='2') \
+                .given_an_scene(id='5', experience_id='2') \
+                .given_an_scene(id='6', experience_id='2') \
+                .given_an_experience(id='3') \
+                .given_an_scene(id='7', experience_id='3') \
+                .given_an_scene(id='8', experience_id='3') \
+                .given_an_experience_repo_that_returns_them() \
+                .when_index(from_id=1, to_id=10) \
+                .should_call_get_experiences_and_their_scenes() \
+                .should_index_experiences_and_their_scenes()
+
+    class ScenarioMaker:
+
+        def __init__(self):
+            self.search_repo = Mock()
+            self.experiences = []
+            self.scenes = []
+
+        def given_an_experience(self, id):
+            self.experiences.append(Experience(id=id, title='', description='', author_id='0'))
+            return self
+
+        def given_an_scene(self, id, experience_id):
+            self.scenes.append(Scene(id=id, title='', description='',
+                                     latitude=0, longitude=0, experience_id=experience_id))
+            return self
+
+        def given_an_experience_repo_that_returns_them(self):
+
+            def fake_get_experience(id):
+                experiences = [x for x in self.experiences if x.id == id]
+                if len(experiences) > 0:
+                    return experiences[0]
+                else:
+                    raise EntityDoesNotExistException
+            self.repo = Mock()
+            self.repo.get_experience.side_effect = fake_get_experience
+
+            def fake_get_scenes(experience_id):
+                return [x for x in self.scenes if x.experience_id == experience_id]
+            self.scene_repo = Mock()
+            self.scene_repo.get_scenes.side_effect = fake_get_scenes
+
+            return self
+
+        def when_index(self, from_id, to_id):
+            interactor = IndexExperiencesInteractor(self.repo, self.search_repo, self.scene_repo)
+            self.result = interactor.set_params(from_id, to_id).execute()
+            return self
+
+        def should_call_get_experiences_and_their_scenes(self):
+            assert self.repo.get_experience.mock_calls == [call(str(i)) for i in range(1, 11)]
+            assert self.scene_repo.get_scenes.mock_calls == [call('2'), call('3')]
+            return self
+
+        def should_index_experiences_and_their_scenes(self):
+            assert self.search_repo.index_experience_and_its_scenes.mock_calls == \
+                [call(self.experiences[0], [self.scenes[0], self.scenes[1]]),
+                 call(self.experiences[1], [self.scenes[2], self.scenes[3]])]
             return self

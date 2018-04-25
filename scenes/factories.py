@@ -1,7 +1,8 @@
-from experiences.factories import create_experience_repo, create_experience_permissions_validator
+from experiences.factories import create_experience_repo, create_experience_permissions_validator, \
+        create_experience_elastic_repo
 from .repositories import SceneRepo
 from .interactors import GetScenesFromExperienceInteractor, CreateNewSceneInteractor, ModifySceneInteractor, \
-        UploadScenePictureInteractor
+        UploadScenePictureInteractor, IndexExperiencesInteractor
 from .validators import SceneValidator, ScenePermissionsValidator
 from .views import ScenesView, SceneView, UploadScenePictureView
 
@@ -37,6 +38,11 @@ def create_modify_scene_interactor():
 def create_upload_scene_picture_interactor():
     return UploadScenePictureInteractor(scene_repo=create_scene_repo(),
                                         permissions_validator=create_scene_permissions_validator())
+
+
+def create_index_experiences_interactor():
+    return IndexExperiencesInteractor(create_experience_repo(), create_experience_elastic_repo(),
+                                      create_scene_repo())
 
 
 def create_scenes_view(request, **kwargs):
