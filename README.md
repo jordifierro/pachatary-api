@@ -68,6 +68,54 @@ _Response:_
 }
 ```
 
+### `GET /experiences/search?query=culture&latitude=8.5&longitude=-9.4&limit=20`
+_Request:_
+This endpoint is used to search experiences by `query` text.
+You can also (optionally) specify a latitude and longitude to a located search.
+You can also define a `limit` to let server know
+how many elements you do want on each page
+(if you skip this param server will return 20).
+
+It searches between experiences and scenes titles and descriptions,
+boosted by proximity (calculated with center points of an experience scenes)
+and `saves_count`.
+
+_Response:_
+```json
+{
+    "results":
+        [
+            {
+                "id": "3",
+                "title": "Magic Castle of Culture",
+                "description": "Don't even try to go there!",
+                "picture": null,
+                "author_id": "5",
+                "author_username": "da_usr",
+                "is_mine": false,
+                "is_saved": false,
+                "saves_count": 5
+            },
+            {
+                "id": "2",
+                "title": "Baboon",
+                "description": "Culture place...",
+                "picture": {
+                    "small_url": "https://experiences/8c29.small.jpg",
+                    "medium_url": "https://experiences/8c29.medium.jpg",
+                    "large_url": "https://experiences/8c29.large.jpg"
+                },
+                "author_id": "3",
+                "author_username": "usr.nam",
+                "is_mine": false,
+                "is_saved": false,
+                "saves_count": 32
+            }
+        ],
+    "next_url": "https://base_url/experiences/search?query=culture&latitude=8.5&longitude=-9.4&limit=2&offset=2"
+}
+```
+
 ### `POST /experiences`
 
 _Request(application/x-www-form-urlencoded):_
@@ -458,6 +506,7 @@ Location: 'app://pachatary.com/people/me/email-confirmation?token=ABXZ'
 
 This project has been developed using Django framework,
 with Postgres as database and S3 as storage service.
+Elasticsearch is used as search enginee.
 
 Code structure follows a Clean Architecture approach
 ([explained in detail here](http://jordifierro.com/django-clean-architecture)),
