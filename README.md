@@ -68,9 +68,9 @@ _Response:_
 }
 ```
 
-### `GET /experiences/search?query=culture&latitude=8.5&longitude=-9.4&limit=20`
+### `GET /experiences/search?word=culture&latitude=8.5&longitude=-9.4&limit=20`
 _Request:_
-This endpoint is used to search experiences by `query` text.
+This endpoint is used to search experiences by `word` text.
 You can also (optionally) specify a latitude and longitude to a located search.
 You can also define a `limit` to let server know
 how many elements you do want on each page
@@ -112,7 +112,7 @@ _Response:_
                 "saves_count": 32
             }
         ],
-    "next_url": "https://base_url/experiences/search?query=culture&latitude=8.5&longitude=-9.4&limit=2&offset=2"
+    "next_url": "https://base_url/experiences/search?word=culture&latitude=8.5&longitude=-9.4&limit=2&offset=2"
 }
 ```
 

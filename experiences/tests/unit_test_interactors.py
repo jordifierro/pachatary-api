@@ -160,7 +160,7 @@ class TestSearchExperiences:
     def test_returns_repo_response(self):
         TestSearchExperiences.ScenarioMaker() \
                 .given_a_logged_person_id() \
-                .given_a_search_query() \
+                .given_a_search_word() \
                 .given_a_location() \
                 .given_a_pagination_limit_and_offset() \
                 .given_a_permission_validator_that_returns_true() \
@@ -169,14 +169,14 @@ class TestSearchExperiences:
                 .given_a_next_offset() \
                 .given_a_repo_that_returns_both_experiences_and_next_offset() \
                 .when_interactor_is_executed() \
-                .then_should_call_search_experiences_query_location_and_limit_and_offset() \
+                .then_should_call_search_experiences_word_location_and_limit_and_offset() \
                 .then_validate_permissions_should_be_called_with_logged_person_id() \
                 .then_result_should_be_both_experiences_and_next_offset_and_same_limit()
 
     def test_when_limit_is_higher_that_interactor_maximum(self):
         TestSearchExperiences.ScenarioMaker() \
                 .given_a_logged_person_id() \
-                .given_a_search_query() \
+                .given_a_search_word() \
                 .given_a_location() \
                 .given_a_big_pagination_limit_and_offset() \
                 .given_a_permission_validator_that_returns_true() \
@@ -201,7 +201,7 @@ class TestSearchExperiences:
         def __init__(self):
             self.logged_person_id = None
             self.experience_repo = None
-            self.query = None
+            self.word = None
             self.location = None
             self.limit = 0
             self.offset = 0
@@ -210,8 +210,8 @@ class TestSearchExperiences:
             self.logged_person_id = '0'
             return self
 
-        def given_a_search_query(self):
-            self.query = 'culture'
+        def given_a_search_word(self):
+            self.word = 'culture'
             return self
 
         def given_a_location(self):
@@ -262,7 +262,7 @@ class TestSearchExperiences:
             try:
                 self.response = SearchExperiencesInteractor(experience_repo=self.experience_repo,
                                                             permissions_validator=self.permissions_validator) \
-                        .set_params(query=self.query, location=self.location, logged_person_id=self.logged_person_id,
+                        .set_params(word=self.word, location=self.location, logged_person_id=self.logged_person_id,
                                     limit=self.limit, offset=self.offset).execute()
             except Exception as e:
                 self.error = e
@@ -280,15 +280,15 @@ class TestSearchExperiences:
                                      "next_limit": 20}
             return self
 
-        def then_should_call_search_experiences_query_location_and_limit_and_offset(self):
+        def then_should_call_search_experiences_word_location_and_limit_and_offset(self):
             self.experience_repo.search_experiences.assert_called_once_with(self.logged_person_id,
-                                                                            self.query, location=self.location,
+                                                                            word=self.word, location=self.location,
                                                                             limit=self.limit, offset=self.offset)
             return self
 
         def then_should_call_search_experiences_with_params_but_limit_at_20(self):
             self.experience_repo.search_experiences.assert_called_once_with(self.logged_person_id,
-                                                                            self.query, location=self.location,
+                                                                            word=self.word, location=self.location,
                                                                             limit=20, offset=self.offset)
             return self
 

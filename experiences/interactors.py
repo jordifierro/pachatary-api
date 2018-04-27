@@ -40,8 +40,8 @@ class SearchExperiencesInteractor:
         self.experience_repo = experience_repo
         self.permissions_validator = permissions_validator
 
-    def set_params(self, query, location, logged_person_id, limit, offset):
-        self.query = query
+    def set_params(self, word, location, logged_person_id, limit, offset):
+        self.word = word
         self.location = location
         self.logged_person_id = logged_person_id
         self.limit = limit
@@ -54,7 +54,7 @@ class SearchExperiencesInteractor:
         if self.limit > SearchExperiencesInteractor.MAX_PAGINATION_LIMIT:
             self.limit = SearchExperiencesInteractor.MAX_PAGINATION_LIMIT
         result = self.experience_repo.search_experiences(self.logged_person_id,
-                                                         self.query, location=self.location,
+                                                         word=self.word, location=self.location,
                                                          limit=self.limit, offset=self.offset)
         result.update({"next_limit": self.limit})
         return result

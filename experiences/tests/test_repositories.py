@@ -670,6 +670,45 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='mountain', offset=1, limit=1) \
                 .then_should_return_experiences_and_next_offset(['2'], None)
 
+    def test_search_without_word_boosts_by_saves_count(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience(title='shopping center', saves_count=1000) \
+                .given_an_experience(title='bike tour', saves_count=100) \
+                .given_an_experience(title='eco route', saves_count=10000) \
+                .when_index_everything_and_search() \
+                .then_should_return_experiences_and_next_offset(['3', '1', '2'])
+
+    def test_search_without_word_boosts_by_location_proximity(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience() \
+                .given_an_scene(description='eco tour', latitude=ExperienceElasticRepoTestCase.BARCELONA[0],
+                                longitude=ExperienceElasticRepoTestCase.BARCELONA[1], experience_id_of_number=1) \
+                .given_an_experience() \
+                .given_an_scene(description='local markets', latitude=ExperienceElasticRepoTestCase.CUSCO[0],
+                                longitude=ExperienceElasticRepoTestCase.CUSCO[1], experience_id_of_number=2) \
+                .given_an_experience() \
+                .given_an_scene(description='culture shops', latitude=ExperienceElasticRepoTestCase.BERLIN[0],
+                                longitude=ExperienceElasticRepoTestCase.BERLIN[1], experience_id_of_number=3) \
+                .when_index_everything_and_search(location=ExperienceElasticRepoTestCase.BARCELONA) \
+                .then_should_return_experiences_and_next_offset(['1', '3', '2'])
+
+    def test_search_without_word_location_boost_is_more_important_than_saves(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience(saves_count=1000) \
+                .given_an_scene(description='barcelona monuments',
+                                latitude=ExperienceElasticRepoTestCase.BARCELONA[0],
+                                longitude=ExperienceElasticRepoTestCase.BARCELONA[1], experience_id_of_number=1) \
+                .given_an_experience(saves_count=1000000) \
+                .given_an_scene(description='cusco ruins',
+                                latitude=ExperienceElasticRepoTestCase.CUSCO[0],
+                                longitude=ExperienceElasticRepoTestCase.CUSCO[1], experience_id_of_number=2) \
+                .given_an_experience(saves_count=100000) \
+                .given_an_scene(description='berlin culture',
+                                latitude=ExperienceElasticRepoTestCase.BERLIN[0],
+                                longitude=ExperienceElasticRepoTestCase.BERLIN[1], experience_id_of_number=3) \
+                .when_index_everything_and_search(location=ExperienceElasticRepoTestCase.BARCELONA) \
+                .then_should_return_experiences_and_next_offset(['1', '3', '2'])
+
     class ScenarioMaker:
 
         def __init__(self):
@@ -692,7 +731,7 @@ class ExperienceElasticRepoTestCase(TestCase):
             self.scenes.append(scene)
             return self
 
-        def when_index_everything_and_search(self, word, location=None, offset=0, limit=20):
+        def when_index_everything_and_search(self, word=None, location=None, offset=0, limit=20):
             for experience in self.experiences:
                 experience_scenes = [scene for scene in self.scenes if scene.experience_id == experience.id]
                 self.repo.index_experience_and_its_scenes(experience, experience_scenes)

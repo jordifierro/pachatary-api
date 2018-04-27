@@ -381,7 +381,7 @@ class SearchExperiencesTestCase(TestCase):
             self.repo._refresh_experience_index()
             client = Client()
             auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(self.orm_auth_token.access_token), }
-            search_url = "{}?query={}&offset={}&limit={}".format(reverse('search-experiences'), word, offset, limit)
+            search_url = "{}?offset={}&limit={}&word={}".format(reverse('search-experiences'), offset, limit, word)
             if latitude is not None:
                 search_url = "{}&latitude={}".format(search_url, latitude)
             if longitude is not None:
@@ -396,10 +396,10 @@ class SearchExperiencesTestCase(TestCase):
                     'results': MultipleExperiencesSerializer.serialize(experiences), 'next_url': None}
             return self
 
-        def then_should_return_experiences_and_next_url(self, experiences_ids, query,
+        def then_should_return_experiences_and_next_url(self, experiences_ids, word,
                                                         offset, limit, latitude=None, longitude=None):
             experiences = [self.experiences[int(i)-1] for i in experiences_ids]
-            next_url = 'http://testserver/experiences/search?query={}&limit={}&offset={}'.format(query, offset, limit)
+            next_url = 'http://testserver/experiences/search?offset={}&limit={}&word={}'.format(offset, limit, word)
             if latitude is not None:
                 next_url = "{}&latitude={}".format(next_url, latitude)
             if longitude is not None:

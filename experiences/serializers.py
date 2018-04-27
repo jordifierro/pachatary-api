@@ -16,9 +16,11 @@ class ExperiencesResponseSerializer:
 class ExperiencesSearchResponseSerializer:
 
     @staticmethod
-    def serialize(experiences, base_url, query, latitude, longitude, next_limit, next_offset):
+    def serialize(experiences, base_url, word, latitude, longitude, next_limit, next_offset):
         if next_offset is not None:
-            next_url = '{}?query={}&limit={}&offset={}'.format(base_url, query, next_limit, next_offset)
+            next_url = '{}?offset={}&limit={}'.format(base_url, next_offset, next_limit)
+            if word is not None:
+                next_url = "{}&word={}".format(next_url, word)
             if latitude is not None:
                 next_url = "{}&latitude={}".format(next_url, latitude)
             if longitude is not None:

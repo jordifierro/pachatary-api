@@ -164,46 +164,13 @@ class ExperienceSearchRepo(object):
                                   doc_type=ExperienceSearchRepo.EXPERIENCE_DOC_TYPE,
                                   body=doc, id=experience.id)
 
-    def search_experiences(self, word, location=None, offset=0, limit=20):
+    def search_experiences(self, word=None, location=None, offset=0, limit=20):
         search_query = {
             'from': offset,
             'size': limit + 1,
             'query': {
                 'function_score': {
-                    'query': {
-                        'bool': {
-                            'must': {
-                                'bool': {
-                                    'should': [
-                                        {'match': {
-                                            'title': {
-                                                'query': word,
-                                                'fuzziness': 'AUTO'
-                                            }
-                                        }},
-                                        {'match': {
-                                            'description': {
-                                                'query': word,
-                                                'fuzziness': 'AUTO'
-                                            }
-                                        }},
-                                        {'match': {
-                                            'scenes_titles': {
-                                                'query': word,
-                                                'fuzziness': 'AUTO'
-                                            }
-                                        }},
-                                        {'match': {
-                                            'scenes_descriptions': {
-                                                'query': word,
-                                                'fuzziness': 'AUTO'
-                                            }
-                                        }}
-                                    ]
-                                }
-                            }
-                        }
-                    },
+                    'query': {},
                     'functions': [
                         {'field_value_factor': {
                             'field': 'saves_count',
@@ -214,6 +181,45 @@ class ExperienceSearchRepo(object):
                 }
             }
         }
+
+        if word is not None:
+            search_by_word = {
+                'bool': {
+                    'must': {
+                        'bool': {
+                            'should': [
+                                {'match': {
+                                    'title': {
+                                        'query': word,
+                                        'fuzziness': 'AUTO'
+                                    }
+                                }},
+                                {'match': {
+                                    'description': {
+                                        'query': word,
+                                        'fuzziness': 'AUTO'
+                                    }
+                                }},
+                                {'match': {
+                                    'scenes_titles': {
+                                        'query': word,
+                                        'fuzziness': 'AUTO'
+                                    }
+                                }},
+                                {'match': {
+                                    'scenes_descriptions': {
+                                        'query': word,
+                                        'fuzziness': 'AUTO'
+                                    }
+                                }}
+                            ]
+                        }
+                    }
+                }
+            }
+            search_query['query']['function_score']['query'].update(search_by_word)
+        else:
+            search_query['query']['function_score']['query'].update({'match_all': {}})
 
         if location is not None:
             location_decay = {'gauss': {

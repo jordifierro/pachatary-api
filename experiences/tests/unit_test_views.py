@@ -297,12 +297,12 @@ class TestSearchExperiencesView:
                 .given_an_experience_b() \
                 .given_a_next_limit_and_offset() \
                 .given_an_interactor_that_returns_that_experiences_and_next_limit_and_offset() \
-                .when_search_experiences(logged_person_id='9', query='culture', latitude='9.43',
+                .when_search_experiences(logged_person_id='9', word='culture', latitude='9.43',
                                          longitude='-4.88', limit='4', offset='3') \
-                .then_should_call_interactor_set_params(logged_person_id='9', query='culture',
+                .then_should_call_interactor_set_params(logged_person_id='9', word='culture',
                                                         location=(9.43, -4.88), limit='4', offset='3') \
                 .then_status_code_should_be_200() \
-                .then_response_body_should_be_experiences_and_next_url_serialized(query='culture', latitude='9.43',
+                .then_response_body_should_be_experiences_and_next_url_serialized(word='culture', latitude='9.43',
                                                                                   longitude='-4.88')
 
     def test_no_latitude_calls_with_location_none(self):
@@ -312,12 +312,12 @@ class TestSearchExperiencesView:
                 .given_an_experience_b() \
                 .given_a_next_limit_and_offset() \
                 .given_an_interactor_that_returns_that_experiences_and_next_limit_and_offset() \
-                .when_search_experiences(logged_person_id='9', query='culture', latitude=None,
+                .when_search_experiences(logged_person_id='9', word='culture', latitude=None,
                                          longitude='-4.88', limit='4', offset='3') \
-                .then_should_call_interactor_set_params(logged_person_id='9', query='culture',
+                .then_should_call_interactor_set_params(logged_person_id='9', word='culture',
                                                         location=None, limit='4', offset='3') \
                 .then_status_code_should_be_200() \
-                .then_response_body_should_be_experiences_and_next_url_serialized(query='culture', latitude=None,
+                .then_response_body_should_be_experiences_and_next_url_serialized(word='culture', latitude=None,
                                                                                   longitude='-4.88')
 
     def test_no_longitude_calls_with_location_none(self):
@@ -327,12 +327,27 @@ class TestSearchExperiencesView:
                 .given_an_experience_b() \
                 .given_a_next_limit_and_offset() \
                 .given_an_interactor_that_returns_that_experiences_and_next_limit_and_offset() \
-                .when_search_experiences(logged_person_id='9', query='culture', latitude='9.43',
+                .when_search_experiences(logged_person_id='9', word='culture', latitude='9.43',
                                          longitude=None, limit='4', offset='3') \
-                .then_should_call_interactor_set_params(logged_person_id='9', query='culture',
+                .then_should_call_interactor_set_params(logged_person_id='9', word='culture',
                                                         location=None, limit='4', offset='3') \
                 .then_status_code_should_be_200() \
-                .then_response_body_should_be_experiences_and_next_url_serialized(query='culture', latitude='9.43',
+                .then_response_body_should_be_experiences_and_next_url_serialized(word='culture', latitude='9.43',
+                                                                                  longitude=None)
+
+    def test_empty_word_calls_with_word_none(self):
+        TestSearchExperiencesView.ScenarioMaker() \
+                .given_a_search_experiences_base_url() \
+                .given_an_experience_a() \
+                .given_an_experience_b() \
+                .given_a_next_limit_and_offset() \
+                .given_an_interactor_that_returns_that_experiences_and_next_limit_and_offset() \
+                .when_search_experiences(logged_person_id='9', word='', latitude='9.43',
+                                         longitude=None, limit='4', offset='3') \
+                .then_should_call_interactor_set_params(logged_person_id='9', word=None,
+                                                        location=None, limit='4', offset='3') \
+                .then_status_code_should_be_200() \
+                .then_response_body_should_be_experiences_and_next_url_serialized(word=None, latitude='9.43',
                                                                                   longitude=None)
 
     class ScenarioMaker:
@@ -366,15 +381,15 @@ class TestSearchExperiencesView:
                                                          "next_limit": self.next_limit}
             return self
 
-        def when_search_experiences(self, logged_person_id, query, latitude, longitude, limit, offset):
+        def when_search_experiences(self, logged_person_id, word, latitude, longitude, limit, offset):
             self.body, self.status = SearchExperiencesView(search_experiences_interactor=self.interactor_mock,
                                                            search_experiences_base_url=self.experiences_base_url) \
-                    .get(logged_person_id=logged_person_id, query=query,
+                    .get(logged_person_id=logged_person_id, word=word,
                          latitude=latitude, longitude=longitude, limit=limit, offset=offset)
             return self
 
-        def then_should_call_interactor_set_params(self, logged_person_id, query, location, limit, offset):
-            self.interactor_mock.set_params.assert_called_once_with(logged_person_id=logged_person_id, query=query,
+        def then_should_call_interactor_set_params(self, logged_person_id, word, location, limit, offset):
+            self.interactor_mock.set_params.assert_called_once_with(logged_person_id=logged_person_id, word=word,
                                                                     location=location, limit=int(limit),
                                                                     offset=int(offset))
             return self
@@ -383,9 +398,10 @@ class TestSearchExperiencesView:
             assert self.status == 200
             return self
 
-        def then_response_body_should_be_experiences_and_next_url_serialized(self, query, latitude, longitude):
-            next_url = '{}?query={}&limit={}&offset={}'.format(self.experiences_base_url, query,
-                                                               self.next_limit, self.next_offset)
+        def then_response_body_should_be_experiences_and_next_url_serialized(self, word, latitude, longitude):
+            next_url = '{}?offset={}&limit={}'.format(self.experiences_base_url, self.next_offset, self.next_limit)
+            if word is not None:
+                next_url = '{}&word={}'.format(next_url, word)
             if latitude is not None:
                 next_url = '{}&latitude={}'.format(next_url, latitude)
             if longitude is not None:
