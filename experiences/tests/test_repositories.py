@@ -166,9 +166,24 @@ class ExperienceRepoTestCase(TestCase):
                 .then_should_call_search_repo_search_experiences_with_correct_params() \
                 .then_should_return_that_experiences_populated_and_7_as_next_offset()
 
+    def test_search_experiences_populates_keeping_result_order(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db() \
+                .given_logged_person_id_is_first_person_id() \
+                .given_a_mine_experience_in_db() \
+                .given_another_mine_experience_in_db() \
+                .given_a_third_mine_experience_in_db() \
+                .given_a_search_repo_that_returns_2_1_3_experiences() \
+                .when_search_experiences() \
+                .then_should_return_that_experiences_populated_and_in_the_same_order()
+
     class ScenarioMaker:
 
         def __init__(self):
+            self.word = None
+            self.location = None
+            self.offset = 0
+            self.limit = 20
             self.orm_person = None
             self.orm_experience_a = None
             self.orm_experience_b = None
@@ -317,6 +332,30 @@ class ExperienceRepoTestCase(TestCase):
                                            author_id=self.orm_person.id, author_username=self.orm_person.username)
             return self
 
+        def given_a_mine_experience_in_db(self):
+            self.orm_experience_a = ORMExperience.objects.create(title='Exp a', description='description',
+                                                                 author=self.orm_person)
+            self.experience_a = Experience(id=self.orm_experience_a.id, title='Exp a', description='description',
+                                           author_id=self.orm_person.id, author_username=self.orm_person.username,
+                                           is_mine=True)
+            return self
+
+        def given_another_mine_experience_in_db(self):
+            self.orm_experience_b = ORMExperience.objects.create(title='Exp b', description='other description',
+                                                                 author=self.orm_person)
+            self.experience_b = Experience(id=self.orm_experience_b.id, title='Exp b',
+                                           description='other description', author_id=self.orm_person.id,
+                                           author_username=self.orm_person.username, is_mine=True)
+            return self
+
+        def given_a_third_mine_experience_in_db(self):
+            self.orm_experience_c = ORMExperience.objects.create(title='Exp c', description='other',
+                                                                 author=self.orm_person)
+            self.experience_c = Experience(id=self.orm_experience_c.id, title='Exp c',
+                                           description='other', author_id=self.orm_person.id,
+                                           author_username=self.orm_person.username, is_mine=True)
+            return self
+
         def given_a_save_for_that_person_and_experience(self):
             ExperienceRepo().save_experience(self.orm_person.id, self.orm_experience_a.id)
             return self
@@ -333,6 +372,14 @@ class ExperienceRepoTestCase(TestCase):
             self.search_repo = Mock()
             self.search_repo.search_experiences.return_value = {
                 'results': [self.mine_experience.id, self.saved_experience.id, self.other_experience.id],
+                'next_offset': 7
+            }
+            return self
+
+        def given_a_search_repo_that_returns_2_1_3_experiences(self):
+            self.search_repo = Mock()
+            self.search_repo.search_experiences.return_value = {
+                'results': [self.experience_b.id, self.experience_a.id, self.experience_c.id],
                 'next_offset': 7
             }
             return self
@@ -484,6 +531,14 @@ class ExperienceRepoTestCase(TestCase):
                 'results': [self.mine_experience, self.saved_experience, self.other_experience],
                 'next_offset': 7
             }
+            return self
+
+        def then_should_return_that_experiences_populated_and_in_the_same_order(self):
+            assert self.result == {
+                'results': [self.experience_b, self.experience_a, self.experience_c],
+                'next_offset': 7
+            }
+            return self
 
 
 class ExperienceElasticRepoTestCase(TestCase):

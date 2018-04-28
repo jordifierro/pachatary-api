@@ -1,4 +1,4 @@
-from django.db.models import F
+from django.db.models import F, Case, When
 
 from pachatary.entities import Picture
 from pachatary.exceptions import EntityDoesNotExistException
@@ -100,7 +100,8 @@ class ExperienceRepo:
         return {'results': experiences, 'next_offset': result['next_offset']}
 
     def _populate(self, logged_person_id, experiences_ids):
-        orm_experiences = ORMExperience.objects.filter(id__in=experiences_ids)
+        preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(experiences_ids)])
+        orm_experiences = ORMExperience.objects.filter(id__in=experiences_ids).order_by(preserved)
         orm_saves = list(ORMSave.objects.filter(experience_id__in=experiences_ids, person_id=logged_person_id))
         return [self._decode_db_experience(experience,
                                            experience.author_id == logged_person_id,
