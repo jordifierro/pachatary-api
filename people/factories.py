@@ -2,7 +2,7 @@ import json
 
 from django.conf import settings
 
-from .repositories import PersonRepo, AuthTokenRepo, ConfirmationTokenRepo
+from .repositories import PersonRepo, AuthTokenRepo, ConfirmationTokenRepo, LoginTokenRepo
 from .validators import ClientSecretKeyValidator, PersonValidator, PersonPermissionsValidator
 from .interactors import CreateGuestPersonAndReturnAuthTokenInteractor, RegisterUsernameAndEmailInteractor, \
         AuthenticateInteractor, ConfirmEmailInteractor
@@ -20,6 +20,10 @@ def create_auth_token_repo():
 
 def create_confirmation_token_repo():
     return ConfirmationTokenRepo()
+
+
+def create_login_token_repo():
+    return LoginTokenRepo()
 
 
 def create_client_secret_key_validator():

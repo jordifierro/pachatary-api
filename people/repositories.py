@@ -1,5 +1,5 @@
 from pachatary.exceptions import EntityDoesNotExistException
-from .models import ORMPerson, ORMAuthToken, ORMConfirmationToken
+from .models import ORMPerson, ORMAuthToken, ORMConfirmationToken, ORMLoginToken
 from .entities import Person, AuthToken
 
 
@@ -72,4 +72,21 @@ class ConfirmationTokenRepo:
 
     def delete_confirmation_tokens(self, person_id):
         ORMConfirmationToken.objects.filter(person_id=person_id).delete()
+        return True
+
+
+class LoginTokenRepo:
+
+    def get_person_id(self, login_token):
+        try:
+            return ORMLoginToken.objects.get(token=login_token).person_id
+        except ORMLoginToken.DoesNotExist:
+            raise EntityDoesNotExistException
+
+    def create_login_token(self, person_id):
+        created_orm_login_token = ORMLoginToken.objects.create(person_id=person_id)
+        return str(created_orm_login_token.token)
+
+    def delete_login_tokens(self, person_id):
+        ORMLoginToken.objects.filter(person_id=person_id).delete()
         return True

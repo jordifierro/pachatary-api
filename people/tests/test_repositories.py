@@ -3,8 +3,8 @@ import uuid
 from django.test import TestCase
 
 from pachatary.exceptions import EntityDoesNotExistException
-from people.models import ORMPerson, ORMAuthToken, ORMConfirmationToken
-from people.repositories import PersonRepo, AuthTokenRepo, ConfirmationTokenRepo
+from people.models import ORMPerson, ORMAuthToken, ORMConfirmationToken, ORMLoginToken
+from people.repositories import PersonRepo, AuthTokenRepo, ConfirmationTokenRepo, LoginTokenRepo
 from people.entities import Person
 
 
@@ -269,6 +269,97 @@ class ConfirmationTokenRepoTestCase(TestCase):
 
         def then_there_should_be_no_confirmation_tokens_for_that_person(self):
             assert not ORMConfirmationToken.objects.filter(person_id=self.person.id).exists()
+
+        def then_response_should_be_person_id(self):
+            assert self.result == self.person.id
+            return self
+
+        def then_should_raise_entity_does_not_exist(self):
+            assert type(self.error) is EntityDoesNotExistException
+            return self
+
+
+class LoginTokenRepoTestCase(TestCase):
+
+    def test_create_login_token(self):
+        LoginTokenRepoTestCase._ScenarioMaker() \
+                .given_a_person() \
+                .when_create_login_token_for_that_person() \
+                .then_should_return_login_token() \
+                .then_that_token_should_be_saved_in_db()
+
+    def test_delete_login_tokens_from_person(self):
+        LoginTokenRepoTestCase._ScenarioMaker() \
+                .given_a_person() \
+                .when_create_login_token_for_that_person() \
+                .when_create_login_token_for_that_person() \
+                .when_create_login_token_for_that_person() \
+                .when_delete_login_tokens_for_that_person() \
+                .then_response_should_be_true() \
+                .then_there_should_be_no_login_tokens_for_that_person()
+
+    def test_get_person_id_from_login_token(self):
+        LoginTokenRepoTestCase._ScenarioMaker() \
+                .given_a_person() \
+                .given_a_login_token_for_that_person() \
+                .when_get_person_id_for_that_login_token() \
+                .then_response_should_be_person_id()
+
+    def test_get_person_id_when_has_no_tokens(self):
+        LoginTokenRepoTestCase._ScenarioMaker() \
+                .given_a_random_login_token_not_in_db() \
+                .when_get_person_id_for_that_login_token() \
+                .then_should_raise_entity_does_not_exist()
+
+    class _ScenarioMaker:
+
+        def __init__(self):
+            self.person = None
+            self.response = None
+            self.error = None
+
+        def given_a_person(self):
+            self.person = PersonRepo().create_guest_person()
+            return self
+
+        def given_a_login_token_for_that_person(self):
+            self.login_token = LoginTokenRepo().create_login_token(person_id=self.person.id)
+            return self
+
+        def given_a_random_login_token_not_in_db(self):
+            self.login_token = uuid.uuid4()
+            return self
+
+        def when_get_person_id_for_that_login_token(self):
+            try:
+                self.result = LoginTokenRepo().get_person_id(login_token=self.login_token)
+            except Exception as e:
+                self.error = e
+            return self
+
+        def when_create_login_token_for_that_person(self):
+            self.result = LoginTokenRepo().create_login_token(person_id=self.person.id)
+            return self
+
+        def when_delete_login_tokens_for_that_person(self):
+            self.result = LoginTokenRepo().delete_login_tokens(person_id=self.person.id)
+            return self
+
+        def then_should_return_login_token(self):
+            assert type(self.result) is str
+            assert len(self.result) > 0
+            return self
+
+        def then_that_token_should_be_saved_in_db(self):
+            assert ORMLoginToken.objects.filter(person_id=self.person.id, token=self.result).exists()
+            return self
+
+        def then_response_should_be_true(self):
+            assert self.result is True
+            return self
+
+        def then_there_should_be_no_login_tokens_for_that_person(self):
+            assert not ORMLoginToken.objects.filter(person_id=self.person.id).exists()
 
         def then_response_should_be_person_id(self):
             assert self.result == self.person.id
