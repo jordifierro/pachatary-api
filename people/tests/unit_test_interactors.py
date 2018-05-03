@@ -4,7 +4,7 @@ from pachatary.exceptions import InvalidEntityException, EntityDoesNotExistExcep
         NoLoggedException
 from people.entities import Person, AuthToken
 from people.interactors import CreateGuestPersonAndReturnAuthTokenInteractor, AuthenticateInteractor, \
-        RegisterUsernameAndEmailInteractor, ConfirmEmailInteractor, LoginEmailInteractor
+        RegisterUsernameAndEmailInteractor, ConfirmEmailInteractor, LoginEmailInteractor, LoginInteractor
 
 
 class TestCreateGuestPersonAndReturnAuthToken:
@@ -641,4 +641,81 @@ class TestLoginEmailInteractor:
             self.mailer_service.send_login_mail.assert_called_once_with(login_token=self.login_token,
                                                                         username=self.person.username,
                                                                         email=self.person.email)
+            return self
+
+
+class TestLoginInteractor:
+
+    def test_returns_auth_token_and_person(self):
+        TestLoginInteractor.ScenarioMaker() \
+                .given_a_login_token() \
+                .given_a_person_id() \
+                .given_a_login_token_repo_that_returns_that_person_id() \
+                .given_a_person() \
+                .given_a_person_repo_that_returns_that_person() \
+                .given_an_auth_token() \
+                .given_an_auth_token_repo_that_returns_that_auth_token() \
+                .when_login_interactor_is_executed() \
+                .then_should_call_login_token_repo_get_person_id_with_login_token() \
+                .then_should_call_login_token_repo_delete_login_token_with_person_id() \
+                .then_should_call_person_repo_get_person_with_person_id() \
+                .then_should_call_auth_token_repo_get_auth_token_with_person_id() \
+                .then_should_return_person_and_auth_token()
+
+    class ScenarioMaker:
+
+        def given_a_login_token(self):
+            self.login_token = 'tra'
+            return self
+
+        def given_a_person_id(self):
+            self.person_id = '4'
+            return self
+
+        def given_a_login_token_repo_that_returns_that_person_id(self):
+            self.login_token_repo = Mock()
+            self.login_token_repo.get_person_id.return_value = self.person_id
+            return self
+
+        def given_a_person(self):
+            self.person = Person(id='9', username='a', email='e')
+            return self
+
+        def given_a_person_repo_that_returns_that_person(self):
+            self.person_repo = Mock()
+            self.person_repo.get_person.return_value = self.person
+            return self
+
+        def given_an_auth_token(self):
+            self.auth_token = AuthToken('9', 'a', 'r')
+            return self
+
+        def given_an_auth_token_repo_that_returns_that_auth_token(self):
+            self.auth_token_repo = Mock()
+            self.auth_token_repo.get_auth_token.return_value = self.auth_token
+            return self
+
+        def when_login_interactor_is_executed(self):
+            self.result = LoginInteractor(self.person_repo, self.auth_token_repo, self.login_token_repo) \
+                    .set_params(login_token=self.login_token).execute()
+            return self
+
+        def then_should_call_login_token_repo_get_person_id_with_login_token(self):
+            self.login_token_repo.get_person_id.assert_called_once_with(login_token=self.login_token)
+            return self
+
+        def then_should_call_login_token_repo_delete_login_token_with_person_id(self):
+            self.login_token_repo.delete_login_tokens.assert_called_once_with(person_id=self.person_id)
+            return self
+
+        def then_should_call_person_repo_get_person_with_person_id(self):
+            self.person_repo.get_person.assert_called_once_with(id=self.person_id)
+            return self
+
+        def then_should_call_auth_token_repo_get_auth_token_with_person_id(self):
+            self.auth_token_repo.get_auth_token.assert_called_once_with(person_id=self.person_id)
+            return self
+
+        def then_should_return_person_and_auth_token(self):
+            self.result == (self.person, self.auth_token)
             return self

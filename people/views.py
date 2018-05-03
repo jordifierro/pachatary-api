@@ -1,5 +1,5 @@
 from pachatary.decorators import serialize_exceptions
-from .serializers import AuthTokenSerializer, PersonSerializer
+from .serializers import AuthTokenSerializer, PersonSerializer, PersonAuthTokenSerializer
 
 
 class PeopleView:
@@ -58,4 +58,18 @@ class LoginEmailView:
 
         body = None
         status = 204
+        return body, status
+
+
+class LoginView:
+
+    def __init__(self, login_interactor=None):
+        self.login_interactor = login_interactor
+
+    @serialize_exceptions
+    def post(self, token, logged_person_id=None):
+        person, auth_token = self.login_interactor.set_params(login_token=token).execute()
+
+        body = PersonAuthTokenSerializer.serialize(person, auth_token)
+        status = 200
         return body, status

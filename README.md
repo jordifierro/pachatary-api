@@ -519,6 +519,56 @@ _Response:_
 
 _204_
 
+
+### `GET /people/me/login/redirect?token=ABXZ`
+
+This endpoint is to let Android app catch url to get the token and
+call the previous endpoint, or if the user opens this link with a browser,
+it redirects to 'app://pachatary.com/...' to force open deeplink
+(both urls must be defined on Android app).
+
+_Request:_
+
+`token` as query param.
+
+_Response:_
+
+_304_
+
+Location: 'app://pachatary.com/people/me/login?token=ABXZ'
+
+### `POST /people/me/login`
+
+This endpoint is to finish `person` login.
+On previous endpoint, an email is sent with a login token.
+That token has to be sent as parameter.
+
+_Request(application/x-www-form-urlencoded):_
+
+```json
+{
+    "token": "L_T_ABXZ",
+}
+```
+
+_Response:_
+
+_200_
+```json
+{
+    "person": {
+        "is_registered": true,
+        "username": "user.name",
+        "email": "email@example.com",
+        "is_email_confirmed": true
+    },
+    "auth_token" : {
+        "access_token": "A_T_12345",
+        "refresh_token": "R_T_67890",
+    }
+}
+```
+
 ## Documentation
 
 This project has been developed using Django framework,

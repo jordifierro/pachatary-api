@@ -5,8 +5,8 @@ from django.conf import settings
 from .repositories import PersonRepo, AuthTokenRepo, ConfirmationTokenRepo, LoginTokenRepo
 from .validators import ClientSecretKeyValidator, PersonValidator, PersonPermissionsValidator
 from .interactors import CreateGuestPersonAndReturnAuthTokenInteractor, RegisterUsernameAndEmailInteractor, \
-        AuthenticateInteractor, ConfirmEmailInteractor, LoginEmailInteractor
-from .views import PeopleView, PersonView, EmailConfirmationView, LoginEmailView
+        AuthenticateInteractor, ConfirmEmailInteractor, LoginEmailInteractor, LoginInteractor
+from .views import PeopleView, PersonView, EmailConfirmationView, LoginEmailView, LoginView
 from .services import MailerService
 
 
@@ -88,6 +88,11 @@ def create_login_email_interactor(request):
                                 mailer_service=create_mailer_service(request))
 
 
+def create_login_interactor():
+    return LoginInteractor(person_repo=create_person_repo(), auth_token_repo=create_auth_token_repo(),
+                           login_token_repo=create_login_token_repo())
+
+
 def create_people_view(request, **kwargs):
     return PeopleView(
             create_guest_person_and_return_auth_token_interactor=create_guest_person_and_return_auth_token_interactor())
@@ -103,3 +108,7 @@ def create_email_confirmation_view(request, **kwargs):
 
 def create_login_email_view(request, **kwargs):
     return LoginEmailView(login_email_interactor=create_login_email_interactor(request))
+
+
+def create_login_view(request, **kwargs):
+    return LoginView(login_interactor=create_login_interactor())

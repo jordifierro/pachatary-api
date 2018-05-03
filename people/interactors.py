@@ -131,3 +131,22 @@ class LoginEmailInteractor:
         self.mailer_service.send_login_mail(login_token=login_token, username=person.username, email=person.email)
 
         return None
+
+
+class LoginInteractor:
+
+    def __init__(self, person_repo, auth_token_repo, login_token_repo):
+        self.person_repo = person_repo
+        self.auth_token_repo = auth_token_repo
+        self.login_token_repo = login_token_repo
+
+    def set_params(self, login_token):
+        self.login_token = login_token
+        return self
+
+    def execute(self):
+        person_id = self.login_token_repo.get_person_id(login_token=self.login_token)
+        self.login_token_repo.delete_login_tokens(person_id=person_id)
+        person = self.person_repo.get_person(id=person_id)
+        auth_token = self.auth_token_repo.get_auth_token(person_id=person_id)
+        return person, auth_token

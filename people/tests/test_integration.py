@@ -9,7 +9,7 @@ from django.core import mail
 from django.template.loader import get_template
 
 from people.models import ORMAuthToken, ORMPerson, ORMConfirmationToken, ORMLoginToken
-from people.django_views import ANDROID_EMAIL_CONFIRMATION_PATH
+from people.django_views import ANDROID_EMAIL_CONFIRMATION_PATH, ANDROID_LOGIN_PATH
 
 
 class CreatePersonTestCase(TestCase):
@@ -420,4 +420,75 @@ class LoginEmailTestCase(TestCase):
             assert mail.outbox[0].from_email == settings.EMAIL_HOST_USER
             assert mail.outbox[0].to == [self.orm_person.email, ]
             assert mail.outbox[0].alternatives[0][0] == html_message
+            return self
+
+
+class LoginTestCase(TestCase):
+
+    def test_login(self):
+        LoginTestCase.ScenarioMaker() \
+                .given_a_registered_and_confirmed_person_with_auth_token_and_login_token() \
+                .when_anonymous_call_login_whith_login_token() \
+                .then_response_status_should_be_200() \
+                .then_response_content_should_be_person_and_auth_token() \
+                .then_login_token_should_be_deleted_for_that_person()
+
+    class ScenarioMaker:
+
+        def given_a_registered_and_confirmed_person_with_auth_token_and_login_token(self):
+            self.orm_person = ORMPerson.objects.create(username='u', email='e@m.c',
+                                                       is_registered=True, is_email_confirmed=True)
+            self.orm_auth_token = ORMAuthToken.objects.create(person_id=self.orm_person.id)
+            self.orm_login_token = ORMLoginToken.objects.create(person_id=self.orm_person.id)
+            return self
+
+        def when_anonymous_call_login_whith_login_token(self):
+            client = Client()
+            self.response = client.post(reverse('login'),
+                                        urllib.parse.urlencode({'token': self.orm_login_token.token}),
+                                        content_type='application/x-www-form-urlencoded')
+            return self
+
+        def then_response_status_should_be_200(self):
+            assert self.response.status_code == 200
+            return self
+
+        def then_response_content_should_be_person_and_auth_token(self):
+            assert json.loads(self.response.content) == {
+                'person': {
+                    'username': self.orm_person.username,
+                    'email': self.orm_person.email,
+                    'is_registered': self.orm_person.is_registered,
+                    'is_email_confirmed': self.orm_person.is_email_confirmed,
+                },
+                'auth_token': {
+                    'access_token': str(self.orm_auth_token.access_token),
+                    'refresh_token': str(self.orm_auth_token.refresh_token)
+                }
+            }
+            return self
+
+        def then_login_token_should_be_deleted_for_that_person(self):
+            assert len(ORMLoginToken.objects.filter(person_id=self.orm_person.id)) == 0
+            return self
+
+
+class RedirectLoginEmailTestCase(TestCase):
+
+    def test_when_called_redirect_view_redirects_to_apps_url(self):
+        RedirectLoginEmailTestCase.ScenarioMaker() \
+                .when_call_login_email_redirect() \
+                .then_response_should_be_a_redirect_to_app_deeplink_with_params()
+
+    class ScenarioMaker:
+
+        def when_call_login_email_redirect(self):
+            client = Client()
+            self.response = client.get('{}?{}'.format(reverse('login-redirect'), 'token=ABXZ'))
+            return self
+
+        def then_response_should_be_a_redirect_to_app_deeplink_with_params(self):
+            assert self.response.status_code == 302
+            assert self.response['Location'] == '{}{}?token=ABXZ'.format(settings.ANDROID_DEEPLINK_DOMAIN,
+                                                                         ANDROID_LOGIN_PATH)
             return self

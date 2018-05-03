@@ -3,7 +3,6 @@ class AuthTokenSerializer:
     @staticmethod
     def serialize(auth_token):
         return {
-                   'person_id': auth_token.person_id,
                    'access_token': auth_token.access_token,
                    'refresh_token': auth_token.refresh_token
                }
@@ -18,4 +17,14 @@ class PersonSerializer:
                    'username': person.username,
                    'email': person.email,
                    'is_email_confirmed': person.is_email_confirmed,
+               }
+
+
+class PersonAuthTokenSerializer:
+
+    @staticmethod
+    def serialize(person, auth_token):
+        return {
+                   'person': PersonSerializer.serialize(person),
+                   'auth_token': AuthTokenSerializer.serialize(auth_token)
                }

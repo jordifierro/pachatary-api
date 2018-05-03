@@ -127,6 +127,13 @@ class AuthTokenRepoTestCase(TestCase):
                 .when_get_auth_token_with_access_token() \
                 .then_should_return_auth_token()
 
+    def test_get_auth_token_from_person_id(self):
+        AuthTokenRepoTestCase._ScenarioMaker() \
+                .given_a_person() \
+                .given_an_auth_token_for_that_person() \
+                .when_get_auth_token_with_person_id() \
+                .then_should_return_auth_token()
+
     def test_unexistent_get_auth_token(self):
         AuthTokenRepoTestCase._ScenarioMaker() \
                 .when_get_auth_token_with_wrong_access_token() \
@@ -150,6 +157,13 @@ class AuthTokenRepoTestCase(TestCase):
         def when_get_auth_token_with_access_token(self):
             try:
                 self.result = AuthTokenRepo().get_auth_token(access_token=self.auth_token.access_token)
+            except Exception as e:
+                self.error = e
+            return self
+
+        def when_get_auth_token_with_person_id(self):
+            try:
+                self.result = AuthTokenRepo().get_auth_token(person_id=self.person.id)
             except Exception as e:
                 self.error = e
             return self

@@ -1,8 +1,8 @@
 from mock import Mock
 
 from people.entities import AuthToken, Person
-from people.views import PeopleView, PersonView, EmailConfirmationView, LoginEmailView
-from people.serializers import AuthTokenSerializer, PersonSerializer
+from people.views import PeopleView, PersonView, EmailConfirmationView, LoginEmailView, LoginView
+from people.serializers import AuthTokenSerializer, PersonSerializer, PersonAuthTokenSerializer
 
 
 class TestPeopleView:
@@ -216,4 +216,55 @@ class TestLoginEmailView:
 
         def then_response_body_should_be_that_person_serialized(self):
             assert self.body == PersonSerializer.serialize(self.person)
+            return self
+
+
+class TestLoginView:
+
+    def test_post_returns_200_and_person_and_auth_token(self):
+        TestLoginView.ScenarioMaker() \
+                .given_a_login_token() \
+                .given_a_person() \
+                .given_an_auth_token() \
+                .given_an_interactor_that_return_person_auth_token_tuple() \
+                .when_post_is_called_with_that_params() \
+                .then_interactor_receives_that_params() \
+                .then_response_status_is_200() \
+                .then_response_content_is_person_and_auth_token_serialized()
+
+    class ScenarioMaker:
+
+        def given_a_login_token(self):
+            self.login_token = 'e'
+            return self
+
+        def given_a_person(self):
+            self.person = Person(id='8', username='a', email='e')
+            return self
+
+        def given_an_auth_token(self):
+            self.auth_token = AuthToken('9', 'a', 'r')
+            return self
+
+        def given_an_interactor_that_return_person_auth_token_tuple(self):
+            self.interactor_mock = Mock()
+            self.interactor_mock.set_params.return_value = self.interactor_mock
+            self.interactor_mock.execute.return_value = (self.person, self.auth_token)
+            return self
+
+        def when_post_is_called_with_that_params(self):
+            view = LoginView(login_interactor=self.interactor_mock)
+            self.body, self.status = view.post(token=self.login_token)
+            return self
+
+        def then_interactor_receives_that_params(self):
+            self.interactor_mock.set_params.assert_called_once_with(login_token=self.login_token)
+            return self
+
+        def then_response_status_is_200(self):
+            assert self.status == 200
+            return self
+
+        def then_response_content_is_person_and_auth_token_serialized(self):
+            assert self.body == PersonAuthTokenSerializer.serialize(self.person, self.auth_token)
             return self

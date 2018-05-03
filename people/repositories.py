@@ -45,9 +45,12 @@ class AuthTokenRepo:
         created_orm_auth_token = ORMAuthToken.objects.create(person_id=person_id)
         return self._decode_db_auth_token(created_orm_auth_token)
 
-    def get_auth_token(self, access_token):
+    def get_auth_token(self, access_token=None, person_id=None):
         try:
-            orm_auth_token = ORMAuthToken.objects.get(access_token=access_token)
+            if access_token is not None:
+                orm_auth_token = ORMAuthToken.objects.get(access_token=access_token)
+            else:
+                orm_auth_token = ORMAuthToken.objects.get(person_id=person_id)
             return self._decode_db_auth_token(orm_auth_token)
         except ORMAuthToken.DoesNotExist:
             raise EntityDoesNotExistException
