@@ -4,7 +4,7 @@ from pachatary.exceptions import InvalidEntityException, EntityDoesNotExistExcep
         NoLoggedException
 from people.entities import Person, AuthToken
 from people.interactors import CreateGuestPersonAndReturnAuthTokenInteractor, AuthenticateInteractor, \
-        RegisterUsernameAndEmailInteractor, ConfirmEmailInteractor
+        RegisterUsernameAndEmailInteractor, ConfirmEmailInteractor, LoginEmailInteractor
 
 
 class TestCreateGuestPersonAndReturnAuthToken:
@@ -505,7 +505,6 @@ class TestConfirmEmailInteractor:
                 self.result = interactor.set_params(logged_person_id=self.logged_person_id,
                                                     confirmation_token=self.confirmation_token).execute()
             except Exception as e:
-                print(e)
                 self.error = e
             return self
 
@@ -550,4 +549,96 @@ class TestConfirmEmailInteractor:
             assert self.error.source == 'confirmation_token'
             assert self.error.code == 'invalid'
             assert str(self.error) == 'Invalid confirmation token'
+            return self
+
+
+class TestLoginEmailInteractor:
+
+    def test_when_email_doesnt_exists(self):
+        TestLoginEmailInteractor.ScenarioMaker() \
+                .given_an_email() \
+                .given_a_person_repo_that_raises_entity_does_not_exist() \
+                .when_login_email_interactor_executed() \
+                .then_should_call_get_person_repo_with_the_email() \
+                .then_should_not_call_login_token_repo() \
+                .then_should_not_call_mailer_service()
+
+    def test_success(self):
+        TestLoginEmailInteractor.ScenarioMaker() \
+                .given_an_email() \
+                .given_a_person() \
+                .given_a_person_repo_that_returns_that_person() \
+                .given_a_login_token() \
+                .given_a_login_token_repo_that_returns_that_token() \
+                .when_login_email_interactor_executed() \
+                .then_should_call_get_person_repo_with_the_email() \
+                .then_should_call_delete_login_tokens_with_person_id() \
+                .then_should_call_create_login_token_with_person_id() \
+                .then_should_send_mail_with_token_username_to_person_email()
+
+    class ScenarioMaker:
+
+        def __init__(self):
+            self.person_repo = Mock()
+            self.login_token_repo = Mock()
+            self.mailer_service = Mock()
+
+        def given_an_email(self):
+            self.email = 'asdf@email.com'
+            return self
+
+        def given_a_person(self):
+            self.person = Person(id='8', is_registered=True, username='u', email='e')
+            return self
+
+        def given_a_login_token(self):
+            self.login_token = 'ABXZ'
+            return self
+
+        def given_a_person_repo_that_raises_entity_does_not_exist(self):
+            self.person_repo.get_person.side_effect = EntityDoesNotExistException()
+            return self
+
+        def given_a_person_repo_that_returns_that_person(self):
+            self.person_repo.get_person.return_value = self.person
+            return self
+
+        def given_a_login_token_repo_that_returns_that_token(self):
+            self.login_token_repo.create_login_token.return_value = self.login_token
+            return self
+
+        def when_login_email_interactor_executed(self):
+            try:
+                interactor = LoginEmailInteractor(login_token_repo=self.login_token_repo,
+                                                  person_repo=self.person_repo, mailer_service=self.mailer_service)
+                self.result = interactor.set_params(email=self.email).execute()
+            except Exception as e:
+                self.error = e
+            return self
+
+        def then_should_call_get_person_repo_with_the_email(self):
+            self.person_repo.get_person.assert_called_once_with(email=self.email)
+            return self
+
+        def then_should_not_call_login_token_repo(self):
+            self.login_token_repo.delete_login_tokens.assert_not_called()
+            self.login_token_repo.create_login_token.assert_not_called()
+            return self
+
+        def then_should_not_call_mailer_service(self):
+            self.mailer_service.send_login_mail.assert_not_called()
+            return self
+
+        def then_should_call_delete_login_tokens_with_person_id(self):
+            self.login_token_repo.delete_login_tokens.assert_called_once_with(person_id=self.person.id)
+            return self
+
+        def then_should_call_create_login_token_with_person_id(self):
+            self.login_token_repo.create_login_token.assert_called_once_with(person_id=self.person.id)
+            return self
+
+        def then_should_send_mail_with_token_username_to_person_email(self):
+            self.mailer_service.send_login_mail.assert_called_once_with(login_token=self.login_token,
+                                                                        username=self.person.username,
+                                                                        email=self.person.email)
             return self

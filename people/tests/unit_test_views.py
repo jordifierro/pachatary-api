@@ -1,7 +1,7 @@
 from mock import Mock
 
 from people.entities import AuthToken, Person
-from people.views import PeopleView, PersonView, EmailConfirmationView
+from people.views import PeopleView, PersonView, EmailConfirmationView, LoginEmailView
 from people.serializers import AuthTokenSerializer, PersonSerializer
 
 
@@ -172,6 +172,46 @@ class TestEmailConfirmationView:
 
         def then_response_status_is_200(self):
             assert self.status == 200
+            return self
+
+        def then_response_body_should_be_that_person_serialized(self):
+            assert self.body == PersonSerializer.serialize(self.person)
+            return self
+
+
+class TestLoginEmailView:
+
+    def test_post_returns_204(self):
+        TestLoginEmailView.ScenarioMaker() \
+                .given_an_email() \
+                .when_post_is_called_with_that_params() \
+                .then_interactor_receives_that_params() \
+                .then_response_status_is_204()
+
+    class ScenarioMaker:
+
+        def __init__(self):
+            self.interactor_mock = Mock()
+            self.interactor_mock.set_params.return_value = self.interactor_mock
+            self.email = None
+            self.response = None
+
+        def given_an_email(self):
+            self.email = 'e'
+            return self
+
+        def when_post_is_called_with_that_params(self):
+            view = LoginEmailView(login_email_interactor=self.interactor_mock)
+            self.body, self.status = view.post(email=self.email)
+            return self
+
+        def then_interactor_receives_that_params(self):
+            self.interactor_mock.set_params.assert_called_once_with(email=self.email)
+            return self
+
+        def then_response_status_is_204(self):
+            assert self.status == 204
+            assert self.body is None
             return self
 
         def then_response_body_should_be_that_person_serialized(self):

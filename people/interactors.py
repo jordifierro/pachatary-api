@@ -107,3 +107,27 @@ class ConfirmEmailInteractor:
         updated_person = self.person_repo.update_person(updated_person)
 
         return updated_person
+
+
+class LoginEmailInteractor:
+
+    def __init__(self, person_repo, login_token_repo, mailer_service):
+        self.person_repo = person_repo
+        self.login_token_repo = login_token_repo
+        self.mailer_service = mailer_service
+
+    def set_params(self, email):
+        self.email = email
+        return self
+
+    def execute(self):
+        try:
+            person = self.person_repo.get_person(email=self.email)
+        except EntityDoesNotExistException:
+            return None
+
+        self.login_token_repo.delete_login_tokens(person_id=person.id)
+        login_token = self.login_token_repo.create_login_token(person_id=person.id)
+        self.mailer_service.send_login_mail(login_token=login_token, username=person.username, email=person.email)
+
+        return None

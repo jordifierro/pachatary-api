@@ -502,6 +502,23 @@ _304_
 
 Location: 'app://pachatary.com/people/me/email-confirmation?token=ABXZ'
 
+### `POST /people/me/login-email`
+
+This endpoint is used to ask login email.
+An email will be sent with an authenticated (using a token) link to login.
+
+_Request(application/x-www-form-urlencoded):_
+
+```json
+{
+    "email": "my@email.com",
+}
+```
+
+_Response:_
+
+_204_
+
 ## Documentation
 
 This project has been developed using Django framework,

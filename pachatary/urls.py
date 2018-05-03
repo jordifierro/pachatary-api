@@ -6,8 +6,9 @@ from django.conf.urls.static import static
 from experiences.factories import create_experiences_view, create_experience_view, \
         create_upload_experience_picture_view, create_save_experience_view, create_search_experiences_view
 from scenes.factories import create_scenes_view, create_scene_view, create_upload_scene_picture_view
-from people.factories import create_people_view, create_person_view, create_email_confirmation_view
-from people.django_views import email_confirmation_redirect
+from people.factories import create_people_view, create_person_view, create_email_confirmation_view, \
+        create_login_email_view
+from people.django_views import email_confirmation_redirect, login_redirect
 
 from .views import ViewWrapper
 
@@ -64,6 +65,14 @@ urlpatterns = [
     url(r'^people/me/email-confirmation/redirect$',
         email_confirmation_redirect,
         name='email-confirmation-redirect'),
+
+    url(r'^people/me/login-email$',
+        ViewWrapper.as_view(view_creator_func=create_login_email_view),
+        name='login-email'),
+
+    url(r'^people/me/login/redirect$',
+        login_redirect,
+        name='login-redirect'),
 ]
 
 if settings.LOCAL_DEPLOY:

@@ -1,0 +1,5 @@
+Hi again {{ username }}!
+
+Click this link with your mobile device to login:
+
+{{ login_url }}

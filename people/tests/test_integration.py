@@ -8,8 +8,8 @@ from django.urls import reverse
 from django.core import mail
 from django.template.loader import get_template
 
-from people.models import ORMAuthToken, ORMPerson, ORMConfirmationToken
-from people.django_views import ANDROID_DEEPLINK_PATH
+from people.models import ORMAuthToken, ORMPerson, ORMConfirmationToken, ORMLoginToken
+from people.django_views import ANDROID_EMAIL_CONFIRMATION_PATH
 
 
 class CreatePersonTestCase(TestCase):
@@ -367,5 +367,57 @@ class RedirectConfirmEmailTestCase(TestCase):
         def then_response_should_be_a_redirect_to_app_deeplink_with_params(self):
             assert self.response.status_code == 302
             assert self.response['Location'] == '{}{}?token=ABXZ'.format(settings.ANDROID_DEEPLINK_DOMAIN,
-                                                                         ANDROID_DEEPLINK_PATH)
+                                                                         ANDROID_EMAIL_CONFIRMATION_PATH)
+            return self
+
+
+class LoginEmailTestCase(TestCase):
+
+    def test_login_email(self):
+        LoginEmailTestCase.ScenarioMaker() \
+                .given_a_registered_and_confirmed_person() \
+                .when_anonymous_call_with_person_email_login_email() \
+                .then_response_status_should_be_empty_body_and_204() \
+                .then_login_token_should_be_created_for_that_person() \
+                .then_login_email_should_be_sent()
+
+    class ScenarioMaker:
+
+        def __init__(self):
+            self.orm_person = None
+            self.response = None
+
+        def given_a_registered_and_confirmed_person(self):
+            self.orm_person = ORMPerson.objects.create(username='u', email='e@m.c',
+                                                       is_registered=True, is_email_confirmed=True)
+            return self
+
+        def when_anonymous_call_with_person_email_login_email(self):
+            client = Client()
+            self.response = client.post(reverse('login-email'),
+                                        urllib.parse.urlencode({'email': self.orm_person.email}),
+                                        content_type='application/x-www-form-urlencoded')
+            return self
+
+        def then_response_status_should_be_empty_body_and_204(self):
+            assert len(self.response.content) == 0
+            assert self.response.status_code == 204
+            return self
+
+        def then_login_token_should_be_created_for_that_person(self):
+            assert len(ORMLoginToken.objects.filter(person_id=self.orm_person.id)) == 1
+            return self
+
+        def then_login_email_should_be_sent(self):
+            assert mail.outbox[0].subject == 'Pachatary login'
+            login_token = ORMLoginToken.objects.get(person_id=self.orm_person.id).token
+            login_reverse_url = self.response.wsgi_request.build_absolute_uri(reverse('login-redirect'))
+            login_url = "{}?token={}".format(login_reverse_url, login_token)
+            context_params = {'username': self.orm_person.username, 'login_url': login_url}
+            plain_text_message = get_template('login_email.txt').render(context_params)
+            html_message = get_template('login_email.html').render(context_params)
+            assert mail.outbox[0].body == plain_text_message
+            assert mail.outbox[0].from_email == settings.EMAIL_HOST_USER
+            assert mail.outbox[0].to == [self.orm_person.email, ]
+            assert mail.outbox[0].alternatives[0][0] == html_message
             return self
