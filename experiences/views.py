@@ -1,5 +1,5 @@
 from pachatary.decorators import serialize_exceptions
-from .serializers import ExperiencesResponseSerializer, ExperienceSerializer, ExperiencesSearchResponseSerializer
+from .serializers import serialize_experiences_response, serialize_experience, serialize_experiences_search_response
 from .interactors import SaveUnsaveExperienceInteractor
 
 
@@ -22,11 +22,11 @@ class ExperiencesView:
                                                                             logged_person_id=logged_person_id,
                                                                             limit=limit, offset=offset).execute()
 
-        body = ExperiencesResponseSerializer.serialize(experiences=experiences_result['results'],
-                                                       base_url=self.get_experiences_base_url,
-                                                       mine=mine, saved=saved,
-                                                       next_limit=experiences_result['next_limit'],
-                                                       next_offset=experiences_result['next_offset'])
+        body = serialize_experiences_response(experiences=experiences_result['results'],
+                                              base_url=self.get_experiences_base_url,
+                                              mine=mine, saved=saved,
+                                              next_limit=experiences_result['next_limit'],
+                                              next_offset=experiences_result['next_offset'])
 
         status = 200
         return body, status
@@ -35,7 +35,7 @@ class ExperiencesView:
     def post(self, title=None, description=None, logged_person_id=None):
         experience = self.create_new_experience_interactor \
                 .set_params(title=title, description=description, logged_person_id=logged_person_id).execute()
-        body = ExperienceSerializer.serialize(experience)
+        body = serialize_experience(experience)
         status = 201
         return body, status
 
@@ -50,7 +50,7 @@ class ExperienceView:
         experience = self.modify_experience_interactor \
                 .set_params(id=experience_id, title=title,
                             description=description, logged_person_id=logged_person_id).execute()
-        body = ExperienceSerializer.serialize(experience)
+        body = serialize_experience(experience)
         status = 200
         return body, status
 
@@ -64,7 +64,7 @@ class UploadExperiencePictureView:
     def post(self, picture, experience_id, logged_person_id):
         experience = self.upload_experience_picture_interactor.set_params(experience_id=experience_id, picture=picture,
                                                                           logged_person_id=logged_person_id).execute()
-        body = ExperienceSerializer.serialize(experience)
+        body = serialize_experience(experience)
         status = 200
         return body, status
 
@@ -108,11 +108,11 @@ class SearchExperiencesView:
         experiences_result = self.search_experiences_interactor.set_params(word=word, location=location,
                                                                            logged_person_id=logged_person_id,
                                                                            limit=limit, offset=offset).execute()
-        body = ExperiencesSearchResponseSerializer.serialize(experiences=experiences_result['results'],
-                                                             base_url=self.search_experiences_base_url,
-                                                             word=word, latitude=latitude, longitude=longitude,
-                                                             next_limit=experiences_result['next_limit'],
-                                                             next_offset=experiences_result['next_offset'])
+        body = serialize_experiences_search_response(experiences=experiences_result['results'],
+                                                     base_url=self.search_experiences_base_url,
+                                                     word=word, latitude=latitude, longitude=longitude,
+                                                     next_limit=experiences_result['next_limit'],
+                                                     next_offset=experiences_result['next_offset'])
 
         status = 200
         return body, status

@@ -5,7 +5,7 @@ from mock import Mock
 from pachatary.entities import Picture
 from scenes.entities import Scene
 from scenes.views import ScenesView, SceneView, UploadScenePictureView
-from scenes.serializers import SceneSerializer, MultipleScenesSerializer
+from scenes.serializers import serialize_scene, serialize_multiple_scenes
 
 
 class TestScenesView:
@@ -129,11 +129,11 @@ class TestScenesView:
             return self
 
         def then_response_body_is_scene_serialized(self):
-            assert self._body == SceneSerializer.serialize(self._scene)
+            assert self._body == serialize_scene(self._scene)
             return self
 
         def then_response_body_are_scenes_serialized(self):
-            assert self._body == MultipleScenesSerializer.serialize([self._scene, self._second_scene])
+            assert self._body == serialize_multiple_scenes([self._scene, self._second_scene])
             return self
 
 
@@ -208,7 +208,7 @@ class TestSceneView:
             return self
 
         def then_response_body_is_scene_serialized(self):
-            assert self._body == SceneSerializer.serialize(self._scene)
+            assert self._body == serialize_scene(self._scene)
 
 
 class TestUploadScenePictureView:
@@ -273,4 +273,4 @@ class TestUploadScenePictureView:
             return self
 
         def then_response_body_is_scene_serialized(self):
-            assert self._body == SceneSerializer.serialize(self._scene)
+            assert self._body == serialize_scene(self._scene)

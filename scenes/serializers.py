@@ -1,23 +1,17 @@
-from pachatary.serializers import PictureSerializer
+from pachatary.serializers import serialize_picture
 
 
-class MultipleScenesSerializer:
-
-    @staticmethod
-    def serialize(scenes):
-        return [SceneSerializer.serialize(scene) for scene in scenes]
+def serialize_multiple_scenes(scenes):
+    return [serialize_scene(scene) for scene in scenes]
 
 
-class SceneSerializer:
-
-    @staticmethod
-    def serialize(scene):
-        return {
-                   'id': str(scene.id),
-                   'title': scene.title,
-                   'description': scene.description,
-                   'picture': PictureSerializer.serialize(scene.picture),
-                   'latitude': float(scene.latitude),
-                   'longitude': float(scene.longitude),
-                   'experience_id': str(scene.experience_id),
-               }
+def serialize_scene(scene):
+    return {
+               'id': str(scene.id),
+               'title': scene.title,
+               'description': scene.description,
+               'picture': serialize_picture(scene.picture),
+               'latitude': float(scene.latitude),
+               'longitude': float(scene.longitude),
+               'experience_id': str(scene.experience_id),
+           }

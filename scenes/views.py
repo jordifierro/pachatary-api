@@ -1,5 +1,5 @@
 from pachatary.decorators import serialize_exceptions
-from .serializers import MultipleScenesSerializer, SceneSerializer
+from .serializers import serialize_multiple_scenes, serialize_scene
 
 
 class ScenesView:
@@ -13,7 +13,7 @@ class ScenesView:
         scenes = self.get_scenes_from_experience_interactor.set_params(experience_id=experience,
                                                                        logged_person_id=logged_person_id).execute()
 
-        body = MultipleScenesSerializer.serialize(scenes)
+        body = serialize_multiple_scenes(scenes)
         status = 200
         return body, status
 
@@ -23,7 +23,7 @@ class ScenesView:
                                                             latitude=float(latitude), longitude=float(longitude),
                                                             experience_id=experience_id,
                                                             logged_person_id=logged_person_id).execute()
-        body = SceneSerializer.serialize(scene)
+        body = serialize_scene(scene)
         status = 201
         return body, status
 
@@ -43,7 +43,7 @@ class SceneView:
                                                         latitude=latitude, longitude=longitude,
                                                         experience_id=experience_id,
                                                         logged_person_id=logged_person_id).execute()
-        body = SceneSerializer.serialize(scene)
+        body = serialize_scene(scene)
         status = 200
         return body, status
 
@@ -57,6 +57,6 @@ class UploadScenePictureView:
     def post(self, picture, scene_id, logged_person_id):
         scene = self.upload_scene_picture_interactor.set_params(scene_id=scene_id, picture=picture,
                                                                 logged_person_id=logged_person_id).execute()
-        body = SceneSerializer.serialize(scene)
+        body = serialize_scene(scene)
         status = 200
         return body, status

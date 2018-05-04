@@ -1,6 +1,6 @@
 from .exceptions import InvalidEntityException, EntityDoesNotExistException, ConflictException, \
         PachataryException, NoLoggedException, NoPermissionException
-from .serializers import PachataryExceptionSerializer
+from .serializers import serialize_exception
 
 exception_status_code_mapper = {
         InvalidEntityException: 422,
@@ -16,7 +16,7 @@ def serialize_exceptions(func):
         try:
             return func(*args, **kwargs)
         except PachataryException as e:
-            body = PachataryExceptionSerializer.serialize(e)
+            body = serialize_exception(e)
             status = exception_status_code_mapper[type(e)]
         return body, status
     return func_wrapper

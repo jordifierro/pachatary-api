@@ -1,25 +1,19 @@
-class PictureSerializer:
+def serialize_picture(picture):
+    if picture is None:
+        return None
 
-    @staticmethod
-    def serialize(picture):
-        if picture is None:
-            return None
-
-        return {
-                   'small_url': picture.small_url,
-                   'medium_url': picture.medium_url,
-                   'large_url': picture.large_url,
-               }
+    return {
+               'small_url': picture.small_url,
+               'medium_url': picture.medium_url,
+               'large_url': picture.large_url,
+           }
 
 
-class PachataryExceptionSerializer:
-
-    @staticmethod
-    def serialize(exception):
-        return {
-                   'error': {
-                       'source': exception.source,
-                       'code': exception.code,
-                       'message': str(exception)
-                    }
-               }
+def serialize_exception(exception):
+    return {
+               'error': {
+                   'source': exception.source,
+                   'code': exception.code,
+                   'message': str(exception)
+                }
+           }

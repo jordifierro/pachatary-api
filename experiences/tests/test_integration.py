@@ -9,7 +9,7 @@ from experiences.models import ORMExperience, ORMSave
 from experiences.entities import Experience
 from experiences.repositories import ExperienceRepo
 from experiences.factories import create_experience_elastic_repo
-from experiences.serializers import MultipleExperiencesSerializer
+from experiences.serializers import serialize_multiple_experiences
 from people.models import ORMPerson, ORMAuthToken
 from scenes.entities import Scene
 
@@ -393,7 +393,7 @@ class SearchExperiencesTestCase(TestCase):
             experiences = [self.experiences[int(i)-1] for i in experiences_ids]
             assert self.response.status_code == 200
             assert json.loads(self.response.content) == {
-                    'results': MultipleExperiencesSerializer.serialize(experiences), 'next_url': None}
+                    'results': serialize_multiple_experiences(experiences), 'next_url': None}
             return self
 
         def then_should_return_experiences_and_next_url(self, experiences_ids, word,
@@ -406,5 +406,5 @@ class SearchExperiencesTestCase(TestCase):
                 next_url = "{}&longitude={}".format(next_url, longitude)
             assert self.response.status_code == 200
             assert json.loads(self.response.content) == {
-                    'results': MultipleExperiencesSerializer.serialize(experiences), 'next_url': next_url}
+                    'results': serialize_multiple_experiences(experiences), 'next_url': next_url}
             return self

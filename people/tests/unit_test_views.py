@@ -2,7 +2,7 @@ from mock import Mock
 
 from people.entities import AuthToken, Person
 from people.views import PeopleView, PersonView, EmailConfirmationView, LoginEmailView, LoginView
-from people.serializers import AuthTokenSerializer, PersonSerializer, PersonAuthTokenSerializer
+from people.serializers import serialize_auth_token, serialize_person, serialize_person_auth_token
 
 
 class TestPeopleView:
@@ -52,7 +52,7 @@ class TestPeopleView:
             return self
 
         def then_response_body_is_auth_token_serialized(self):
-            assert self.body == AuthTokenSerializer.serialize(self.auth_token)
+            assert self.body == serialize_auth_token(self.auth_token)
             return self
 
 
@@ -117,7 +117,7 @@ class TestPersonView:
             return self
 
         def then_response_body_should_be_that_person_serialized(self):
-            assert self.body == PersonSerializer.serialize(self.person)
+            assert self.body == serialize_person(self.person)
             return self
 
 
@@ -175,7 +175,7 @@ class TestEmailConfirmationView:
             return self
 
         def then_response_body_should_be_that_person_serialized(self):
-            assert self.body == PersonSerializer.serialize(self.person)
+            assert self.body == serialize_person(self.person)
             return self
 
 
@@ -215,7 +215,7 @@ class TestLoginEmailView:
             return self
 
         def then_response_body_should_be_that_person_serialized(self):
-            assert self.body == PersonSerializer.serialize(self.person)
+            assert self.body == serialize_person(self.person)
             return self
 
 
@@ -266,5 +266,5 @@ class TestLoginView:
             return self
 
         def then_response_content_is_person_and_auth_token_serialized(self):
-            assert self.body == PersonAuthTokenSerializer.serialize(self.person, self.auth_token)
+            assert self.body == serialize_person_auth_token(self.person, self.auth_token)
             return self

@@ -4,7 +4,7 @@ from pachatary.entities import Picture
 from experiences.entities import Experience
 from experiences.views import ExperiencesView, ExperienceView, UploadExperiencePictureView, SaveExperienceView, \
         SearchExperiencesView
-from experiences.serializers import ExperienceSerializer, MultipleExperiencesSerializer
+from experiences.serializers import serialize_experience, serialize_multiple_experiences
 from experiences.interactors import SaveUnsaveExperienceInteractor
 
 
@@ -97,7 +97,7 @@ class TestExperiencesView:
 
         def then_response_body_should_be_experiences_and_next_url_serialized(self, saved, mine):
             assert self.body == {
-                    "results": MultipleExperiencesSerializer.serialize([self.experience_a, self.experience_b]),
+                    "results": serialize_multiple_experiences([self.experience_a, self.experience_b]),
                     "next_url": "{}?mine={}&saved={}&limit={}&offset={}".format(self.experiences_base_url, mine, saved,
                                                                                 self.next_limit, self.next_offset)
                     }
@@ -218,7 +218,7 @@ class TestUploadExperiencePictureView:
             return self
 
         def then_response_body_is_experience_serialized(self):
-            assert self._body == ExperienceSerializer.serialize(self._experience)
+            assert self._body == serialize_experience(self._experience)
 
 
 class TestSaveExperienceView:
@@ -408,7 +408,7 @@ class TestSearchExperiencesView:
                 next_url = '{}&longitude={}'.format(next_url, longitude)
 
             assert self.body == {
-                'results': MultipleExperiencesSerializer.serialize([self.experience_a, self.experience_b]),
+                'results': serialize_multiple_experiences([self.experience_a, self.experience_b]),
                 'next_url': next_url
             }
             return self
