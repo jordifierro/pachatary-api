@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ORMPerson, ORMAuthToken, ORMConfirmationToken
+from .models import ORMPerson, ORMAuthToken, ORMConfirmationToken, ORMLoginToken
 
 
 class PersonAdmin(admin.ModelAdmin):
@@ -24,3 +24,11 @@ class ConfirmationTokenAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ORMConfirmationToken, ConfirmationTokenAdmin)
+
+
+class LoginTokenAdmin(admin.ModelAdmin):
+    list_display = ('person', 'token')
+    search_fields = ('person__username', )
+
+
+admin.site.register(ORMLoginToken, LoginTokenAdmin)
