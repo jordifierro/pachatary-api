@@ -192,3 +192,5 @@ if not LOCAL_DEPLOY:
     }
     import rollbar
     rollbar.init(**ROLLBAR)
+
+ANDROID_MIN_VERSION = os.environ['ANDROID_MIN_VERSION']

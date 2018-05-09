@@ -3,6 +3,7 @@ import urllib.parse
 
 from django.http import HttpResponse
 from django.views import View
+from django.conf import settings
 
 from people.factories import create_authenticate_interactor
 
@@ -67,3 +68,13 @@ class ViewWrapper(View):
 
         access_token = authentication_header.replace('Token ', '')
         return create_authenticate_interactor().set_params(access_token=access_token).execute()
+
+
+def client_versions(request):
+    response = {
+        'android': {
+            'min_version': int(settings.ANDROID_MIN_VERSION)
+        }
+    }
+
+    return HttpResponse(json.dumps(response), status=200)

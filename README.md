@@ -569,6 +569,22 @@ _200_
 }
 ```
 
+### `GET /client-versions`
+
+To check if client version has to be upgraded.
+
+_Response:_
+
+_200_
+```json
+{
+    "android": {
+        "min_version": 3
+    }
+}
+```
+
+
 ## Documentation
 
 This project has been developed using Django framework,

@@ -10,7 +10,7 @@ from people.factories import create_people_view, create_person_view, create_emai
         create_login_email_view, create_login_view
 from people.django_views import email_confirmation_redirect, login_redirect
 
-from .views import ViewWrapper
+from .views import ViewWrapper, client_versions
 
 app_name = 'pachatary'
 urlpatterns = [
@@ -77,6 +77,10 @@ urlpatterns = [
     url(r'^people/me/login/redirect$',
         login_redirect,
         name='login-redirect'),
+
+    url(r'^client-versions$',
+        client_versions,
+        name='client-versions')
 ]
 
 if settings.LOCAL_DEPLOY:
