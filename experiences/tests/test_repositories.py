@@ -11,6 +11,71 @@ from scenes.entities import Scene
 from people.models import ORMPerson
 
 
+class NewExperienceRepoTestCase(TestCase):
+
+    def test_get_saved_experiences(self):
+        NewExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_a_person_in_db('other.user') \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_I_save_experience(experience=3) \
+                .given_I_save_experience(experience=5) \
+                .given_I_save_experience(experience=1) \
+                .given_I_save_experience(experience=6) \
+                .when_get_saved_experiences(offset=0, limit=2) \
+                .then_result_should_be_experiences_and_offset([6, 1], 2) \
+                .when_get_saved_experiences(offset=2, limit=1) \
+                .then_result_should_be_experiences_and_offset([5], 3) \
+                .when_get_saved_experiences(offset=3, limit=3) \
+                .then_result_should_be_experiences_and_offset([3], None)
+
+    class ScenarioMaker:
+
+        def __init__(self):
+            self.persons = []
+            self.experiences = []
+            self.saves = []
+            self.repo = ExperienceRepo()
+
+        def given_a_person_in_db(self, username):
+            self.persons.append(ORMPerson.objects.create(username=username))
+            return self
+
+        def given_an_experience_in_db(self, created_by_person):
+            author_id = self.persons[created_by_person-1].id
+            self.experiences.append(ORMExperience.objects.create(author_id=author_id))
+            return self
+
+        def given_I_save_experience(self, experience):
+            experience_id = self.experiences[experience-1].id
+            self.repo.save_experience(person_id=self.persons[0].id, experience_id=experience_id)
+            self.saves.append(experience_id)
+            return self
+
+        def when_get_saved_experiences(self, offset, limit):
+            self.result = self.repo.get_saved_experiences(logged_person_id=self.persons[0].id,
+                                                          offset=offset, limit=limit)
+            return self
+
+        def then_result_should_be_experiences_and_offset(self, experiences_positions, next_offset):
+            assert self.result['next_offset'] == next_offset
+            assert len(self.result['results']) == len(experiences_positions)
+            for i in range(len(experiences_positions)):
+                orm_experience = self.experiences[experiences_positions[i]-1]
+                orm_experience.refresh_from_db()
+                mine = orm_experience.author_id == self.persons[0].id
+                saved = orm_experience.id in self.saves
+                parsed_experience = self.repo._decode_db_experience(orm_experience, is_mine=mine, is_saved=saved)
+                assert self.result['results'][i] == parsed_experience
+
+            return self
+
+
 class ExperienceRepoTestCase(TestCase):
 
     def test_get_all_experiences_with_mine_false_returns_not_mine_nor_saved_experiences(self):

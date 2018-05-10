@@ -29,6 +29,20 @@ class ExperienceRepo:
                           is_saved=is_saved,
                           saves_count=db_experience.saves_count)
 
+    def get_saved_experiences(self, logged_person_id, offset=0, limit=100):
+        db_saves_and_experiences = \
+            ORMSave.objects.order_by('-id').select_related('experience', 'experience__author').filter(person_id=logged_person_id)
+
+        paginated_db_saves = db_saves_and_experiences[offset:offset+limit+1]
+        next_offset = None
+        if len(paginated_db_saves) == limit+1:
+            next_offset = offset + limit
+
+        experiences = []
+        for db_save in paginated_db_saves[0:limit]:
+            experiences.append(self._decode_db_experience(db_save.experience, is_mine=False, is_saved=True))
+        return {'results': experiences, 'next_offset': next_offset}
+
     def get_all_experiences(self, logged_person_id, offset=0, limit=100, mine=False, saved=False):
         if saved:
             db_experiences = \
