@@ -6,7 +6,7 @@ from django.conf import settings
 from people.factories import create_person_permissions_validator
 from .repositories import ExperienceRepo, ExperienceSearchRepo
 from .validators import ExperienceValidator, ExperiencePermissionsValidator
-from .interactors import GetAllExperiencesInteractor, CreateNewExperienceInteractor, \
+from .interactors import GetExperiencesInteractor, CreateNewExperienceInteractor, \
         ModifyExperienceInteractor, UploadExperiencePictureInteractor, SaveUnsaveExperienceInteractor, \
         SearchExperiencesInteractor
 from .views import ExperiencesView, ExperienceView, UploadExperiencePictureView, SaveExperienceView, \
@@ -31,9 +31,9 @@ def create_experience_permissions_validator():
                                           person_permissions_validator=create_person_permissions_validator())
 
 
-def create_get_all_experiences_interactor():
-    return GetAllExperiencesInteractor(experience_repo=create_experience_repo(),
-                                       permissions_validator=create_experience_permissions_validator())
+def create_get_experiences_interactor():
+    return GetExperiencesInteractor(experience_repo=create_experience_repo(),
+                                    permissions_validator=create_experience_permissions_validator())
 
 
 def create_search_experiences_interactor():
@@ -63,7 +63,7 @@ def create_save_unsave_experience_interactor():
 
 
 def create_experiences_view(request, **kwargs):
-    return ExperiencesView(get_all_experiences_interactor=create_get_all_experiences_interactor(),
+    return ExperiencesView(get_experiences_interactor=create_get_experiences_interactor(),
                            get_experiences_base_url=request.build_absolute_uri(reverse('experiences')),
                            create_new_experience_interactor=create_create_new_experience_interactor())
 

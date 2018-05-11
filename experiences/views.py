@@ -5,9 +5,9 @@ from .interactors import SaveUnsaveExperienceInteractor
 
 class ExperiencesView:
 
-    def __init__(self, get_all_experiences_interactor=None,
+    def __init__(self, get_experiences_interactor=None,
                  get_experiences_base_url=None, create_new_experience_interactor=None):
-        self.get_all_experiences_interactor = get_all_experiences_interactor
+        self.get_experiences_interactor = get_experiences_interactor
         self.get_experiences_base_url = get_experiences_base_url
         self.create_new_experience_interactor = create_new_experience_interactor
 
@@ -18,9 +18,9 @@ class ExperiencesView:
         limit = int(limit)
         offset = int(offset)
 
-        experiences_result = self.get_all_experiences_interactor.set_params(mine=boolean_mine, saved=boolean_saved,
-                                                                            logged_person_id=logged_person_id,
-                                                                            limit=limit, offset=offset).execute()
+        experiences_result = self.get_experiences_interactor.set_params(mine=boolean_mine, saved=boolean_saved,
+                                                                        logged_person_id=logged_person_id,
+                                                                        limit=limit, offset=offset).execute()
 
         body = serialize_experiences_response(experiences=experiences_result['results'],
                                               base_url=self.get_experiences_base_url,

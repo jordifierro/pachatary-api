@@ -4,9 +4,9 @@ from pachatary.exceptions import ConflictException
 from experiences.entities import Experience
 
 
-class GetAllExperiencesInteractor:
+class GetExperiencesInteractor:
 
-    MAX_PAGINATION_LIMIT = 20
+    MAX_PAGINATE_LIMIT = 20
 
     def __init__(self, experience_repo, permissions_validator):
         self.experience_repo = experience_repo
@@ -23,11 +23,17 @@ class GetAllExperiencesInteractor:
     def execute(self):
         self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
 
-        if self.limit > GetAllExperiencesInteractor.MAX_PAGINATION_LIMIT:
-            self.limit = GetAllExperiencesInteractor.MAX_PAGINATION_LIMIT
-        result = self.experience_repo.get_all_experiences(mine=self.mine, saved=self.saved,
-                                                          limit=self.limit, offset=self.offset,
-                                                          logged_person_id=self.logged_person_id)
+        if self.limit > GetExperiencesInteractor.MAX_PAGINATE_LIMIT:
+            self.limit = GetExperiencesInteractor.MAX_PAGINATE_LIMIT
+
+        if self.saved:
+            result = self.experience_repo.get_saved_experiences(limit=self.limit, offset=self.offset,
+                                                                logged_person_id=self.logged_person_id)
+        else:
+            result = self.experience_repo.get_person_experiences(limit=self.limit, offset=self.offset,
+                                                                 logged_person_id=self.logged_person_id,
+                                                                 target_person_id=self.logged_person_id)
+
         result.update({"next_limit": self.limit})
         return result
 

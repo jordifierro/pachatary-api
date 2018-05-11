@@ -66,30 +66,6 @@ class ExperienceRepo:
                                                           is_saved=is_saved))
         return {"results": experiences, "next_offset": next_offset}
 
-    def get_all_experiences(self, logged_person_id, offset=0, limit=100, mine=False, saved=False):
-        if saved:
-            db_experiences = \
-                [save.experience for save
-                    in ORMSave.objects.order_by('-id').select_related('experience').filter(person_id=logged_person_id)]
-        else:
-            all_db_experiences = ORMExperience.objects.order_by('-id').select_related('author').all()
-            if mine:
-                db_experiences = all_db_experiences.filter(author_id=logged_person_id)
-            else:
-                saved_experience_ids = ORMSave.objects.values('experience_id').filter(person_id=logged_person_id)
-                db_experiences = all_db_experiences.exclude(author_id=logged_person_id) \
-                                                   .exclude(id__in=saved_experience_ids)
-
-        paginated_db_experiences = db_experiences[offset:offset+limit+1]
-        next_offset = None
-        if len(paginated_db_experiences) == limit+1:
-            next_offset = offset + limit
-
-        experiences = []
-        for db_experience in paginated_db_experiences[0:limit]:
-            experiences.append(self._decode_db_experience(db_experience, mine, saved))
-        return {"results": experiences, "next_offset": next_offset}
-
     def get_experience(self, id, logged_person_id=None):
         try:
             db_experience = ORMExperience.objects.select_related('author').get(id=id)

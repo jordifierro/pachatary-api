@@ -81,7 +81,7 @@ class TestExperiencesView:
             return self
 
         def when_get_experiences(self, logged_person_id, mine, saved, limit, offset):
-            self.body, self.status = ExperiencesView(get_all_experiences_interactor=self.interactor_mock,
+            self.body, self.status = ExperiencesView(get_experiences_interactor=self.interactor_mock,
                                                      get_experiences_base_url=self.experiences_base_url) \
                     .get(logged_person_id=logged_person_id, mine=mine, saved=saved, limit=limit, offset=offset)
             return self

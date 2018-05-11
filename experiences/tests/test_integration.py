@@ -57,48 +57,6 @@ class ExperiencesTestCase(TestCase):
                 'next_url': 'http://testserver/experiences/?mine=true&saved=false&limit=2&offset=2'
             }
 
-    def test_not_mine_experiences_returns_others_experiences(self):
-        orm_person = ORMPerson.objects.create(username='usr')
-        orm_person_b = ORMPerson.objects.create(username='nme')
-        orm_auth_token = ORMAuthToken.objects.create(person=orm_person_b)
-        ORMExperience.objects.create(title='Exp c', description='other description', author=orm_person)
-        exp_b = ORMExperience.objects.create(title='Exp b', description='other description', author=orm_person)
-        exp_a = ORMExperience.objects.create(title='Exp a', description='some description', author=orm_person)
-
-        client = Client()
-        auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }
-        response = client.get('{}?limit=2'.format(reverse('experiences')), **auth_headers)
-
-        assert response.status_code == 200
-        body = json.loads(response.content)
-        assert body == {
-                'results': [
-                           {
-                               'id': str(exp_a.id),
-                               'title': 'Exp a',
-                               'description': 'some description',
-                               'picture': None,
-                               'author_id': orm_person.id,
-                               'author_username': orm_person.username,
-                               'is_mine': False,
-                               'is_saved': False,
-                               'saves_count': 0
-                           },
-                           {
-                               'id': str(exp_b.id),
-                               'title': 'Exp b',
-                               'description': 'other description',
-                               'picture': None,
-                               'author_id': orm_person.id,
-                               'author_username': orm_person.username,
-                               'is_mine': False,
-                               'is_saved': False,
-                               'saves_count': 0
-                           },
-                       ],
-                'next_url': 'http://testserver/experiences/?mine=false&saved=false&limit=2&offset=2'
-                }
-
     def test_saved_experiences_returns_only_saved_scenes(self):
         orm_person = ORMPerson.objects.create(username='usr')
         orm_person_b = ORMPerson.objects.create(username='nme')
@@ -303,7 +261,7 @@ class SearchExperiencesTestCase(TestCase):
                 .given_a_person_with_auth_token() \
                 .given_an_experience(title='bike routes') \
                 .given_an_experience(title='mountain bike routes lot') \
-                .given_an_experience(title='mountain') \
+                .given_an_experience(title='mountain', description='mountain') \
                 .given_an_experience(title='barcelona restaurants') \
                 .given_an_experience(title='romanic monuments') \
                 .when_index_everything_and_search(word='mountain', offset=0, limit=1) \
