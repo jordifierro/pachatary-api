@@ -23,6 +23,7 @@ class NewExperienceRepoTestCase(TestCase):
                 .given_an_experience_in_db(created_by_person=2) \
                 .given_an_experience_in_db(created_by_person=2) \
                 .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=1) \
                 .given_I_save_experience(experience=3) \
                 .given_I_save_experience(experience=5) \
                 .given_I_save_experience(experience=1) \
@@ -33,6 +34,45 @@ class NewExperienceRepoTestCase(TestCase):
                 .then_result_should_be_experiences_and_offset([5], 3) \
                 .when_get_saved_experiences(offset=3, limit=3) \
                 .then_result_should_be_experiences_and_offset([3], None)
+
+    def test_get_mine_experiences(self):
+        NewExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_a_person_in_db('other.user') \
+                .given_an_experience_in_db(created_by_person=1) \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=1) \
+                .given_an_experience_in_db(created_by_person=1) \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=1) \
+                .given_an_experience_in_db(created_by_person=1) \
+                .given_I_save_experience(experience=5) \
+                .when_get_person_experiences(target_person=1, offset=0, limit=2) \
+                .then_result_should_be_experiences_and_offset([7, 6], 2) \
+                .when_get_person_experiences(target_person=1, offset=2, limit=1) \
+                .then_result_should_be_experiences_and_offset([4], 3) \
+                .when_get_person_experiences(target_person=1, offset=3, limit=3) \
+                .then_result_should_be_experiences_and_offset([3, 1], None)
+
+    def test_other_s_experiences(self):
+        NewExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_a_person_in_db('other.user') \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=1) \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=1) \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_I_save_experience(experience=7) \
+                .given_I_save_experience(experience=4) \
+                .when_get_person_experiences(target_person=2, offset=0, limit=2) \
+                .then_result_should_be_experiences_and_offset([7, 5], 2) \
+                .when_get_person_experiences(target_person=2, offset=2, limit=1) \
+                .then_result_should_be_experiences_and_offset([4], 3) \
+                .when_get_person_experiences(target_person=2, offset=3, limit=3) \
+                .then_result_should_be_experiences_and_offset([2, 1], None)
 
     class ScenarioMaker:
 
@@ -60,6 +100,12 @@ class NewExperienceRepoTestCase(TestCase):
         def when_get_saved_experiences(self, offset, limit):
             self.result = self.repo.get_saved_experiences(logged_person_id=self.persons[0].id,
                                                           offset=offset, limit=limit)
+            return self
+
+        def when_get_person_experiences(self, target_person, offset, limit):
+            self.result = self.repo.get_person_experiences(logged_person_id=self.persons[0].id,
+                                                           target_person_id=self.persons[target_person-1].id,
+                                                           offset=offset, limit=limit)
             return self
 
         def then_result_should_be_experiences_and_offset(self, experiences_positions, next_offset):

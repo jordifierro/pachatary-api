@@ -30,8 +30,8 @@ class ExperienceRepo:
                           saves_count=db_experience.saves_count)
 
     def get_saved_experiences(self, logged_person_id, offset=0, limit=100):
-        db_saves_and_experiences = \
-            ORMSave.objects.order_by('-id').select_related('experience', 'experience__author').filter(person_id=logged_person_id)
+        db_saves_and_experiences = ORMSave.objects \
+                .order_by('-id').select_related('experience', 'experience__author').filter(person_id=logged_person_id)
 
         paginated_db_saves = db_saves_and_experiences[offset:offset+limit+1]
         next_offset = None
@@ -42,6 +42,29 @@ class ExperienceRepo:
         for db_save in paginated_db_saves[0:limit]:
             experiences.append(self._decode_db_experience(db_save.experience, is_mine=False, is_saved=True))
         return {'results': experiences, 'next_offset': next_offset}
+
+    def get_person_experiences(self, logged_person_id, target_person_id, offset=0, limit=100, mine=False, saved=False):
+        person_db_experiences = \
+                ORMExperience.objects.order_by('-id').select_related('author').filter(author_id=target_person_id)
+
+        paginated_db_experiences = person_db_experiences[offset:offset+limit+1]
+        next_offset = None
+        if len(paginated_db_experiences) == limit+1:
+            next_offset = offset + limit
+
+        are_my_experiences = (logged_person_id == target_person_id)
+        if not are_my_experiences:
+            orm_my_saves = list(ORMSave.objects.filter(person_id=logged_person_id))
+
+        experiences = []
+        for db_experience in paginated_db_experiences[0:limit]:
+            is_saved = False
+            if not are_my_experiences and len([x for x in orm_my_saves if x.experience_id == db_experience.id]) > 0:
+                is_saved = True
+            experiences.append(self._decode_db_experience(db_experience,
+                                                          is_mine=are_my_experiences,
+                                                          is_saved=is_saved))
+        return {"results": experiences, "next_offset": next_offset}
 
     def get_all_experiences(self, logged_person_id, offset=0, limit=100, mine=False, saved=False):
         if saved:
