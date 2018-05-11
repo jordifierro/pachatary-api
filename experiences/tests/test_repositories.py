@@ -11,10 +11,10 @@ from scenes.entities import Scene
 from people.models import ORMPerson
 
 
-class NewExperienceRepoTestCase(TestCase):
+class ExperienceRepoTestCase(TestCase):
 
     def test_get_saved_experiences(self):
-        NewExperienceRepoTestCase.ScenarioMaker() \
+        ExperienceRepoTestCase.ScenarioMaker() \
                 .given_a_person_in_db('me') \
                 .given_a_person_in_db('other.user') \
                 .given_an_experience_in_db(created_by_person=2) \
@@ -36,7 +36,7 @@ class NewExperienceRepoTestCase(TestCase):
                 .then_result_should_be_experiences_and_offset([3], None)
 
     def test_get_mine_experiences(self):
-        NewExperienceRepoTestCase.ScenarioMaker() \
+        ExperienceRepoTestCase.ScenarioMaker() \
                 .given_a_person_in_db('me') \
                 .given_a_person_in_db('other.user') \
                 .given_an_experience_in_db(created_by_person=1) \
@@ -55,7 +55,7 @@ class NewExperienceRepoTestCase(TestCase):
                 .then_result_should_be_experiences_and_offset([3, 1], None)
 
     def test_other_s_experiences(self):
-        NewExperienceRepoTestCase.ScenarioMaker() \
+        ExperienceRepoTestCase.ScenarioMaker() \
                 .given_a_person_in_db('me') \
                 .given_a_person_in_db('other.user') \
                 .given_an_experience_in_db(created_by_person=2) \
@@ -74,13 +74,101 @@ class NewExperienceRepoTestCase(TestCase):
                 .when_get_person_experiences(target_person=2, offset=3, limit=3) \
                 .then_result_should_be_experiences_and_offset([2, 1], None)
 
+    def test_get_experience_returns_experience(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('other.user') \
+                .given_an_experience_in_db(created_by_person=1) \
+                .when_get_experience(1) \
+                .then_repo_should_return_experience(1)
+
+    def test_get_unexistent_experience_raises_error(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .when_get_unexistent_experience() \
+                .then_entity_does_not_exists_should_be_raised()
+
+    def test_create_experience_creates_and_returns_experience(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .when_create_experience(title='e', description='d', author=1) \
+                .then_should_return_experience(title='e', description='d', author=1, mine=True) \
+                .then_result_experience_should_be_in_db()
+
+    def test_update_experience(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_an_experience_in_db(created_by_person=1) \
+                .when_update_experience(experience=1, title='n', description='u') \
+                .then_should_return_experience(title='n', description='u', author=1, mine=True) \
+                .then_result_experience_should_be_in_db()
+
+    def test_save_experience(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_a_person_in_db('other') \
+                .given_an_experience_in_db(created_by_person=2) \
+                .when_save_experience(1) \
+                .then_result_should_be_true() \
+                .then_save_should_be_in_db(how_many_saves=1, person=1, experience=1) \
+                .then_experience_saves_count_should_be(experience=1, saves_count=1)
+
+    def test_save_twice_doesnt_create_2_saves(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_a_person_in_db('other') \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_I_save_experience(experience=1) \
+                .when_save_experience(1) \
+                .then_result_should_be_true() \
+                .then_save_should_be_in_db(how_many_saves=1, person=1, experience=1) \
+                .then_experience_saves_count_should_be(experience=1, saves_count=1)
+
+    def test_unsave_experience(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_a_person_in_db('other') \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_I_save_experience(experience=1) \
+                .when_unsave_experience(1) \
+                .then_result_should_be_true() \
+                .then_save_should_be_in_db(how_many_saves=0, person=1, experience=1) \
+                .then_experience_saves_count_should_be(experience=1, saves_count=0)
+
+    def test_search_experiences_populates_correcty(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_a_person_in_db('other') \
+                .given_an_experience_in_db(created_by_person=1) \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_I_save_experience(2) \
+                .given_a_word_location_limit_and_offset() \
+                .given_a_search_repo_that_returns_experience_ids_and_offset([3, 2, 1], 7) \
+                .when_search_experiences() \
+                .then_should_call_search_repo_search_experiences_with_correct_params() \
+                .then_result_should_be_experiences_and_offset([3, 2, 1], 7)
+
+    def test_search_experiences_populates_keeping_result_order(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_a_person_in_db('other') \
+                .given_an_experience_in_db(created_by_person=1) \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_I_save_experience(2) \
+                .given_a_word_location_limit_and_offset() \
+                .given_a_search_repo_that_returns_experience_ids_and_offset([2, 3, 1], 7) \
+                .when_search_experiences() \
+                .then_should_call_search_repo_search_experiences_with_correct_params() \
+                .then_result_should_be_experiences_and_offset([2, 3, 1], 7)
+
     class ScenarioMaker:
 
         def __init__(self):
             self.persons = []
             self.experiences = []
             self.saves = []
-            self.repo = ExperienceRepo()
+            self.search_repo = Mock()
+            self.repo = ExperienceRepo(self.search_repo)
 
         def given_a_person_in_db(self, username):
             self.persons.append(ORMPerson.objects.create(username=username))
@@ -97,6 +185,18 @@ class NewExperienceRepoTestCase(TestCase):
             self.saves.append(experience_id)
             return self
 
+        def given_a_word_location_limit_and_offset(self):
+            self.word = 'culture'
+            self.location = (5.4, -0.8)
+            self.offset = 4
+            self.limit = 10
+            return self
+
+        def given_a_search_repo_that_returns_experience_ids_and_offset(self, experiences_positions, offset):
+            experiences_ids = [self.experiences[i-1].id for i in experiences_positions]
+            self.search_repo.search_experiences.return_value = {'results': experiences_ids, 'next_offset': offset}
+            return self
+
         def when_get_saved_experiences(self, offset, limit):
             self.result = self.repo.get_saved_experiences(logged_person_id=self.persons[0].id,
                                                           offset=offset, limit=limit)
@@ -106,6 +206,44 @@ class NewExperienceRepoTestCase(TestCase):
             self.result = self.repo.get_person_experiences(logged_person_id=self.persons[0].id,
                                                            target_person_id=self.persons[target_person-1].id,
                                                            offset=offset, limit=limit)
+            return self
+
+        def when_get_experience(self, position):
+            self.result = self.repo.get_experience(id=self.experiences[position-1].id)
+            return self
+
+        def when_get_unexistent_experience(self):
+            try:
+                self.repo.get_experience(id='0')
+            except EntityDoesNotExistException as e:
+                self.entity_does_not_exist_exception = e
+            return self
+
+        def when_create_experience(self, title, description, author):
+            orm_author = self.persons[author-1]
+            experience = Experience(title=title, description=description, author_id=orm_author.id)
+            self.result = self.repo.create_experience(experience)
+            return self
+
+        def when_update_experience(self, experience, title, description):
+            experience = self.repo.get_experience(id=self.experiences[experience-1].id)
+            updated_experience = experience.builder().title(title).description(description).build()
+            self.result = self.repo.update_experience(updated_experience)
+            return self
+
+        def when_save_experience(self, position):
+            experience = self.experiences[position-1]
+            self.result = self.repo.save_experience(person_id=self.persons[0].id, experience_id=experience.id)
+            return self
+
+        def when_unsave_experience(self, position):
+            experience = self.experiences[position-1]
+            self.result = self.repo.unsave_experience(person_id=self.persons[0].id, experience_id=experience.id)
+            return self
+
+        def when_search_experiences(self):
+            self.result = self.repo.search_experiences(self.persons[0].id, self.word,
+                                                       self.location, self.offset, self.limit)
             return self
 
         def then_result_should_be_experiences_and_offset(self, experiences_positions, next_offset):
@@ -121,534 +259,50 @@ class NewExperienceRepoTestCase(TestCase):
 
             return self
 
-
-class ExperienceRepoTestCase(TestCase):
-
-    def test_get_all_experiences_with_mine_false_returns_not_mine_nor_saved_experiences(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_an_experience_created_by_first_person_in_db() \
-                .given_another_experience_created_by_first_person_in_db() \
-                .given_another_person_in_db() \
-                .given_an_experience_created_by_second_person_in_db() \
-                .given_another_experience_created_by_second_person_in_db() \
-                .given_a_third_experience_created_by_second_person_and_saved_by_first() \
-                .given_a_fourth_experience_created_by_second_person_and_saved_by_second() \
-                .given_logged_person_id_is_first_person_id() \
-                .when_get_all_experiences(mine=False) \
-                .then_repo_should_return_second_two_experience_and_fourth_with_saved_mine_false_ordered_asc_by_create()
-
-    def test_get_all_experiences_with_mine_true_returns_mine_experiences(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_an_experience_created_by_first_person_in_db() \
-                .given_another_experience_created_by_first_person_in_db() \
-                .given_another_person_in_db() \
-                .given_an_experience_created_by_second_person_in_db() \
-                .given_another_experience_created_by_second_person_in_db() \
-                .given_logged_person_id_is_first_person_id() \
-                .when_get_all_experiences(mine=True) \
-                .then_repo_should_return_just_first_two_experience_with_mine_true_ordered_asc_by_create()
-
-    def test_get_all_experiences_with_saved_true_returns_only_saved_experiences(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_an_experience_created_by_first_person_in_db() \
-                .given_another_experience_created_by_first_person_in_db() \
-                .given_another_person_in_db() \
-                .given_an_experience_created_by_second_person_in_db() \
-                .given_another_experience_created_by_second_person_in_db() \
-                .given_a_third_experience_created_by_second_person_in_db() \
-                .given_a_save_to_third_second_person_experience_from_first_person() \
-                .given_a_save_to_first_second_person_experience_from_first_person() \
-                .given_logged_person_id_is_first_person_id() \
-                .when_get_all_experiences(saved=True) \
-                .then_repo_should_return_second_person_experience_with_saved_true_ordered_asc_by_saved()
-
-    def test_get_all_experiences_with_no_experiences_returns_empty(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_some_experiences_created_by_that_person(how_many=0) \
-                .given_logged_person_id_is_first_person_id() \
-                .when_get_all_experiences(mine=True, offset=0, limit=2) \
-                .then_repo_should_return_no_experiences_nor_next_offset()
-
-    def test_get_all_experiences_with_less_experiences_than_limit_returns_results_but_no_next_offset(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_some_experiences_created_by_that_person(how_many=1) \
-                .given_logged_person_id_is_first_person_id() \
-                .when_get_all_experiences(mine=True, offset=0, limit=2) \
-                .then_repo_should_return_that_experiences_but_not_next_offset()
-
-    def test_get_all_experiences_with_same_limit_and_experiences_returns_results_but_no_next_offset(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_some_experiences_created_by_that_person(how_many=2) \
-                .given_logged_person_id_is_first_person_id() \
-                .when_get_all_experiences(mine=True, offset=0, limit=2) \
-                .then_repo_should_return_that_experiences_but_not_next_offset()
-
-    def test_get_all_experiences_with_more_experiences_than_limit_returns_results_and_next_offset(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_some_experiences_created_by_that_person(how_many=3) \
-                .given_logged_person_id_is_first_person_id() \
-                .when_get_all_experiences(mine=True, offset=0, limit=2) \
-                .then_repo_should_return_two_experiences_and_next_offset_2()
-
-    def test_get_all_experiences_with_offset_returns_correct_range(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_some_experiences_created_by_that_person(how_many=5) \
-                .given_logged_person_id_is_first_person_id() \
-                .when_get_all_experiences(mine=True, offset=2, limit=2) \
-                .then_repo_should_return_third_and_fourth_experiences_and_offset_4()
-
-    def test_get_experience_returns_experience(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_an_experience_in_db() \
-                .when_get_experience_with_its_id() \
-                .then_repo_should_return_experience()
-
-    def test_get_unexistent_experience_raises_error(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .when_get_unexistent_experience() \
-                .then_entity_does_not_exists_should_be_raised()
-
-    def test_create_experience_creates_and_returns_experience(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_an_experience_to_create() \
-                .when_create_this_experience() \
-                .then_should_return_this_experience_with_mine_true() \
-                .then_should_save_this_experience_to_db()
-
-    def test_update_experience(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_an_experience_in_db() \
-                .given_an_updated_experience() \
-                .when_update_first_experience() \
-                .then_result_should_be_same_as_updated() \
-                .then_updated_experience_should_be_saved_on_db()
-
-    def test_save_experience(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_an_experience_in_db() \
-                .when_save_that_experience() \
-                .then_result_should_be_true() \
-                .then_save_should_be_created_for_that_experience_and_person() \
-                .then_experience_saves_count_should_be(1)
-
-    def test_save_twice_doesnt_create_2_saves(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_an_experience_in_db() \
-                .given_a_save_for_that_person_and_experience() \
-                .when_save_that_experience() \
-                .then_result_should_be_true() \
-                .then_save_for_that_experience_and_person_should_be_only_one() \
-                .then_experience_saves_count_should_be(1)
-
-    def test_unsave_experience(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_an_experience_in_db() \
-                .given_a_save_for_that_person_and_experience() \
-                .when_unsave_that_experience() \
-                .then_result_should_be_true() \
-                .then_save_should_be_deleted_from_db() \
-                .then_experience_saves_count_should_be(0)
-
-    def test_search_experiences_populates_correcty(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_another_person_in_db() \
-                .given_logged_person_id_is_first_person_id() \
-                .given_a_mine_experience() \
-                .given_a_saved_experience() \
-                .given_another_user_experience() \
-                .given_a_word_location_limit_and_offset() \
-                .given_a_search_repo_that_returns_these_3_experience_ids_and_7_as_next_offset() \
-                .when_search_experiences() \
-                .then_should_call_search_repo_search_experiences_with_correct_params() \
-                .then_should_return_that_experiences_populated_and_7_as_next_offset()
-
-    def test_search_experiences_populates_keeping_result_order(self):
-        ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db() \
-                .given_logged_person_id_is_first_person_id() \
-                .given_a_mine_experience_in_db() \
-                .given_another_mine_experience_in_db() \
-                .given_a_third_mine_experience_in_db() \
-                .given_a_search_repo_that_returns_2_1_3_experiences() \
-                .when_search_experiences() \
-                .then_should_return_that_experiences_populated_and_in_the_same_order()
-
-    class ScenarioMaker:
-
-        def __init__(self):
-            self.word = None
-            self.location = None
-            self.offset = 0
-            self.limit = 20
-            self.orm_person = None
-            self.orm_experience_a = None
-            self.orm_experience_b = None
-            self.experience_a = None
-            self.experience_b = None
-            self.result = None
-            self.entity_does_not_exist_error = None
-            self.experience_to_create = None
-
-        def given_a_mine_experience(self):
-            self.orm_mine_experience = ORMExperience.objects.create(title='a', description='desc',
-                                                                    author=self.orm_person)
-            self.mine_experience = Experience(id=self.orm_mine_experience.id, title='a', description='desc',
-                                              author_id=self.orm_person.id, author_username=self.orm_person.username,
-                                              is_mine=True)
-            return self
-
-        def given_a_saved_experience(self):
-            self.orm_saved_experience = ORMExperience.objects.create(title='b', description='d',
-                                                                     author=self.second_orm_person)
-            ExperienceRepo().save_experience(person_id=self.orm_person.id, experience_id=self.orm_saved_experience.id)
-            self.saved_experience = Experience(id=self.orm_saved_experience.id, title='b', description='d',
-                                               author_id=self.second_orm_person.id,
-                                               author_username=self.second_orm_person.username,
-                                               saves_count=1, is_saved=True)
-            return self
-
-        def given_another_user_experience(self):
-            self.orm_other_experience = ORMExperience.objects.create(title='c', description='t',
-                                                                     author=self.second_orm_person)
-            self.other_experience = Experience(id=self.orm_other_experience.id, title='c', description='t',
-                                               author_id=self.second_orm_person.id,
-                                               author_username=self.second_orm_person.username)
-            return self
-
-        def given_a_word_location_limit_and_offset(self):
-            self.word = 'culture'
-            self.location = (5.4, -0.8)
-            self.offset = 4
-            self.limit = 10
-            return self
-
-        def given_a_person_in_db(self):
-            self.orm_person = ORMPerson.objects.create(username='usr')
-            return self
-
-        def given_another_person_in_db(self):
-            self.second_orm_person = ORMPerson.objects.create(username='nme')
-            return self
-
-        def given_some_experiences_created_by_that_person(self, how_many):
-            self.orm_experiences = []
-            self.experiences = []
-            for i in range(0, how_many):
-                self.orm_experiences.append(ORMExperience.objects.create(title='Exp {}'.format(str(i)),
-                                                                         description='dsc',
-                                                                         author=self.orm_person))
-                self.experiences.append(Experience(id=self.orm_experiences[i].id, title='Exp {}'.format(str(i)),
-                                                   description='dsc', author_id=self.orm_person.id, is_mine=True,
-                                                   author_username=self.orm_person.username))
-            return self
-
-        def given_an_experience_created_by_first_person_in_db(self):
-            self.orm_experience_a = ORMExperience.objects.create(title='Exp a', description='some description',
-                                                                 author=self.orm_person)
-            self.experience_a = Experience(id=self.orm_experience_a.id, title='Exp a', description='some description',
-                                           author_id=self.orm_person.id, author_username=self.orm_person.username)
-            return self
-
-        def given_another_experience_created_by_first_person_in_db(self):
-            self.orm_experience_b = ORMExperience.objects.create(title='Exp b', description='some description',
-                                                                 author=self.orm_person)
-            self.experience_b = Experience(id=self.orm_experience_b.id, title='Exp b', description='some description',
-                                           author_id=self.orm_person.id, author_username=self.orm_person.username)
-            return self
-
-        def given_an_experience_created_by_second_person_in_db(self):
-            self.orm_experience_c = ORMExperience.objects.create(title='Exp c', description='description',
-                                                                 author=self.second_orm_person)
-            self.experience_c = Experience(id=self.orm_experience_c.id, title='Exp c', description='description',
-                                           author_id=self.second_orm_person.id,
-                                           author_username=self.second_orm_person.username)
-            return self
-
-        def given_another_experience_created_by_second_person_in_db(self):
-            self.orm_experience_d = ORMExperience.objects.create(title='Exp d', description='description',
-                                                                 author=self.second_orm_person)
-            self.experience_d = Experience(id=self.orm_experience_d.id, title='Exp d', description='description',
-                                           author_id=self.second_orm_person.id,
-                                           author_username=self.second_orm_person.username)
-            return self
-
-        def given_a_third_experience_created_by_second_person_in_db(self):
-            self.orm_experience_e = ORMExperience.objects.create(title='Exp e', description='description',
-                                                                 author=self.second_orm_person)
-            self.experience_e = Experience(id=self.orm_experience_e.id, title='Exp e', description='description',
-                                           author_id=self.second_orm_person.id,
-                                           author_username=self.second_orm_person.username)
-            return self
-
-        def given_a_third_experience_created_by_second_person_and_saved_by_first(self):
-            self.orm_experience_e = ORMExperience.objects.create(title='Exp e', description='description',
-                                                                 author=self.second_orm_person)
-            self.experience_e = Experience(id=self.orm_experience_e.id, title='Exp e', description='description',
-                                           author_id=self.second_orm_person.id,
-                                           author_username=self.second_orm_person.username)
-            ORMSave.objects.create(person=self.orm_person, experience=self.orm_experience_e)
-            return self
-
-        def given_a_fourth_experience_created_by_second_person_and_saved_by_second(self):
-            self.orm_experience_f = ORMExperience.objects.create(title='Exp f', description='description',
-                                                                 author=self.second_orm_person)
-            self.experience_f = Experience(id=self.orm_experience_f.id, title='Exp f', description='description',
-                                           author_id=self.second_orm_person.id,
-                                           author_username=self.second_orm_person.username)
-            ExperienceRepo().save_experience(self.second_orm_person.id, self.orm_experience_f.id)
-            return self
-
-        def given_logged_person_id_is_first_person_id(self):
-            self.logged_person_id = self.orm_person.id
-            return self
-
-        def given_an_experience_to_create(self):
-            self.experience_to_create = Experience(id="", title='Exp a', description='some description',
-                                                   author_id=self.orm_person.id)
-            return self
-
-        def given_an_experience_in_db(self):
-            self.orm_experience_a = ORMExperience.objects.create(title='Exp a', description='some description',
-                                                                 author=self.orm_person)
-            self.experience_a = Experience(id=self.orm_experience_a.id, title='Exp a', description='some description',
-                                           author_id=self.orm_person.id, author_username=self.orm_person.username)
-            return self
-
-        def given_an_updated_experience(self):
-            self.updated_experience = Experience(id=self.experience_a.id, title='T2', description='updated',
-                                                 author_id=self.orm_person.id,
-                                                 author_username=self.orm_person.username)
-            return self
-
-        def given_another_experience_in_db(self):
-            self.orm_experience_b = ORMExperience.objects.create(title='Exp b', description='other description',
-                                                                 author=self.orm_person)
-            self.experience_b = Experience(id=self.orm_experience_b.id, title='Exp b',
-                                           description='other description',
-                                           author_id=self.orm_person.id, author_username=self.orm_person.username)
-            return self
-
-        def given_a_mine_experience_in_db(self):
-            self.orm_experience_a = ORMExperience.objects.create(title='Exp a', description='description',
-                                                                 author=self.orm_person)
-            self.experience_a = Experience(id=self.orm_experience_a.id, title='Exp a', description='description',
-                                           author_id=self.orm_person.id, author_username=self.orm_person.username,
-                                           is_mine=True)
-            return self
-
-        def given_another_mine_experience_in_db(self):
-            self.orm_experience_b = ORMExperience.objects.create(title='Exp b', description='other description',
-                                                                 author=self.orm_person)
-            self.experience_b = Experience(id=self.orm_experience_b.id, title='Exp b',
-                                           description='other description', author_id=self.orm_person.id,
-                                           author_username=self.orm_person.username, is_mine=True)
-            return self
-
-        def given_a_third_mine_experience_in_db(self):
-            self.orm_experience_c = ORMExperience.objects.create(title='Exp c', description='other',
-                                                                 author=self.orm_person)
-            self.experience_c = Experience(id=self.orm_experience_c.id, title='Exp c',
-                                           description='other', author_id=self.orm_person.id,
-                                           author_username=self.orm_person.username, is_mine=True)
-            return self
-
-        def given_a_save_for_that_person_and_experience(self):
-            ExperienceRepo().save_experience(self.orm_person.id, self.orm_experience_a.id)
-            return self
-
-        def given_a_save_to_first_second_person_experience_from_first_person(self):
-            ExperienceRepo().save_experience(self.orm_person.id, self.orm_experience_c.id)
-            return self
-
-        def given_a_save_to_third_second_person_experience_from_first_person(self):
-            ExperienceRepo().save_experience(self.orm_person.id, self.orm_experience_e.id)
-            return self
-
-        def given_a_search_repo_that_returns_these_3_experience_ids_and_7_as_next_offset(self):
-            self.search_repo = Mock()
-            self.search_repo.search_experiences.return_value = {
-                'results': [self.mine_experience.id, self.saved_experience.id, self.other_experience.id],
-                'next_offset': 7
-            }
-            return self
-
-        def given_a_search_repo_that_returns_2_1_3_experiences(self):
-            self.search_repo = Mock()
-            self.search_repo.search_experiences.return_value = {
-                'results': [self.experience_b.id, self.experience_a.id, self.experience_c.id],
-                'next_offset': 7
-            }
-            return self
-
-        def when_get_all_experiences(self, mine=False, saved=False, offset=0, limit=100):
-            self.result = ExperienceRepo().get_all_experiences(self.logged_person_id, offset, limit,
-                                                               mine=mine, saved=saved)
-            return self
-
-        def when_get_experience_with_its_id(self):
-            self.result = ExperienceRepo().get_experience(self.orm_experience_a.id)
-            return self
-
-        def when_get_unexistent_experience(self):
-            try:
-                ExperienceRepo().get_experience(0)
-            except EntityDoesNotExistException as e:
-                self.entity_does_not_exist_error = e
-            return self
-
-        def when_create_this_experience(self):
-            self.result = ExperienceRepo().create_experience(self.experience_to_create)
-            return self
-
-        def when_update_first_experience(self):
-            self.result = ExperienceRepo().update_experience(self.updated_experience)
-            return self
-
-        def when_save_that_experience(self):
-            try:
-                self.result = ExperienceRepo().save_experience(person_id=self.orm_person.id,
-                                                               experience_id=self.orm_experience_a.id)
-            except Exception as e:
-                self.error = e
-            return self
-
-        def when_unsave_that_experience(self):
-            try:
-                self.result = ExperienceRepo().unsave_experience(person_id=self.orm_person.id,
-                                                                 experience_id=self.orm_experience_a.id)
-            except Exception as e:
-                self.error = e
-            return self
-
-        def when_search_experiences(self):
-            self.result = ExperienceRepo(self.search_repo).search_experiences(self.logged_person_id, self.word,
-                                                                              self.location, self.offset, self.limit)
-            return self
-
-        def then_repo_should_return_just_first_two_experience_with_mine_true_ordered_asc_by_create(self):
-            assert self.result["results"] == [self.experience_b.builder().is_mine(True).build(),
-                                              self.experience_a.builder().is_mine(True).build()]
-            return self
-
-        def then_repo_should_return_second_two_experience_and_fourth_with_saved_mine_false_ordered_asc_by_create(self):
-            assert self.result["results"] == [self.experience_f.builder().saves_count(1).build(),
-                                              self.experience_d, self.experience_c]
-            return self
-
-        def then_repo_should_return_just_second_two_experience(self):
-            assert self.result["results"] == [self.experience_c, self.experience_d]
-            return self
-
-        def then_repo_should_return_second_person_experience_with_saved_true_ordered_asc_by_saved(self):
-            assert self.result["results"] == [self.experience_c.builder().is_saved(True).saves_count(1).build(),
-                                              self.experience_e.builder().is_saved(True).saves_count(1).build()]
-            return self
-
-        def then_repo_should_return_experience(self):
-            assert self.result == self.experience_a
+        def then_repo_should_return_experience(self, position, mine=False, saved=False):
+            orm_experience = self.experiences[position-1]
+            parsed_experience = self.repo._decode_db_experience(orm_experience, is_mine=mine, is_saved=saved)
+            assert self.result == parsed_experience
             return self
 
         def then_entity_does_not_exists_should_be_raised(self):
-            assert self.entity_does_not_exist_error is not None
+            assert self.entity_does_not_exist_exception is not None
             return self
 
-        def then_should_return_this_experience_with_mine_true(self):
-            assert self.result.title == self.experience_to_create.title
-            assert self.result.description == self.experience_to_create.description
-            assert self.result.is_mine is True
+        def then_should_return_experience(self, title, description, author, mine):
+            assert self.result.title == title
+            assert self.result.description == description
+            assert self.result.author_id == self.persons[author-1].id
+            assert self.result.is_mine == mine
             return self
 
-        def then_repo_should_return_no_experiences_nor_next_offset(self):
-            assert self.result["results"] == []
-            assert self.result["next_offset"] is None
-            return self
-
-        def then_repo_should_return_that_experiences_but_not_next_offset(self):
-            assert self.result["results"] == list(reversed(self.experiences))
-            assert self.result["next_offset"] is None
-            return self
-
-        def then_repo_should_return_two_experiences_and_next_offset_2(self):
-            assert self.result["results"] == list(reversed(self.experiences))[0:2]
-            assert self.result["next_offset"] == 2
-            return self
-
-        def then_repo_should_return_third_and_fourth_experiences_and_offset_4(self):
-            assert self.result["results"] == list(reversed(self.experiences))[2:4]
-            assert self.result["next_offset"] == 4
-            return self
-
-        def then_should_save_this_experience_to_db(self):
-            exp = ExperienceRepo().get_experience(self.result.id)
-            assert exp.title == self.experience_to_create.title
-            assert exp.description == self.experience_to_create.description
-            return self
-
-        def then_result_should_be_same_as_updated(self):
-            assert self.updated_experience.title == self.result.title
-            assert self.updated_experience.description == self.result.description
-            assert not self.result.picture
-            return self
-
-        def then_updated_experience_should_be_saved_on_db(self):
-            orm_experience = ORMExperience.objects.get(id=self.result.id,
-                                                       title=self.updated_experience.title,
-                                                       description=self.updated_experience.description)
-            assert orm_experience is not None
+        def then_result_experience_should_be_in_db(self):
+            orm_experience = ORMExperience.objects.get(id=self.result.id)
+            assert orm_experience.id == self.result.id
+            assert orm_experience.title == self.result.title
+            assert orm_experience.description == self.result.description
+            assert orm_experience.author_id == self.result.author_id
             return self
 
         def then_result_should_be_true(self):
             assert self.result is True
             return self
 
-        def then_save_should_be_created_for_that_experience_and_person(self):
-            assert ORMSave.objects.filter(person=self.orm_person, experience=self.orm_experience_a).exists()
+        def then_save_should_be_in_db(self, how_many_saves, person, experience):
+            orm_person = self.persons[person-1]
+            orm_experience = self.experiences[experience-1]
+            assert len(ORMSave.objects.filter(experience_id=orm_experience.id,
+                                              person_id=orm_person.id)) == how_many_saves
             return self
 
-        def then_save_for_that_experience_and_person_should_be_only_one(self):
-            assert len(ORMSave.objects.filter(person=self.orm_person, experience=self.orm_experience_a)) == 1
+        def then_experience_saves_count_should_be(self, experience, saves_count):
+            self.experiences[experience-1].refresh_from_db()
+            assert self.experiences[experience-1].saves_count == saves_count
             return self
-
-        def then_save_should_be_deleted_from_db(self):
-            assert not ORMSave.objects.filter(person=self.orm_person, experience=self.orm_experience_a).exists()
-            return self
-
-        def then_experience_saves_count_should_be(self, saves_count):
-            self.orm_experience_a.refresh_from_db()
-            assert self.orm_experience_a.saves_count == saves_count
 
         def then_should_call_search_repo_search_experiences_with_correct_params(self):
             self.search_repo.search_experiences.assert_called_once_with(self.word, self.location,
                                                                         self.offset, self.limit)
-            return self
-
-        def then_should_return_that_experiences_populated_and_7_as_next_offset(self):
-            assert self.result == {
-                'results': [self.mine_experience, self.saved_experience, self.other_experience],
-                'next_offset': 7
-            }
-            return self
-
-        def then_should_return_that_experiences_populated_and_in_the_same_order(self):
-            assert self.result == {
-                'results': [self.experience_b, self.experience_a, self.experience_c],
-                'next_offset': 7
-            }
             return self
 
 
