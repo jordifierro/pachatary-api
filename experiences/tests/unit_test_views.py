@@ -10,31 +10,18 @@ from experiences.interactors import SaveUnsaveExperienceInteractor
 
 class TestExperiencesView:
 
-    def test_returns_experiences_serialized_and_200(self):
+    def test_username_returns_experiences_serialized_and_200(self):
         TestExperiencesView.ScenarioMaker() \
                 .given_a_get_experiences_base_url() \
                 .given_an_experience_a() \
                 .given_an_experience_b() \
                 .given_a_next_limit_and_offset() \
                 .given_an_interactor_that_returns_that_experiences_and_next_limit_and_offset() \
-                .when_get_experiences(logged_person_id='9', mine='false', saved='false', limit='4', offset='3') \
-                .then_should_call_interactor_set_params(logged_person_id='9', mine=False,
+                .when_get_experiences(logged_person_id='9', username='usr.nm', limit='4', offset='3') \
+                .then_should_call_interactor_set_params(logged_person_id='9', username='usr.nm',
                                                         saved=False, limit=4, offset=3) \
                 .then_status_code_should_be_200() \
-                .then_response_body_should_be_experiences_and_next_url_serialized(mine='false', saved='false')
-
-    def test_mine_returns_experiences_serialized_and_200(self):
-        TestExperiencesView.ScenarioMaker() \
-                .given_a_get_experiences_base_url() \
-                .given_an_experience_a() \
-                .given_an_experience_b() \
-                .given_a_next_limit_and_offset() \
-                .given_an_interactor_that_returns_that_experiences_and_next_limit_and_offset() \
-                .when_get_experiences(logged_person_id='9', mine='true', saved='false', limit='4', offset='3') \
-                .then_should_call_interactor_set_params(logged_person_id='9', mine=True,
-                                                        saved=False, limit=4, offset=3) \
-                .then_status_code_should_be_200() \
-                .then_response_body_should_be_experiences_and_next_url_serialized(mine='true', saved='false')
+                .then_response_body_should_be_experiences_and_next_url_serialized(username='usr.nm', saved=False)
 
     def test_saved_returns_experiences_serialized_and_200(self):
         TestExperiencesView.ScenarioMaker() \
@@ -43,11 +30,11 @@ class TestExperiencesView:
                 .given_an_experience_b() \
                 .given_a_next_limit_and_offset() \
                 .given_an_interactor_that_returns_that_experiences_and_next_limit_and_offset() \
-                .when_get_experiences(logged_person_id='9', mine='false', saved='true', limit='4', offset='3') \
-                .then_should_call_interactor_set_params(logged_person_id='9', mine=False,
+                .when_get_experiences(logged_person_id='9', saved='true', limit='4', offset='3') \
+                .then_should_call_interactor_set_params(logged_person_id='9', username=None,
                                                         saved=True, limit=4, offset=3) \
                 .then_status_code_should_be_200() \
-                .then_response_body_should_be_experiences_and_next_url_serialized(mine='false', saved='true')
+                .then_response_body_should_be_experiences_and_next_url_serialized(username=None, saved='true')
 
     class ScenarioMaker:
 
@@ -80,27 +67,34 @@ class TestExperiencesView:
                                                          "next_limit": self.next_limit}
             return self
 
-        def when_get_experiences(self, logged_person_id, mine, saved, limit, offset):
+        def when_get_experiences(self, logged_person_id, username=None, saved=None, limit=20, offset=0):
             self.body, self.status = ExperiencesView(get_experiences_interactor=self.interactor_mock,
                                                      get_experiences_base_url=self.experiences_base_url) \
-                    .get(logged_person_id=logged_person_id, mine=mine, saved=saved, limit=limit, offset=offset)
+                    .get(logged_person_id=logged_person_id, username=username, saved=saved, limit=limit, offset=offset)
             return self
 
-        def then_should_call_interactor_set_params(self, logged_person_id, mine, saved, limit, offset):
+        def then_should_call_interactor_set_params(self, logged_person_id, username, saved, limit, offset):
             self.interactor_mock.set_params.assert_called_once_with(logged_person_id=logged_person_id,
-                                                                    mine=mine, saved=saved, limit=limit, offset=offset)
+                                                                    username=username, saved=saved,
+                                                                    limit=limit, offset=offset)
             return self
 
         def then_status_code_should_be_200(self):
             assert self.status == 200
             return self
 
-        def then_response_body_should_be_experiences_and_next_url_serialized(self, saved, mine):
+        def then_response_body_should_be_experiences_and_next_url_serialized(self, saved, username):
+            if saved:
+                next_url = "{}?saved=true&limit={}&offset={}".format(self.experiences_base_url,
+                                                                     self.next_limit, self.next_offset)
+            else:
+                next_url = "{}?username={}&limit={}&offset={}".format(self.experiences_base_url, username,
+                                                                      self.next_limit, self.next_offset)
+
             assert self.body == {
-                    "results": serialize_multiple_experiences([self.experience_a, self.experience_b]),
-                    "next_url": "{}?mine={}&saved={}&limit={}&offset={}".format(self.experiences_base_url, mine, saved,
-                                                                                self.next_limit, self.next_offset)
-                    }
+                "results": serialize_multiple_experiences([self.experience_a, self.experience_b]),
+                "next_url": next_url
+            }
             return self
 
     def test_post_returns_experience_serialized_and_200(self):

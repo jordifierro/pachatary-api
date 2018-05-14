@@ -2,6 +2,7 @@ from mock import Mock
 
 from pachatary.exceptions import InvalidEntityException, EntityDoesNotExistException, NoLoggedException, \
         NoPermissionException, ConflictException
+from people.entities import Person
 from experiences.entities import Experience
 from experiences.interactors import GetExperiencesInteractor, CreateNewExperienceInteractor, \
         ModifyExperienceInteractor, UploadExperiencePictureInteractor, SaveUnsaveExperienceInteractor, \
@@ -10,15 +11,31 @@ from experiences.interactors import GetExperiencesInteractor, CreateNewExperienc
 
 class TestGetExperiences:
 
-    def test_get_mine_returns_repo_response(self):
+    def test_get_self_returns_repo_response(self):
         TestGetExperiences.ScenarioMaker() \
                 .given_an_experience() \
                 .given_an_experience() \
                 .given_a_repo_that_returns_experiences_and_offset(7) \
                 .given_a_permission_validator_that_returns_true() \
-                .when_interactor_is_executed(logged_person_id='2', saved=False, mine=True, offset=4,
+                .when_interactor_is_executed(logged_person_id='2', username='self', offset=4,
                                              limit=GetExperiencesInteractor.MAX_PAGINATE_LIMIT + 1) \
                 .then_should_call_get_person_experiences_with(logged_person_id='2', target_person_id='2', offset=4,
+                                                              limit=GetExperiencesInteractor.MAX_PAGINATE_LIMIT) \
+                .then_validate_permissions_should_be_called_with(logged_person_id='2') \
+                .then_result_should_be_experiences_and_next_offset_limit(
+                        offset=7, limit=GetExperiencesInteractor.MAX_PAGINATE_LIMIT)
+
+    def test_get_others_returns_repo_response(self):
+        TestGetExperiences.ScenarioMaker() \
+                .given_an_experience() \
+                .given_an_experience() \
+                .given_a_repo_that_returns_experiences_and_offset(7) \
+                .given_a_person_repo_that_returns_other_person_with_id('13') \
+                .given_a_permission_validator_that_returns_true() \
+                .when_interactor_is_executed(logged_person_id='2', username='usr.nm', offset=4,
+                                             limit=GetExperiencesInteractor.MAX_PAGINATE_LIMIT + 1) \
+                .then_should_call_get_person_with_username('usr.nm') \
+                .then_should_call_get_person_experiences_with(logged_person_id='2', target_person_id='13', offset=4,
                                                               limit=GetExperiencesInteractor.MAX_PAGINATE_LIMIT) \
                 .then_validate_permissions_should_be_called_with(logged_person_id='2') \
                 .then_result_should_be_experiences_and_next_offset_limit(
@@ -30,7 +47,7 @@ class TestGetExperiences:
                 .given_an_experience() \
                 .given_a_repo_that_returns_experiences_and_offset(7) \
                 .given_a_permission_validator_that_returns_true() \
-                .when_interactor_is_executed(logged_person_id='2', saved=True, mine=False, offset=4,
+                .when_interactor_is_executed(logged_person_id='2', saved=True, offset=4,
                                              limit=GetExperiencesInteractor.MAX_PAGINATE_LIMIT + 1) \
                 .then_should_call_get_saved_experiences_with(logged_person_id='2', offset=4,
                                                              limit=GetExperiencesInteractor.MAX_PAGINATE_LIMIT) \
@@ -41,7 +58,7 @@ class TestGetExperiences:
     def test_no_logged_raises_exception(self):
         TestGetExperiences.ScenarioMaker() \
                 .given_a_permission_validator_that_raises_exception() \
-                .when_interactor_is_executed(logged_person_id='2', saved=True, mine=False, offset=4, limit=3) \
+                .when_interactor_is_executed(logged_person_id='2', saved=True, offset=4, limit=3) \
                 .then_validate_permissions_should_be_called_with(logged_person_id='2') \
                 .then_should_raise_no_logged_exception()
 
@@ -50,6 +67,7 @@ class TestGetExperiences:
         def __init__(self):
             self.experiences = []
             self.repo = Mock()
+            self.person_repo = Mock()
 
         def given_an_experience(self):
             self.experiences.append(Experience(id=len(self.experiences)+1, title='t', description='d',
@@ -71,11 +89,15 @@ class TestGetExperiences:
             self.permissions_validator.validate_permissions.side_effect = NoLoggedException()
             return self
 
-        def when_interactor_is_executed(self, logged_person_id, saved, mine, offset, limit):
+        def given_a_person_repo_that_returns_other_person_with_id(self, person_id):
+            self.person_repo.get_person.return_value = Person(id=person_id)
+            return self
+
+        def when_interactor_is_executed(self, logged_person_id, saved=False, username=None, offset=0, limit=20):
             try:
-                self.result = GetExperiencesInteractor(experience_repo=self.repo,
+                self.result = GetExperiencesInteractor(experience_repo=self.repo, person_repo=self.person_repo,
                                                        permissions_validator=self.permissions_validator) \
-                        .set_params(mine=mine, saved=saved,
+                        .set_params(username=username, saved=saved,
                                     logged_person_id=logged_person_id, offset=offset, limit=limit).execute()
             except Exception as e:
                 print(e)
@@ -84,13 +106,17 @@ class TestGetExperiences:
 
         def then_should_call_get_person_experiences_with(self, logged_person_id, target_person_id, offset, limit):
             self.repo.get_person_experiences.assert_called_once_with(logged_person_id=logged_person_id,
-                                                                     target_person_id=logged_person_id,
+                                                                     target_person_id=target_person_id,
                                                                      offset=offset, limit=limit)
             return self
 
         def then_should_call_get_saved_experiences_with(self, logged_person_id, offset, limit):
             self.repo.get_saved_experiences.assert_called_once_with(logged_person_id=logged_person_id,
                                                                     offset=offset, limit=limit)
+            return self
+
+        def then_should_call_get_person_with_username(self, username):
+            self.person_repo.get_person.assert_called_once_with(username=username)
             return self
 
         def then_validate_permissions_should_be_called_with(self, logged_person_id):

@@ -8,13 +8,14 @@ class GetExperiencesInteractor:
 
     MAX_PAGINATE_LIMIT = 20
 
-    def __init__(self, experience_repo, permissions_validator):
+    def __init__(self, experience_repo, person_repo, permissions_validator):
         self.experience_repo = experience_repo
+        self.person_repo = person_repo
         self.permissions_validator = permissions_validator
 
-    def set_params(self, mine, saved, logged_person_id, limit, offset):
-        self.mine = mine
+    def set_params(self, saved, username, logged_person_id, limit, offset):
         self.saved = saved
+        self.username = username
         self.logged_person_id = logged_person_id
         self.limit = limit
         self.offset = offset
@@ -30,9 +31,14 @@ class GetExperiencesInteractor:
             result = self.experience_repo.get_saved_experiences(limit=self.limit, offset=self.offset,
                                                                 logged_person_id=self.logged_person_id)
         else:
+            if self.username == 'self':
+                target_person_id = self.logged_person_id
+            else:
+                target_person_id = self.person_repo.get_person(username=self.username).id
+
             result = self.experience_repo.get_person_experiences(limit=self.limit, offset=self.offset,
                                                                  logged_person_id=self.logged_person_id,
-                                                                 target_person_id=self.logged_person_id)
+                                                                 target_person_id=target_person_id)
 
         result.update({"next_limit": self.limit})
         return result

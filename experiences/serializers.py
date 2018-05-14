@@ -1,9 +1,13 @@
 from pachatary.serializers import serialize_picture
 
 
-def serialize_experiences_response(experiences, base_url, mine, saved, next_limit, next_offset):
+def serialize_experiences_response(experiences, base_url, username, saved, next_limit, next_offset):
     if next_offset is not None:
-        next_url = '{}?mine={}&saved={}&limit={}&offset={}'.format(base_url, mine, saved, next_limit, next_offset)
+        if saved:
+            next_url = '{}?saved=true&limit={}&offset={}'.format(base_url, next_limit, next_offset)
+        else:
+            next_url = '{}?username={}&limit={}&offset={}'.format(base_url, username, next_limit, next_offset)
+
     else:
         next_url = None
 

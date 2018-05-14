@@ -12,19 +12,18 @@ class ExperiencesView:
         self.create_new_experience_interactor = create_new_experience_interactor
 
     @serialize_exceptions
-    def get(self, mine='false', saved='false', logged_person_id=None, limit='20', offset='0'):
-        boolean_mine = (mine == 'true')
+    def get(self, username=None, saved=None, logged_person_id=None, limit='20', offset='0'):
         boolean_saved = (saved == 'true')
         limit = int(limit)
         offset = int(offset)
 
-        experiences_result = self.get_experiences_interactor.set_params(mine=boolean_mine, saved=boolean_saved,
+        experiences_result = self.get_experiences_interactor.set_params(username=username, saved=boolean_saved,
                                                                         logged_person_id=logged_person_id,
                                                                         limit=limit, offset=offset).execute()
 
         body = serialize_experiences_response(experiences=experiences_result['results'],
                                               base_url=self.get_experiences_base_url,
-                                              mine=mine, saved=saved,
+                                              username=username, saved=saved,
                                               next_limit=experiences_result['next_limit'],
                                               next_offset=experiences_result['next_offset'])
 

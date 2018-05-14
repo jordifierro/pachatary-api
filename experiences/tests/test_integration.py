@@ -25,7 +25,7 @@ class ExperiencesTestCase(TestCase):
 
         client = Client()
         auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }
-        response = client.get("{}?mine=true&limit=2".format(reverse('experiences')), **auth_headers)
+        response = client.get("{}?username=self&limit=2".format(reverse('experiences')), **auth_headers)
 
         assert response.status_code == 200
         body = json.loads(response.content)
@@ -54,7 +54,71 @@ class ExperiencesTestCase(TestCase):
                                'saves_count': 0
                            },
                        ],
-                'next_url': 'http://testserver/experiences/?mine=true&saved=false&limit=2&offset=2'
+                'next_url': 'http://testserver/experiences/?username=self&limit=2&offset=2'
+            }
+
+    def test_others_experiences_returns_my_experiences(self):
+        orm_person = ORMPerson.objects.create(username='usr')
+        orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
+        orm_other_person = ORMPerson.objects.create(username='other')
+        exp_a = ORMExperience.objects.create(title='Exp a', description='some description', author=orm_other_person)
+        exp_b = ORMExperience.objects.create(title='Exp b', description='other description', author=orm_other_person)
+        exp_c = ORMExperience.objects.create(title='Exp c', description='third description', author=orm_other_person)
+        ExperienceRepo().save_experience(person_id=orm_person.id, experience_id=exp_c.id)
+
+        client = Client()
+        auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }
+        response = client.get("{}?username=other&limit=2".format(reverse('experiences')), **auth_headers)
+
+        assert response.status_code == 200
+        body = json.loads(response.content)
+        assert body == {
+                'results': [
+                           {
+                               'id': str(exp_c.id),
+                               'title': 'Exp c',
+                               'description': 'third description',
+                               'picture': None,
+                               'author_id': orm_other_person.id,
+                               'author_username': orm_other_person.username,
+                               'is_mine': False,
+                               'is_saved': True,
+                               'saves_count': 1
+                           },
+                           {
+                               'id': str(exp_b.id),
+                               'title': 'Exp b',
+                               'description': 'other description',
+                               'picture': None,
+                               'author_id': orm_other_person.id,
+                               'author_username': orm_other_person.username,
+                               'is_mine': False,
+                               'is_saved': False,
+                               'saves_count': 0
+                           },
+                       ],
+                'next_url': 'http://testserver/experiences/?username=other&limit=2&offset=2'
+            }
+
+        auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }
+        response = client.get(body['next_url'], **auth_headers)
+        assert response.status_code == 200
+        body = json.loads(response.content)
+        assert body == {
+                'results': [
+                           {
+                               'id': str(exp_a.id),
+                               'title': 'Exp a',
+                               'description': 'some description',
+                               'picture': None,
+                               'author_id': orm_other_person.id,
+                               'author_username': orm_other_person.username,
+                               'is_mine': False,
+                               'is_saved': False,
+                               'saves_count': 0
+                           },
+                       ],
+                'next_url': None
             }
 
     def test_saved_experiences_returns_only_saved_scenes(self):
