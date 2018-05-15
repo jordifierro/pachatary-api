@@ -76,7 +76,7 @@ class TestMailerService(TestCase):
             plain_text_message = get_template('ask_confirmation_email.txt').render(context_params)
             html_message = get_template('ask_confirmation_email.html').render(context_params)
             assert mail.outbox[0].body == plain_text_message
-            assert mail.outbox[0].from_email == settings.EMAIL_HOST_USER
+            assert mail.outbox[0].from_email == settings.EMAIL_HOST_ORIGIN
             assert mail.outbox[0].to == [self.email, ]
             assert mail.outbox[0].alternatives[0][0] == html_message
             return self
@@ -88,7 +88,7 @@ class TestMailerService(TestCase):
             plain_text_message = get_template('login_email.txt').render(context_params)
             html_message = get_template('login_email.html').render(context_params)
             assert mail.outbox[0].body == plain_text_message
-            assert mail.outbox[0].from_email == settings.EMAIL_HOST_USER
+            assert mail.outbox[0].from_email == settings.EMAIL_HOST_ORIGIN
             assert mail.outbox[0].to == [self.email, ]
             assert mail.outbox[0].alternatives[0][0] == html_message
             return self
