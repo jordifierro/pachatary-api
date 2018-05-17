@@ -68,6 +68,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
+
+    'pachatary.middlewares.LoggingMiddleware'
 ]
 
 ROOT_URLCONF = 'pachatary.urls'

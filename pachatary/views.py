@@ -17,6 +17,7 @@ class ViewWrapper(View):
         kwargs.update(request.GET.dict())
 
         logged_person_id = self.authenticate(request, **kwargs)
+        request.logged_person_id = logged_person_id
         kwargs.update({'logged_person_id': logged_person_id})
 
         body, status = self.view_creator_func(request, **kwargs).get(**kwargs)
@@ -26,6 +27,7 @@ class ViewWrapper(View):
         kwargs.update(request.POST.dict())
 
         logged_person_id = self.authenticate(request, **kwargs)
+        request.logged_person_id = logged_person_id
         kwargs.update({'logged_person_id': logged_person_id})
 
         if self.upload_picture_name is not None:
@@ -41,6 +43,7 @@ class ViewWrapper(View):
         kwargs.update(data)
 
         logged_person_id = self.authenticate(request, **kwargs)
+        request.logged_person_id = logged_person_id
         kwargs.update({'logged_person_id': logged_person_id})
 
         if self.upload_picture_name is not None:
@@ -55,6 +58,7 @@ class ViewWrapper(View):
         kwargs.update(data)
 
         logged_person_id = self.authenticate(request, **kwargs)
+        request.logged_person_id = logged_person_id
         kwargs.update({'logged_person_id': logged_person_id})
 
         body, status = self.view_creator_func(request, **kwargs).delete(**kwargs)
