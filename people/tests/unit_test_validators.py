@@ -169,7 +169,8 @@ class TestPersonValidator:
                 .given_a_username('usr') \
                 .given_an_email('e@m.c') \
                 .given_a_person_with_that_params() \
-                .given_a_repo_that_returns_a_person_when_get_by_username() \
+                .given_a_second_person_with_that_params() \
+                .given_a_repo_that_returns_second_person_when_get_by_username() \
                 .given_a_person_validator_with_forbidden_usernames_and_email_domains(['ban'], ['i.c', 'm.c']) \
                 .when_person_is_validated() \
                 .then_should_raise_invalid_entity_exception_for_username()
@@ -179,10 +180,31 @@ class TestPersonValidator:
                 .given_a_username('usr') \
                 .given_an_email('e@m.c') \
                 .given_a_person_with_that_params() \
-                .given_a_repo_that_returns_a_person_when_get_by_email() \
+                .given_a_second_person_with_that_params() \
+                .given_a_repo_that_returns_second_person_when_get_by_email() \
                 .given_a_person_validator_with_forbidden_usernames_and_email_domains(['ban'], ['i.c', 'm.c']) \
                 .when_person_is_validated() \
                 .then_should_raise_invalid_entity_exception_for_not_allowed_email()
+
+    def test_already_used_username_by_same_user_is_allowed(self):
+        TestPersonValidator.ScenarioMaker() \
+                .given_a_username('usr') \
+                .given_an_email('e@m.c') \
+                .given_a_person_with_that_params() \
+                .given_a_repo_that_returns_a_person_when_get_by_username() \
+                .given_a_person_validator_with_forbidden_usernames_and_email_domains(['ban'], ['i.c']) \
+                .when_person_is_validated() \
+                .then_result_should_be_true()
+
+    def test_already_used_email_by_same_user_is_allowed(self):
+        TestPersonValidator.ScenarioMaker() \
+                .given_a_username('usr') \
+                .given_an_email('e@m.c') \
+                .given_a_person_with_that_params() \
+                .given_a_repo_that_returns_a_person_when_get_by_email() \
+                .given_a_person_validator_with_forbidden_usernames_and_email_domains(['ban'], ['i.c']) \
+                .when_person_is_validated() \
+                .then_result_should_be_true()
 
     class ScenarioMaker:
 
@@ -202,7 +224,11 @@ class TestPersonValidator:
             return self
 
         def given_a_person_with_that_params(self):
-            self.person = Person(username=self.username, email=self.email)
+            self.person = Person(id='1', username=self.username, email=self.email)
+            return self
+
+        def given_a_second_person_with_that_params(self):
+            self.second_person = Person(id='2', username=self.username, email=self.email)
             return self
 
         def given_a_person_validator_with_forbidden_usernames_and_email_domains(self, forbidden_usernames,
@@ -227,10 +253,30 @@ class TestPersonValidator:
             self.person_repo.get_person = fake_get_person
             return self
 
+        def given_a_repo_that_returns_second_person_when_get_by_username(self):
+            def fake_get_person(username=None, email=None):
+                if username is not None:
+                    return self.second_person
+                raise EntityDoesNotExistException()
+
+            self.person_repo = Mock()
+            self.person_repo.get_person = fake_get_person
+            return self
+
         def given_a_repo_that_returns_a_person_when_get_by_email(self):
             def fake_get_person(username=None, email=None):
                 if email is not None:
                     return self.person
+                raise EntityDoesNotExistException()
+
+            self.person_repo = Mock()
+            self.person_repo.get_person = fake_get_person
+            return self
+
+        def given_a_repo_that_returns_second_person_when_get_by_email(self):
+            def fake_get_person(username=None, email=None):
+                if email is not None:
+                    return self.second_person
                 raise EntityDoesNotExistException()
 
             self.person_repo = Mock()

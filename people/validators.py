@@ -41,8 +41,9 @@ class PersonValidator:
         if person.username in self.forbidden_usernames:
             raise InvalidEntityException(source='username', code='not_allowed', message='Username not allowed')
         try:
-            self.person_repo.get_person(username=person.username)
-            raise InvalidEntityException(source='username', code='not_allowed', message='Username not allowed')
+            same_username_person = self.person_repo.get_person(username=person.username)
+            if same_username_person.id != person.id:
+                raise InvalidEntityException(source='username', code='not_allowed', message='Username not allowed')
         except EntityDoesNotExistException:
             pass
 
@@ -51,8 +52,9 @@ class PersonValidator:
         if person.email.split('@')[-1] in self.forbidden_email_domains:
             raise InvalidEntityException(source='email', code='not_allowed', message='Email not allowed')
         try:
-            self.person_repo.get_person(email=person.email)
-            raise InvalidEntityException(source='email', code='not_allowed', message='Email not allowed')
+            same_email_person = self.person_repo.get_person(email=person.email)
+            if same_email_person.id != person.id:
+                raise InvalidEntityException(source='email', code='not_allowed', message='Email not allowed')
         except EntityDoesNotExistException:
             pass
 

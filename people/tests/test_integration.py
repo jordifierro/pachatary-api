@@ -103,6 +103,21 @@ class ModifyPersonTestCase(TestCase):
                 .then_old_confirmation_tokens_should_be_deleted() \
                 .then_ask_confirmation_email_should_be_sent()
 
+    def test_modify_person_username_and_email_twice_has_same_result(self):
+        ModifyPersonTestCase._ScenarioMaker() \
+                .given_a_guest_person_in_db_with_auth_token() \
+                .given_a_confirmation_token_for_that_person() \
+                .given_another_confirmation_token_for_that_person() \
+                .given_a_username() \
+                .given_an_email() \
+                .when_that_person_call_patch_people_me_with_that_params() \
+                .when_that_person_call_patch_people_me_with_that_params() \
+                .then_response_status_should_be_200() \
+                .then_response_body_should_be_person_info() \
+                .then_person_should_be_updated_and_marked_as_registered() \
+                .then_old_confirmation_tokens_should_be_deleted() \
+                .then_ask_confirmation_email_should_be_sent(last=1)
+
     def test_wrong_client_secret_key_returns_error(self):
         ModifyPersonTestCase._ScenarioMaker() \
                 .given_a_registered_and_confirmed_person() \
@@ -200,8 +215,8 @@ class ModifyPersonTestCase(TestCase):
             assert not ORMConfirmationToken.objects.filter(token=self.orm_confirmation_token_2.token).exists()
             return self
 
-        def then_ask_confirmation_email_should_be_sent(self):
-            assert mail.outbox[0].subject == 'Pachatary account confirmation'
+        def then_ask_confirmation_email_should_be_sent(self, last=0):
+            assert mail.outbox[last].subject == 'Pachatary account confirmation'
             confirmation_token = ORMConfirmationToken.objects.get(person_id=self.orm_person.id).token
             confirmation_reverse_url = self.response.wsgi_request.build_absolute_uri(
                     reverse('email-confirmation-redirect'))
@@ -209,10 +224,10 @@ class ModifyPersonTestCase(TestCase):
             context_params = {'username': self.username, 'confirmation_url': confirmation_url}
             plain_text_message = get_template('ask_confirmation_email.txt').render(context_params)
             html_message = get_template('ask_confirmation_email.html').render(context_params)
-            assert mail.outbox[0].body == plain_text_message
-            assert mail.outbox[0].from_email == settings.EMAIL_HOST_ORIGIN
-            assert mail.outbox[0].to == [self.email, ]
-            assert mail.outbox[0].alternatives[0][0] == html_message
+            assert mail.outbox[last].body == plain_text_message
+            assert mail.outbox[last].from_email == settings.EMAIL_HOST_ORIGIN
+            assert mail.outbox[last].to == [self.email, ]
+            assert mail.outbox[last].alternatives[0][0] == html_message
             return self
 
         def then_response_status_should_be_409(self):
