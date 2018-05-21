@@ -183,7 +183,7 @@ class ModifyPersonTestCase(TestCase):
 
         def when_that_person_call_patch_people_me_with_that_params(self):
             client = Client()
-            auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(self.orm_auth_token.access_token), }
+            auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(self.orm_auth_token.access_token)}
             self.response = client.patch(reverse('person'),
                                          urllib.parse.urlencode({'username': self.username, 'email': self.email}),
                                          content_type='application/x-www-form-urlencoded',
@@ -409,9 +409,11 @@ class LoginEmailTestCase(TestCase):
 
         def when_anonymous_call_with_person_email_login_email(self):
             client = Client()
+            headers = {'HTTP_ACCEPT_LANGUAGE': 'es'}
             self.response = client.post(reverse('login-email'),
                                         urllib.parse.urlencode({'email': self.orm_person.email}),
-                                        content_type='application/x-www-form-urlencoded')
+                                        content_type='application/x-www-form-urlencoded',
+                                        **headers)
             return self
 
         def then_response_status_should_be_empty_body_and_204(self):

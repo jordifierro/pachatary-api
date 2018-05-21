@@ -1,7 +1,9 @@
-Hi {{ username }}, welcome to Pachatary!
+{% load i18n %}
 
-Click this link to confirm your email and finish your register process:
+{% blocktrans with username=username %}Hi {{ username }}, welcome to Pachatary!{% endblocktrans %}
+
+{% blocktrans %}Click this link to confirm your email and finish your register process:{% endblocktrans %}
 
 {{ confirmation_url }}
 
-If you haven't registered on Pachatary app, just ignore this mail. We won't mail you again.
+{% blocktrans %}If you haven't registered on Pachatary app, just ignore this mail. We won't mail you again.{% endblocktrans %}

@@ -1,7 +1,9 @@
-<p>Hi again <strong>{{ username }}</strong>!</p>
+{% load i18n %}
 
-<p>Click here with your mobile device to <a href="{{ login_url }}">login</a>.</p>
+<p>{% blocktrans with username=username %}Hi again <strong>{{ username }}</strong>!{% endblocktrans %}</p>
+
+<p>{% blocktrans with login_url=login_url %}Click here with your mobile device to <a href="{{ login_url }}">login</a>.{% endblocktrans %}</p>
    
-<p>Or if you prefer copy & paste the link below:</p>
+<p>{% blocktrans %}Or if you prefer copy & paste the link below:{% endblocktrans %}</p>
 
 <p><a href="{{ login_url }}">{{ login_url }}</a></p>

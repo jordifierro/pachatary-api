@@ -1,0 +1,78 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-05-21 11:23+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: people/templates/ask_confirmation_email.html:1
+#, python-format
+#| msgid "Hi %(username)s, welcome to Pachatary!"
+msgid "Hi <strong>%(username)s</strong>, welcome to Pachatary!"
+msgstr "Hola <strong>%(username)s<strong>, bienvenido a Pachatary!"
+
+#: people/templates/ask_confirmation_email.html:3
+#, python-format
+msgid ""
+"Click here to <a href=\"%(confirmation_url)s\">confirm your email</a> and "
+"finish your register process."
+msgstr ""
+"Clica aquí para <a href=\"%(confirmation_url)s\">confirmar tu email</a> y "
+"finalizar tu registro."
+
+#: people/templates/ask_confirmation_email.html:5
+#: people/templates/login_email.html:5
+msgid "Or if you prefer copy & paste the link below:"
+msgstr "O si prefieres copia y pega el siguiente enlace:"
+
+#: people/templates/ask_confirmation_email.html:9
+#: people/templates/ask_confirmation_email.txt:7
+msgid ""
+"If you haven't registered on Pachatary app, just ignore this mail. We won't "
+"mail you again."
+msgstr ""
+"Si no te has registrado a la app Pachatary, simplemente ignora este mail. No "
+"te mandaremos más."
+
+#: people/templates/ask_confirmation_email.txt:1
+#, python-format
+msgid "Hi %(username)s, welcome to Pachatary!"
+msgstr "Hola %(username)s, bienvenido a Pachatary!"
+
+#: people/templates/ask_confirmation_email.txt:3
+msgid "Click this link to confirm your email and finish your register process:"
+msgstr "Clica este enlace para confirmar tu email y finalizar tu registro"
+
+#: people/templates/login_email.html:1
+#, python-format
+#| msgid "Hi %(username)s, welcome to Pachatary!"
+msgid "Hi again <strong>%(username)s</strong>!"
+msgstr "Hola de nuevo <strong>%(username)s<strong>!"
+
+#: people/templates/login_email.html:3
+#, python-format
+msgid ""
+"Click here with your mobile device to <a href=\"%(login_url)s\">login</a>."
+msgstr "Clica aquí con tu dispositivo móvil para <a href=\"%(login_url)s\">entrar</a>."
+
+#: people/templates/login_email.txt:1
+#, python-format
+msgid "Hi again %(username)s!"
+msgstr "Hola de nuevo %(username)s!"
+
+#: people/templates/login_email.txt:3
+msgid "Click this link with your mobile device to login:"
+msgstr "Clica en este enlace con tu dispositivo móvil para entrar:"

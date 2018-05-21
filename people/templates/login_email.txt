@@ -1,5 +1,7 @@
-Hi again {{ username }}!
+{% load i18n %}
 
-Click this link with your mobile device to login:
+{% blocktrans with username=username %}Hi again {{ username }}!{% endblocktrans %}
+
+{% blocktrans %}Click this link with your mobile device to login:{% endblocktrans %}
 
 {{ login_url }}

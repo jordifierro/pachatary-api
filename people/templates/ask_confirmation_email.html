@@ -1,9 +1,11 @@
-<p>Hi <strong>{{ username }}</strong>, welcome to Pachatary!</p>
+{% load i18n %}
 
-<p>Click here to <a href="{{ confirmation_url }}">confirm your email</a> and finish your register process.</p>
+<p>{% blocktrans with username=username %}Hi <strong>{{ username }}</strong>, welcome to Pachatary!{% endblocktrans %}</p>
+
+<p>{% blocktrans with confirmation_url=confirmation_url %}Click here to <a href="{{ confirmation_url }}">confirm your email</a> and finish your register process.{% endblocktrans %}</p>
    
-<p>Or if you prefer copy & paste the link below:</p>
+<p>{% blocktrans %}Or if you prefer copy & paste the link below:{% endblocktrans %}</p>
 
 <p><a href="{{ confirmation_url }}">{{ confirmation_url }}</a></p>
 
-If you haven't registered on Pachatary app, just ignore this mail. We won't mail you again.
+{% blocktrans %}If you haven't registered on Pachatary app, just ignore this mail. We won't mail you again.{% endblocktrans %}

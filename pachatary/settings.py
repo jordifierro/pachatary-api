@@ -67,6 +67,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
+
     'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
 
     'pachatary.middlewares.LoggingMiddleware'
@@ -197,3 +199,5 @@ if not LOCAL_DEPLOY:
     rollbar.init(**ROLLBAR)
 
 ANDROID_MIN_VERSION = os.environ['ANDROID_MIN_VERSION']
+
+LOCALE_PATHS = ('locale', )
