@@ -1,6 +1,7 @@
 import json
 import urllib.parse
 
+from django.template.loader import get_template
 from django.http import HttpResponse
 from django.views import View
 from django.conf import settings
@@ -82,3 +83,11 @@ def client_versions(request):
     }
 
     return HttpResponse(json.dumps(response), status=200)
+
+
+def privacy_policy(request):
+    return HttpResponse(get_template('privacy_policy.html').render())
+
+
+def terms_and_conditions(request):
+    return HttpResponse(get_template('terms_and_conditions.html').render())
