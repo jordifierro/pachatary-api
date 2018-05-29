@@ -2,7 +2,8 @@ class Experience:
 
     def __init__(self, title, description, author_id,
                  author_username=None, id=None, picture=None,
-                 is_mine=False, is_saved=False, saves_count=0):
+                 is_mine=False, is_saved=False, saves_count=0,
+                 share_id=None):
         self._id = id
         self._title = title
         self._description = description
@@ -12,6 +13,7 @@ class Experience:
         self._is_mine = is_mine
         self._is_saved = is_saved
         self._saves_count = saves_count
+        self._share_id = share_id
 
     @property
     def id(self):
@@ -49,6 +51,10 @@ class Experience:
     def saves_count(self):
         return self._saves_count
 
+    @property
+    def share_id(self):
+        return self._share_id
+
     def builder(self):
         return Experience.Builder(self)
 
@@ -67,6 +73,7 @@ class Experience:
             self._is_mine = experience.is_mine
             self._is_saved = experience.is_saved
             self._saves_count = experience.saves_count
+            self._share_id = experience.share_id
 
         def id(self, id):
             self._id = id
@@ -104,8 +111,13 @@ class Experience:
             self._saves_count = saves_count
             return self
 
+        def share_id(self, share_id):
+            self._share_id = share_id
+            return self
+
         def build(self):
             return Experience(id=self._id, title=self._title, description=self._description,
                               picture=self._picture, author_id=self._author_id,
                               author_username=self._author_username, is_mine=self._is_mine,
-                              is_saved=self._is_saved, saves_count=self._saves_count)
+                              is_saved=self._is_saved, saves_count=self._saves_count,
+                              share_id=self._share_id)

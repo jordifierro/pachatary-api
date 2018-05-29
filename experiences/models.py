@@ -14,6 +14,7 @@ class ORMExperience(models.Model):
                                         'small': (320, 320)},
                             blank=True)
     author = models.ForeignKey(ORMPerson, on_delete=models.CASCADE)
+    share_id = models.CharField(unique=True, max_length=8, null=True)
 
     saves_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)

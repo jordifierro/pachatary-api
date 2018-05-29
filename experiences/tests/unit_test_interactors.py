@@ -1,4 +1,4 @@
-from mock import Mock
+from mock import Mock, call
 
 from pachatary.exceptions import InvalidEntityException, EntityDoesNotExistException, NoLoggedException, \
         NoPermissionException, ConflictException
@@ -6,7 +6,7 @@ from people.entities import Person
 from experiences.entities import Experience
 from experiences.interactors import GetExperiencesInteractor, CreateNewExperienceInteractor, \
         ModifyExperienceInteractor, UploadExperiencePictureInteractor, SaveUnsaveExperienceInteractor, \
-        SearchExperiencesInteractor
+        SearchExperiencesInteractor, GetOrCreateExperienceShareIdInteractor, IdGenerator
 
 
 class TestGetExperiences:
@@ -100,7 +100,6 @@ class TestGetExperiences:
                         .set_params(username=username, saved=saved,
                                     logged_person_id=logged_person_id, offset=offset, limit=limit).execute()
             except Exception as e:
-                print(e)
                 self.error = e
             return self
 
@@ -846,4 +845,155 @@ class TestSaveUnsaveExperienceInteractor:
             assert self.error.source == 'experience'
             assert self.error.code == 'self_save'
             assert str(self.error) == 'You cannot save your own experiences'
+            return self
+
+
+class TestGetOrCreateExperienceShareIdInteractor:
+
+    def test_if_no_logged_person_raises_no_logged_person(self):
+        TestGetOrCreateExperienceShareIdInteractor.ScenarioMaker() \
+                .given_a_logged_person_id('0') \
+                .given_a_permissions_validator_that_raises_no_logged() \
+                .given_an_experience_on_repo(id='4') \
+                .when_execute_interactor() \
+                .then_should_let_no_logged_exception_pass()
+
+    def test_if_already_has_id_returns_id(self):
+        TestGetOrCreateExperienceShareIdInteractor.ScenarioMaker() \
+                .given_a_logged_person_id('5') \
+                .given_a_permissions_validator_that_validates() \
+                .given_an_experience_on_repo(id='4', share_id='asdf') \
+                .when_execute_interactor() \
+                .then_should_get_experience(id='4') \
+                .then_should_validate_person(id='5') \
+                .then_should_return(share_id='asdf')
+
+    def test_if_hasnt_share_id_creates_updates_and_return(self):
+        TestGetOrCreateExperienceShareIdInteractor.ScenarioMaker() \
+                .given_a_logged_person_id('5') \
+                .given_a_permissions_validator_that_validates() \
+                .given_an_experience_on_repo(id='4') \
+                .given_a_share_id_generator_that_returns(share_ids=['qwerty']) \
+                .given_an_experience_repo_that_raises_conflict_when_update(share_id='none') \
+                .when_execute_interactor() \
+                .then_should_get_experience(id='4') \
+                .then_should_validate_person(id='5') \
+                .then_should_update_experience_with(share_ids=['qwerty']) \
+                .then_should_return(share_id='qwerty')
+
+    def test_when_colission_tries_new_share_id(self):
+        TestGetOrCreateExperienceShareIdInteractor.ScenarioMaker() \
+                .given_a_logged_person_id('5') \
+                .given_a_permissions_validator_that_validates() \
+                .given_an_experience_on_repo(id='4') \
+                .given_a_share_id_generator_that_returns(share_ids=['qwerty', 'other']) \
+                .given_an_experience_repo_that_raises_conflict_when_update(share_id='qwerty') \
+                .when_execute_interactor() \
+                .then_should_get_experience(id='4') \
+                .then_should_validate_person(id='5') \
+                .then_should_update_experience_with(share_ids=['qwerty', 'other']) \
+                .then_should_return(share_id='other')
+
+    class ScenarioMaker:
+
+        def __init__(self):
+            self.repo = Mock()
+            self.permissions_validator = Mock()
+            self.id_generator = Mock()
+
+        def given_a_logged_person_id(self, id):
+            self.logged_person_id = id
+            return self
+
+        def given_a_permissions_validator_that_validates(self):
+            self.permissions_validator.return_value = True
+            return self
+
+        def given_a_permissions_validator_that_raises_no_logged(self):
+            self.permissions_validator.validate_permissions.side_effect = NoLoggedException()
+            return self
+
+        def given_an_experience_on_repo(self, id, share_id=None):
+            self.experience = Experience(id=id, title='as', description='er', author_id='9', share_id=share_id)
+            self.repo.get_experience.return_value = self.experience
+            return self
+
+        def given_a_share_id_generator_that_returns(self, share_ids):
+            self.id_generator.generate.side_effect = share_ids
+            return self
+
+        def given_an_experience_repo_that_raises_conflict_when_update(self, share_id):
+
+            def update_experience(experience):
+                if experience.share_id == share_id:
+                    raise ConflictException(source='s', code='c', message='m')
+                return experience
+
+            self.repo.update_experience.side_effect = update_experience
+            return self
+
+        def when_execute_interactor(self):
+            try:
+                self.result = \
+                    GetOrCreateExperienceShareIdInteractor(experience_repo=self.repo,
+                                                           permissions_validator=self.permissions_validator,
+                                                           id_generator=self.id_generator) \
+                    .set_params(experience_id=self.experience.id, logged_person_id=self.logged_person_id).execute()
+            except Exception as e:
+                print(e)
+                self.error = e
+            return self
+
+        def then_should_validate_person(self, id):
+            self.permissions_validator.validate_permissions \
+                    .assert_called_once_with(logged_person_id=self.logged_person_id)
+            return self
+
+        def then_should_get_experience(self, id):
+            self.repo.get_experience.assert_called_once_with(id=id)
+            return self
+
+        def then_should_return(self, share_id):
+            assert self.result == share_id
+            return self
+
+        def then_should_update_experience_with(self, share_ids):
+            updated_experiences = [self.experience.builder().share_id(share_id).build() for share_id in share_ids]
+            self.repo.updated_experience.mock_calls = [call(x) for x in updated_experiences]
+            return self
+
+        def then_should_let_no_logged_exception_pass(self):
+            assert type(self.error) == NoLoggedException
+            return self
+
+
+class TestIdGenerator:
+
+    def test_length_should_be_8(self):
+        TestIdGenerator.ScenarioMaker() \
+                .when_generate() \
+                .result_should_be_string_8_long()
+
+    def test_generate_different_each_time(self):
+        TestIdGenerator.ScenarioMaker() \
+                .when_generate_2() \
+                .results_should_be_different()
+
+    class ScenarioMaker:
+
+        def when_generate(self):
+            self.result = IdGenerator().generate()
+            return self
+
+        def when_generate_2(self):
+            self.result_a = IdGenerator().generate()
+            self.result_b = IdGenerator().generate()
+            return self
+
+        def result_should_be_string_8_long(self):
+            assert len(self.result) == 8
+            return self
+
+        def results_should_be_different(self):
+            assert self.result_a != self.result_b
             return self

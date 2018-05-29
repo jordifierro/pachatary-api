@@ -1,3 +1,4 @@
+import random
 from enum import Enum
 
 from pachatary.exceptions import ConflictException
@@ -169,3 +170,44 @@ class SaveUnsaveExperienceInteractor:
             self.experience_repo.unsave_experience(person_id=self.logged_person_id, experience_id=self.experience_id)
 
         return True
+
+
+class GetOrCreateExperienceShareIdInteractor:
+
+    def __init__(self, experience_repo, permissions_validator, id_generator):
+        self.experience_repo = experience_repo
+        self.permissions_validator = permissions_validator
+        self.id_generator = id_generator
+
+    def set_params(self, experience_id, logged_person_id):
+        self.experience_id = experience_id
+        self.logged_person_id = logged_person_id
+        return self
+
+    def execute(self):
+        self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
+
+        experience = self.experience_repo.get_experience(id=self.experience_id)
+        if experience.share_id is not None:
+            return experience.share_id
+
+        updated_with_share_id = False
+        while not updated_with_share_id:
+            try:
+                share_id = self.id_generator.generate()
+                experience = experience.builder().share_id(share_id).build()
+                experience = self.experience_repo.update_experience(experience)
+                updated_with_share_id = True
+            except ConflictException:
+                pass
+
+        return experience.share_id
+
+
+class IdGenerator:
+
+    LENGTH = 8
+    CHOICES = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+
+    def generate(self):
+        return ''.join(random.choice(IdGenerator.CHOICES) for _ in range(IdGenerator.LENGTH))
