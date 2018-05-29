@@ -1,9 +1,11 @@
 import json
 import urllib.parse
+from mock import Mock
 
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 from django.test import Client
 from django.urls import reverse
+from django.conf import settings
 
 from experiences.models import ORMExperience, ORMSave
 from experiences.entities import Experience
@@ -429,4 +431,75 @@ class SearchExperiencesTestCase(TestCase):
             assert self.response.status_code == 200
             assert json.loads(self.response.content) == {
                     'results': serialize_multiple_experiences(experiences), 'next_url': next_url}
+            return self
+
+
+class ExperienceShareUrlTestCase(TransactionTestCase):
+
+    def test_experience_already_has_share_id_returns_that(self):
+        ExperienceShareUrlTestCase.ScenarioMaker() \
+                .given_a_person_with_auth_token() \
+                .given_an_experience(share_id='Aib1dR14') \
+                .when_get_share_url(1) \
+                .then_response_should_be({'share_url': '{}/e/Aib1dR14'.format(settings.PUBLIC_DOMAIN)}, 200)
+
+    def test_experience_without_share_id_creates_it_and_returns(self):
+        ExperienceShareUrlTestCase.ScenarioMaker() \
+                .given_a_person_with_auth_token() \
+                .given_an_experience() \
+                .given_an_id_generator_that_returns(['aSe43DwR']) \
+                .when_get_share_url(1) \
+                .then_response_should_be({'share_url': '{}/e/aSe43DwR'.format(settings.PUBLIC_DOMAIN)}, 200) \
+                .then_experiences_should_be_updated_with(['aSe43DwR'])
+
+    def test_after_duplicate_share_id_generates_other_and_returns(self):
+        ExperienceShareUrlTestCase.ScenarioMaker() \
+                .given_a_person_with_auth_token() \
+                .given_an_experience() \
+                .given_an_experience() \
+                .given_an_id_generator_that_returns(['aSe43DwR', 'aSe43DwR', 'aSe43DwR', 'Ujd8907J']) \
+                .when_get_share_url(1) \
+                .then_response_should_be({'share_url': '{}/e/aSe43DwR'.format(settings.PUBLIC_DOMAIN)}, 200) \
+                .when_get_share_url(2) \
+                .then_response_should_be({'share_url': '{}/e/Ujd8907J'.format(settings.PUBLIC_DOMAIN)}, 200) \
+                .then_experiences_should_be_updated_with(['aSe43DwR', 'Ujd8907J'])
+
+    class ScenarioMaker:
+
+        def __init__(self):
+            self.experiences = []
+
+        def given_a_person_with_auth_token(self):
+            self.orm_person = ORMPerson.objects.create()
+            self.orm_auth_token = ORMAuthToken.objects.create(person_id=self.orm_person.id)
+            return self
+
+        def given_an_experience(self, share_id=None):
+            self.experiences.append(ORMExperience.objects.create(author=self.orm_person, share_id=share_id))
+            return self
+
+        def given_an_id_generator_that_returns(self, share_ids):
+            from experiences import factories
+            fake_id_generator = Mock()
+            fake_id_generator.generate.side_effect = share_ids
+            factories.create_id_generator = Mock()
+            factories.create_id_generator.return_value = fake_id_generator
+            return self
+
+        def when_get_share_url(self, exp_position):
+            client = Client()
+            auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(self.orm_auth_token.access_token), }
+            self.response = client.get(reverse('experience-share-url', args=[self.experiences[exp_position-1].id]),
+                                       **auth_headers)
+            return self
+
+        def then_response_should_be(self, body, status):
+            assert json.loads(self.response.content) == body
+            assert self.response.status_code == status
+            return self
+
+        def then_experiences_should_be_updated_with(self, share_ids):
+            for experience, share_id in zip(self.experiences, share_ids):
+                experience.refresh_from_db()
+                assert experience.share_id == share_id
             return self

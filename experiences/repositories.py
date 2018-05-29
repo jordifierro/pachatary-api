@@ -1,7 +1,8 @@
 from django.db.models import F, Case, When
+from django.db import IntegrityError
 
 from pachatary.entities import Picture
-from pachatary.exceptions import EntityDoesNotExistException
+from pachatary.exceptions import EntityDoesNotExistException, ConflictException
 from .models import ORMExperience, ORMSave
 from .entities import Experience
 
@@ -27,7 +28,8 @@ class ExperienceRepo:
                           author_username=db_experience.author.username,
                           is_mine=is_mine,
                           is_saved=is_saved,
-                          saves_count=db_experience.saves_count)
+                          saves_count=db_experience.saves_count,
+                          share_id=db_experience.share_id)
 
     def get_saved_experiences(self, logged_person_id, offset=0, limit=100):
         db_saves_and_experiences = ORMSave.objects \
@@ -90,8 +92,12 @@ class ExperienceRepo:
 
         orm_experience.title = experience.title
         orm_experience.description = experience.description
+        orm_experience.share_id = experience.share_id
 
-        orm_experience.save()
+        try:
+            orm_experience.save()
+        except IntegrityError:
+            raise ConflictException(source='share_id', code='duplicate', message='Duplicate share_id')
         return self._decode_db_experience(orm_experience, is_mine=True)
 
     def save_experience(self, person_id, experience_id):

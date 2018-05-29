@@ -38,6 +38,8 @@ if not LOCAL_DEPLOY:
 
 ANDROID_DEEPLINK_DOMAIN = os.environ['ANDROID_DEEPLINK_DOMAIN']
 
+PUBLIC_DOMAIN = os.environ['PUBLIC_DOMAIN']
+
 # Application definition
 
 EXTERN_APPS = [

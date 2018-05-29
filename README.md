@@ -208,6 +208,21 @@ _422_
 ```
 
 
+### `GET /experiences/<experience_id>/share-url`
+
+This endpoint is used to retrieve a unique identified public experience link,
+that must be captured by application to show its content.
+
+_Response:_
+
+_200_
+```json
+{
+    "share_url": "pachatary.com/e/Ab3De6gH",
+}
+```
+
+
 ### `POST /experiences/<experience_id>/save/`
 
 Endpoint to save experience as favourite.

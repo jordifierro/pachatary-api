@@ -23,6 +23,8 @@ export ELASTICSEARCH_URL='http://localhost:9200/'
 
 export ANDROID_MIN_VERSION='0'
 
+export PUBLIC_DOMAIN='pachatary.domain'
+
 # Remote deployment extra env vars
 # export HOST='domain.host.com'
 # export AWS_ACCESS_KEY_ID='amazon_key'

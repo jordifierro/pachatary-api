@@ -3,7 +3,7 @@ from mock import Mock
 from pachatary.entities import Picture
 from experiences.entities import Experience
 from experiences.views import ExperiencesView, ExperienceView, UploadExperiencePictureView, SaveExperienceView, \
-        SearchExperiencesView
+        SearchExperiencesView, ExperienceShareUrlView
 from experiences.serializers import serialize_experience, serialize_multiple_experiences
 from experiences.interactors import SaveUnsaveExperienceInteractor
 
@@ -405,4 +405,44 @@ class TestSearchExperiencesView:
                 'results': serialize_multiple_experiences([self.experience_a, self.experience_b]),
                 'next_url': next_url
             }
+            return self
+
+
+class TestExperienceShareUrlView:
+
+    def test_returns_url_with_share_id(self):
+        TestExperienceShareUrlView.ScenarioMaker() \
+                .given_a_public_url('pachatary.com') \
+                .given_an_interactor_that_returns(share_id='Ab1dR14') \
+                .when_get_is_called(logged_person_id='4', experience_id='5') \
+                .then_should_call_interactor_with(logged_person_id='4', experience_id='5') \
+                .then_response_should_be({'share_url': 'pachatary.com/e/Ab1dR14'}, 200)
+
+    class ScenarioMaker:
+
+        def given_a_public_url(self, url):
+            self.url = url
+            return self
+
+        def given_an_interactor_that_returns(self, share_id):
+            self.interactor = Mock()
+            self.interactor.set_params.return_value = self.interactor
+            self.interactor.execute.return_value = share_id
+            return self
+
+        def when_get_is_called(self, logged_person_id, experience_id):
+            self.body, self.status = ExperienceShareUrlView(
+                base_url=self.url, get_or_create_experience_share_id_interactor=self.interactor) \
+                    .get(logged_person_id=logged_person_id, experience_id=experience_id)
+            return self
+
+        def then_should_call_interactor_with(self, logged_person_id, experience_id):
+            self.interactor.set_params.assert_called_once_with(logged_person_id=logged_person_id,
+                                                               experience_id=experience_id)
+            self.interactor.execute.assert_called_once_with()
+            return self
+
+        def then_response_should_be(self, body, status):
+            assert self.body == body
+            assert self.status == status
             return self

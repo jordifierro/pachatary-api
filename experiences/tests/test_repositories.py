@@ -2,7 +2,7 @@ from mock import Mock
 
 from django.test import TestCase
 
-from pachatary.exceptions import EntityDoesNotExistException
+from pachatary.exceptions import EntityDoesNotExistException, ConflictException
 from experiences.entities import Experience
 from experiences.models import ORMExperience, ORMSave
 from experiences.repositories import ExperienceRepo
@@ -97,9 +97,17 @@ class ExperienceRepoTestCase(TestCase):
         ExperienceRepoTestCase.ScenarioMaker() \
                 .given_a_person_in_db('me') \
                 .given_an_experience_in_db(created_by_person=1) \
-                .when_update_experience(experience=1, title='n', description='u') \
-                .then_should_return_experience(title='n', description='u', author=1, mine=True) \
+                .when_update_experience(experience=1, title='n', description='u', share_id='Ab3') \
+                .then_should_return_experience(title='n', description='u', author=1, mine=True, share_id='Ab3') \
                 .then_result_experience_should_be_in_db()
+
+    def test_update_experience_returns_conflict_when_integrity_error(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_an_experience_in_db(created_by_person=1) \
+                .given_an_experience_in_db(created_by_person=1, share_id='Ab3') \
+                .when_update_experience(experience=1, title='n', description='u', share_id='Ab3') \
+                .then_should_raise_conflict_exception()
 
     def test_save_experience(self):
         ExperienceRepoTestCase.ScenarioMaker() \
@@ -174,9 +182,9 @@ class ExperienceRepoTestCase(TestCase):
             self.persons.append(ORMPerson.objects.create(username=username))
             return self
 
-        def given_an_experience_in_db(self, created_by_person):
+        def given_an_experience_in_db(self, created_by_person, share_id=None):
             author_id = self.persons[created_by_person-1].id
-            self.experiences.append(ORMExperience.objects.create(author_id=author_id))
+            self.experiences.append(ORMExperience.objects.create(author_id=author_id, share_id=share_id))
             return self
 
         def given_I_save_experience(self, experience):
@@ -225,10 +233,13 @@ class ExperienceRepoTestCase(TestCase):
             self.result = self.repo.create_experience(experience)
             return self
 
-        def when_update_experience(self, experience, title, description):
+        def when_update_experience(self, experience, title, description, share_id=None):
             experience = self.repo.get_experience(id=self.experiences[experience-1].id)
-            updated_experience = experience.builder().title(title).description(description).build()
-            self.result = self.repo.update_experience(updated_experience)
+            updated_experience = experience.builder().title(title).description(description).share_id(share_id).build()
+            try:
+                self.result = self.repo.update_experience(updated_experience)
+            except Exception as e:
+                self.error = e
             return self
 
         def when_save_experience(self, position):
@@ -269,11 +280,12 @@ class ExperienceRepoTestCase(TestCase):
             assert self.entity_does_not_exist_exception is not None
             return self
 
-        def then_should_return_experience(self, title, description, author, mine):
+        def then_should_return_experience(self, title, description, author, mine, share_id=None):
             assert self.result.title == title
             assert self.result.description == description
             assert self.result.author_id == self.persons[author-1].id
             assert self.result.is_mine == mine
+            assert self.result.share_id == share_id
             return self
 
         def then_result_experience_should_be_in_db(self):
@@ -282,6 +294,7 @@ class ExperienceRepoTestCase(TestCase):
             assert orm_experience.title == self.result.title
             assert orm_experience.description == self.result.description
             assert orm_experience.author_id == self.result.author_id
+            assert orm_experience.share_id == self.result.share_id
             return self
 
         def then_result_should_be_true(self):
@@ -303,6 +316,10 @@ class ExperienceRepoTestCase(TestCase):
         def then_should_call_search_repo_search_experiences_with_correct_params(self):
             self.search_repo.search_experiences.assert_called_once_with(self.word, self.location,
                                                                         self.offset, self.limit)
+            return self
+
+        def then_should_raise_conflict_exception(self):
+            assert type(self.error) == ConflictException
             return self
 
 

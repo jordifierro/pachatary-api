@@ -115,3 +115,20 @@ class SearchExperiencesView:
 
         status = 200
         return body, status
+
+
+class ExperienceShareUrlView:
+
+    def __init__(self, base_url, get_or_create_experience_share_id_interactor):
+        self.base_url = base_url
+        self.get_or_create_experience_share_id_interactor = get_or_create_experience_share_id_interactor
+
+    @serialize_exceptions
+    def get(self, logged_person_id, experience_id):
+        share_id = self.get_or_create_experience_share_id_interactor.set_params(logged_person_id=logged_person_id,
+                                                                                experience_id=experience_id) \
+                                                                                        .execute()
+        body = {'share_url': '{}/e/{}'.format(self.base_url, share_id)}
+        status = 200
+
+        return body, status
