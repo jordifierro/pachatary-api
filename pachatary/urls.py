@@ -9,7 +9,7 @@ from experiences.factories import create_experiences_view, create_experience_vie
 from scenes.factories import create_scenes_view, create_scene_view, create_upload_scene_picture_view
 from people.factories import create_people_view, create_person_view, create_email_confirmation_view, \
         create_login_email_view, create_login_view
-from redirects.django_views import email_confirmation_redirect, login_redirect
+from redirects.django_views import email_confirmation_redirect, login_redirect, experience_redirect
 
 from .views import ViewWrapper, client_versions, privacy_policy, terms_and_conditions
 
@@ -67,10 +67,6 @@ urlpatterns = [
         ViewWrapper.as_view(view_creator_func=create_email_confirmation_view),
         name='email-confirmation'),
 
-    url(r'^redirects/people/me/email-confirmation$',
-        email_confirmation_redirect,
-        name='email-confirmation-redirect'),
-
     url(r'^people/me/login-email$',
         ViewWrapper.as_view(view_creator_func=create_login_email_view),
         name='login-email'),
@@ -78,10 +74,6 @@ urlpatterns = [
     url(r'^people/me/login$',
         ViewWrapper.as_view(view_creator_func=create_login_view),
         name='login'),
-
-    url(r'^redirects/people/me/login$',
-        login_redirect,
-        name='login-redirect'),
 
     url(r'^client-versions$',
         client_versions,
@@ -94,6 +86,19 @@ urlpatterns = [
     url(r'^terms-and-conditions$',
         terms_and_conditions,
         name='terms-and-conditions'),
+
+    url(r'^redirects/people/me/email-confirmation$',
+        email_confirmation_redirect,
+        name='email-confirmation-redirect'),
+
+    url(r'^redirects/people/me/login$',
+        login_redirect,
+        name='login-redirect'),
+
+    url(r'^redirects/e/(?P<experience_share_id>[a-zA-Z0-9]+)$',
+        experience_redirect,
+        name='experience-redirect'),
+
 ]
 
 if settings.LOCAL_DEPLOY:

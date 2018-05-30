@@ -43,3 +43,23 @@ class RedirectLoginEmailTestCase(TestCase):
             assert self.response['Location'] == '{}{}?token=ABXZ'.format(settings.ANDROID_DEEPLINK_DOMAIN,
                                                                          '/people/me/login')
             return self
+
+
+class RedirectExperienceTestCase(TestCase):
+
+    def test_when_called_redirect_view_redirects_to_experience_url(self):
+        RedirectExperienceTestCase.ScenarioMaker() \
+                .when_call_experience_redirect() \
+                .then_response_should_be_a_redirect_to_app_deeplink_with_params()
+
+    class ScenarioMaker:
+
+        def when_call_experience_redirect(self):
+            client = Client()
+            self.response = client.get(reverse('experience-redirect', args=['AsdE43E4']))
+            return self
+
+        def then_response_should_be_a_redirect_to_app_deeplink_with_params(self):
+            assert self.response.status_code == 302
+            assert self.response['Location'] == '{}/experiences/AsdE43E4'.format(settings.ANDROID_DEEPLINK_DOMAIN)
+            return self
