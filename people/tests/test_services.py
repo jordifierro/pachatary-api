@@ -1,5 +1,3 @@
-from mock import Mock
-
 from django.test import TestCase
 from django.core import mail
 from django.conf import settings
@@ -15,7 +13,7 @@ class TestMailerService(TestCase):
                 .given_a_confirmation_token() \
                 .given_a_username() \
                 .given_an_email() \
-                .given_a_request_that_builds_absolute_uri() \
+                .given_a_public_domain() \
                 .when_send_ask_confirmation_mail_is_called() \
                 .then_django_send_mail_should_be_called_with_correct_processed_params()
 
@@ -24,7 +22,7 @@ class TestMailerService(TestCase):
                 .given_a_login_token() \
                 .given_a_username() \
                 .given_an_email() \
-                .given_a_request_that_builds_absolute_uri() \
+                .given_a_public_domain() \
                 .when_send_login_mail_is_called() \
                 .then_django_send_login_mail_should_be_called_with_correct_processed_params()
 
@@ -53,25 +51,24 @@ class TestMailerService(TestCase):
             self.email = 'e@m.c'
             return self
 
-        def given_a_request_that_builds_absolute_uri(self):
-            self.request = Mock()
-            self.url = 'https://domain/confirmation/path'
-            self.request.build_absolute_uri.return_value = self.url
+        def given_a_public_domain(self):
+            self.public_domain = 'domain'
+            settings.PUBLIC_DOMAIN = self.public_domain
             return self
 
         def when_send_ask_confirmation_mail_is_called(self):
-            MailerService(self.request).send_ask_confirmation_mail(confirmation_token=self.confirmation_token,
-                                                                   email=self.email, username=self.username)
+            MailerService().send_ask_confirmation_mail(confirmation_token=self.confirmation_token,
+                                                       email=self.email, username=self.username)
             return self
 
         def when_send_login_mail_is_called(self):
-            MailerService(self.request).send_login_mail(login_token=self.login_token,
-                                                        email=self.email, username=self.username)
+            MailerService().send_login_mail(login_token=self.login_token, email=self.email, username=self.username)
             return self
 
         def then_django_send_mail_should_be_called_with_correct_processed_params(self):
             assert mail.outbox[0].subject == 'Pachatary account confirmation'
-            confirmation_url = "{}?token={}".format(self.url, self.confirmation_token)
+            confirmation_url = "{}/people/me/email-confirmation?token={}".format(self.public_domain,
+                                                                                 self.confirmation_token)
             context_params = {'username': self.username, 'confirmation_url': confirmation_url}
             plain_text_message = get_template('ask_confirmation_email.txt').render(context_params)
             html_message = get_template('ask_confirmation_email.html').render(context_params)
@@ -83,7 +80,7 @@ class TestMailerService(TestCase):
 
         def then_django_send_login_mail_should_be_called_with_correct_processed_params(self):
             assert mail.outbox[0].subject == 'Pachatary login'
-            login_url = "{}?token={}".format(self.url, self.login_token)
+            login_url = "{}/people/me/login?token={}".format(self.public_domain, self.login_token)
             context_params = {'username': self.username, 'login_url': login_url}
             plain_text_message = get_template('login_email.txt').render(context_params)
             html_message = get_template('login_email.html').render(context_params)

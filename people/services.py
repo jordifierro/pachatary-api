@@ -1,4 +1,3 @@
-from django.urls import reverse
 from django.template.loader import get_template
 from django.core import mail
 from django.conf import settings
@@ -6,14 +5,14 @@ from django.conf import settings
 
 class MailerService:
 
-    def __init__(self, request):
-        self.request = request
+    PUBLIC_EMAIL_CONFIRMATION_PATH = '/people/me/email-confirmation'
+    PUBLIC_LOGIN_EMAIL_PATH = '/people/me/login'
 
     def send_ask_confirmation_mail(self, confirmation_token, email, username):
-        url = self.request.build_absolute_uri(reverse('email-confirmation-redirect'))
-        confirmation_url = "{}?token={}".format(url, confirmation_token)
+        url = '{}{}?token={}'.format(settings.PUBLIC_DOMAIN,
+                                     MailerService.PUBLIC_EMAIL_CONFIRMATION_PATH, confirmation_token)
 
-        context_params = {'username': username, 'confirmation_url': confirmation_url}
+        context_params = {'username': username, 'confirmation_url': url}
         plain_text_message = get_template('ask_confirmation_email.txt').render(context_params)
         html_message = get_template('ask_confirmation_email.html').render(context_params)
 
@@ -26,10 +25,9 @@ class MailerService:
                        fail_silently=False)
 
     def send_login_mail(self, login_token, email, username):
-        url = self.request.build_absolute_uri(reverse('login-redirect'))
-        login_url = "{}?token={}".format(url, login_token)
+        url = '{}{}?token={}'.format(settings.PUBLIC_DOMAIN, MailerService.PUBLIC_LOGIN_EMAIL_PATH, login_token)
 
-        context_params = {'username': username, 'login_url': login_url}
+        context_params = {'username': username, 'login_url': url}
         plain_text_message = get_template('login_email.txt').render(context_params)
         html_message = get_template('login_email.html').render(context_params)
 

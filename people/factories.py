@@ -52,8 +52,8 @@ def create_person_validator():
                            forbidden_email_domains=forbidden_email_domains, person_repo=person_repo)
 
 
-def create_mailer_service(request):
-    return MailerService(request)
+def create_mailer_service():
+    return MailerService()
 
 
 def create_authenticate_interactor():
@@ -67,11 +67,11 @@ def create_guest_person_and_return_auth_token_interactor():
             auth_token_repo=create_auth_token_repo())
 
 
-def create_register_username_and_email_interactor(request):
+def create_register_username_and_email_interactor():
     person_validator = create_person_validator()
     person_repo = create_person_repo()
     confirmation_token_repo = create_confirmation_token_repo()
-    mailer_service = create_mailer_service(request)
+    mailer_service = create_mailer_service()
     return RegisterUsernameAndEmailInteractor(person_validator=person_validator,
                                               person_repo=person_repo,
                                               confirmation_token_repo=confirmation_token_repo,
@@ -83,9 +83,9 @@ def create_confirm_email_interactor():
                                   person_repo=create_person_repo())
 
 
-def create_login_email_interactor(request):
+def create_login_email_interactor():
     return LoginEmailInteractor(person_repo=create_person_repo(), login_token_repo=create_login_token_repo(),
-                                mailer_service=create_mailer_service(request))
+                                mailer_service=create_mailer_service())
 
 
 def create_login_interactor():
@@ -99,7 +99,7 @@ def create_people_view(request, **kwargs):
 
 
 def create_person_view(request, **kwargs):
-    return PersonView(register_username_and_email_interactor=create_register_username_and_email_interactor(request))
+    return PersonView(register_username_and_email_interactor=create_register_username_and_email_interactor())
 
 
 def create_email_confirmation_view(request, **kwargs):
@@ -107,7 +107,7 @@ def create_email_confirmation_view(request, **kwargs):
 
 
 def create_login_email_view(request, **kwargs):
-    return LoginEmailView(login_email_interactor=create_login_email_interactor(request))
+    return LoginEmailView(login_email_interactor=create_login_email_interactor())
 
 
 def create_login_view(request, **kwargs):

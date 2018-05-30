@@ -217,9 +217,8 @@ class ModifyPersonTestCase(TestCase):
         def then_ask_confirmation_email_should_be_sent(self, last=0):
             assert mail.outbox[last].subject == 'Pachatary account confirmation'
             confirmation_token = ORMConfirmationToken.objects.get(person_id=self.orm_person.id).token
-            confirmation_reverse_url = self.response.wsgi_request.build_absolute_uri(
-                    reverse('email-confirmation-redirect'))
-            confirmation_url = "{}?token={}".format(confirmation_reverse_url, confirmation_token)
+            confirmation_url = '{}/people/me/email-confirmation?token={}'.format(settings.PUBLIC_DOMAIN,
+                                                                                 confirmation_token)
             context_params = {'username': self.username, 'confirmation_url': confirmation_url}
             plain_text_message = get_template('ask_confirmation_email.txt').render(context_params)
             html_message = get_template('ask_confirmation_email.html').render(context_params)
@@ -406,8 +405,7 @@ class LoginEmailTestCase(TestCase):
         def then_login_email_should_be_sent(self):
             assert mail.outbox[0].subject == 'Pachatary login'
             login_token = ORMLoginToken.objects.get(person_id=self.orm_person.id).token
-            login_reverse_url = self.response.wsgi_request.build_absolute_uri(reverse('login-redirect'))
-            login_url = "{}?token={}".format(login_reverse_url, login_token)
+            login_url = '{}/people/me/login?token={}'.format(settings.PUBLIC_DOMAIN, login_token)
             context_params = {'username': self.orm_person.username, 'login_url': login_url}
             plain_text_message = get_template('login_email.txt').render(context_params)
             html_message = get_template('login_email.html').render(context_params)
