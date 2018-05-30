@@ -67,7 +67,7 @@ urlpatterns = [
         ViewWrapper.as_view(view_creator_func=create_email_confirmation_view),
         name='email-confirmation'),
 
-    url(r'^people/me/email-confirmation/redirect$',
+    url(r'^redirects/people/me/email-confirmation$',
         email_confirmation_redirect,
         name='email-confirmation-redirect'),
 
@@ -79,7 +79,7 @@ urlpatterns = [
         ViewWrapper.as_view(view_creator_func=create_login_view),
         name='login'),
 
-    url(r'^people/me/login/redirect$',
+    url(r'^redirects/people/me/login$',
         login_redirect,
         name='login-redirect'),
 
