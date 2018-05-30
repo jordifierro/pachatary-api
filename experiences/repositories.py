@@ -91,7 +91,7 @@ class ExperienceRepo:
         experience.save()
         return self._decode_db_experience(experience, is_mine=True)
 
-    def update_experience(self, experience):
+    def update_experience(self, experience, logged_person_id=None):
         orm_experience = ORMExperience.objects.get(id=experience.id)
 
         orm_experience.title = experience.title
@@ -102,7 +102,7 @@ class ExperienceRepo:
             orm_experience.save()
         except IntegrityError:
             raise ConflictException(source='share_id', code='duplicate', message='Duplicate share_id')
-        return self._decode_db_experience(orm_experience, is_mine=True)
+        return self._decode_db_experience(orm_experience, is_mine=(logged_person_id == orm_experience.author_id))
 
     def save_experience(self, person_id, experience_id):
         if not ORMSave.objects.filter(person_id=person_id, experience_id=experience_id).exists():

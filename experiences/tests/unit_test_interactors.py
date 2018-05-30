@@ -584,11 +584,12 @@ class TestModifyExperience:
             return self
 
         def then_update_experience_should_be_called_with_updated_experience(self):
-            self.experience_validator.validate_experience.assert_called_once_with(self.updated_experience)
+            self.experience_repo.update_experience.assert_called_once_with(
+                    self.updated_experience, logged_person_id=self.logged_person_id)
             return self
 
         def then_update_experience_should_be_not_called(self):
-            self.experience_repo.updated_experience.assert_not_called()
+            self.experience_repo.update_experience.assert_not_called()
             return self
 
         def then_should_raise_invalid_entity_exception(self):

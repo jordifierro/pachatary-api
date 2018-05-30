@@ -119,7 +119,7 @@ class ModifyExperienceInteractor:
 
         self.experience_validator.validate_experience(updated_experience)
 
-        return self.experience_repo.update_experience(updated_experience)
+        return self.experience_repo.update_experience(updated_experience, logged_person_id=self.logged_person_id)
 
 
 class UploadExperiencePictureInteractor:

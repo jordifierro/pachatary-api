@@ -118,6 +118,15 @@ class ExperienceRepoTestCase(TestCase):
                 .then_should_return_experience(title='n', description='u', author=1, mine=True, share_id='Ab3') \
                 .then_result_experience_should_be_in_db()
 
+    def test_update_others_experience(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_a_person_in_db('other') \
+                .given_an_experience_in_db(created_by_person=2) \
+                .when_update_experience(experience=1, title='', description='', share_id='Ab3') \
+                .then_should_return_experience(title='', description='', author=2, mine=False, share_id='Ab3') \
+                .then_result_experience_should_be_in_db()
+
     def test_update_experience_returns_conflict_when_integrity_error(self):
         ExperienceRepoTestCase.ScenarioMaker() \
                 .given_a_person_in_db('me') \
@@ -252,10 +261,11 @@ class ExperienceRepoTestCase(TestCase):
             return self
 
         def when_update_experience(self, experience, title, description, share_id=None):
-            experience = self.repo.get_experience(id=self.experiences[experience-1].id)
+            experience = self.repo.get_experience(id=self.experiences[experience-1].id,
+                                                  logged_person_id=self.persons[0].id)
             updated_experience = experience.builder().title(title).description(description).share_id(share_id).build()
             try:
-                self.result = self.repo.update_experience(updated_experience)
+                self.result = self.repo.update_experience(updated_experience, logged_person_id=self.persons[0].id)
             except Exception as e:
                 self.error = e
             return self
