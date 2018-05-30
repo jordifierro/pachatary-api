@@ -503,3 +503,36 @@ class ExperienceShareUrlTestCase(TransactionTestCase):
                 experience.refresh_from_db()
                 assert experience.share_id == share_id
             return self
+
+
+class TranslateExperienceShareIdTestCase(TestCase):
+
+    def test_returns_experience_id(self):
+        TranslateExperienceShareIdTestCase.ScenarioMaker() \
+                .given_a_person_with_auth_token() \
+                .given_an_experience(share_id='Aib1dR14') \
+                .when_translate_share_id('Aib1dR14') \
+                .then_response_should_be_experience_id_and_200()
+
+    class ScenarioMaker:
+
+        def given_a_person_with_auth_token(self):
+            self.orm_person = ORMPerson.objects.create()
+            self.orm_auth_token = ORMAuthToken.objects.create(person_id=self.orm_person.id)
+            return self
+
+        def given_an_experience(self, share_id=None):
+            self.experience = ORMExperience.objects.create(author=self.orm_person, share_id=share_id)
+            return self
+
+        def when_translate_share_id(self, share_id):
+            client = Client()
+            auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(self.orm_auth_token.access_token), }
+            self.response = client.get(reverse('translate-experience-share-id', args=[share_id]),
+                                       **auth_headers)
+            return self
+
+        def then_response_should_be_experience_id_and_200(self):
+            assert json.loads(self.response.content) == {'experience_id': str(self.experience.id)}
+            assert self.response.status_code == 200
+            return self

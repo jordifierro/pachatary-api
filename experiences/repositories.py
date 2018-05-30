@@ -20,7 +20,7 @@ class ExperienceRepo:
                               medium_url=db_experience.picture.medium.url,
                               large_url=db_experience.picture.large.url)
 
-        return Experience(id=db_experience.id,
+        return Experience(id=str(db_experience.id),
                           title=db_experience.title,
                           description=db_experience.description,
                           picture=picture,
@@ -68,9 +68,12 @@ class ExperienceRepo:
                                                           is_saved=is_saved))
         return {"results": experiences, "next_offset": next_offset}
 
-    def get_experience(self, id, logged_person_id=None):
+    def get_experience(self, id=None, share_id=None, logged_person_id=None):
         try:
-            db_experience = ORMExperience.objects.select_related('author').get(id=id)
+            if id is not None:
+                db_experience = ORMExperience.objects.select_related('author').get(id=id)
+            else:
+                db_experience = ORMExperience.objects.select_related('author').get(share_id=share_id)
             is_mine = (logged_person_id == db_experience.author_id)
             is_saved = False
             if logged_person_id is not None and not is_mine:

@@ -98,6 +98,13 @@ class ExperienceRepoTestCase(TestCase):
                 .when_get_experience(1, person=1) \
                 .then_repo_should_return_experience(1, mine=False, saved=True)
 
+    def test_get_experience_by_share_id_returns_experience(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_an_experience_in_db(created_by_person=1, share_id='sdREwe43') \
+                .when_get_experience_by_share_id('sdREwe43', person=1) \
+                .then_repo_should_return_experience(1, mine=True, saved=False)
+
     def test_get_unexistent_experience_raises_error(self):
         ExperienceRepoTestCase.ScenarioMaker() \
                 .when_get_unexistent_experience() \
@@ -247,6 +254,10 @@ class ExperienceRepoTestCase(TestCase):
                                                    logged_person_id=self.persons[person-1].id)
             return self
 
+        def when_get_experience_by_share_id(self, share_id, person=0):
+            self.result = self.repo.get_experience(share_id=share_id, logged_person_id=self.persons[person-1].id)
+            return self
+
         def when_get_unexistent_experience(self):
             try:
                 self.repo.get_experience(id='0')
@@ -320,7 +331,7 @@ class ExperienceRepoTestCase(TestCase):
 
         def then_result_experience_should_be_in_db(self):
             orm_experience = ORMExperience.objects.get(id=self.result.id)
-            assert orm_experience.id == self.result.id
+            assert str(orm_experience.id) == self.result.id
             assert orm_experience.title == self.result.title
             assert orm_experience.description == self.result.description
             assert orm_experience.author_id == self.result.author_id

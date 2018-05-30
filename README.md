@@ -223,6 +223,25 @@ _200_
 ```
 
 
+### `GET /experiences/<experience_share_id>/id`
+
+This endpoint is to translate an experience public identifier share_id
+(see previous endpoint) to internal id.
+It must be used when receiving intent from external experience url
+before making normal endpoint usage with ids.
+
+_Response:_
+
+_200_
+```json
+{
+    "experience_id": "87",
+}
+```
+
+
+
+
 ### `POST /experiences/<experience_id>/save/`
 
 Endpoint to save experience as favourite.

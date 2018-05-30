@@ -132,3 +132,18 @@ class ExperienceShareUrlView:
         status = 200
 
         return body, status
+
+
+class TranslateExperienceShareIdView:
+
+    def __init__(self, get_experience_id_from_share_id_interactor):
+        self.get_experience_id_from_share_id_interactor = get_experience_id_from_share_id_interactor
+
+    @serialize_exceptions
+    def get(self, logged_person_id, experience_share_id):
+        experience_id = self.get_experience_id_from_share_id_interactor.set_params(
+                logged_person_id=logged_person_id, experience_share_id=experience_share_id).execute()
+        body = {'experience_id': experience_id}
+        status = 200
+
+        return body, status

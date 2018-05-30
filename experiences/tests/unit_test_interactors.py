@@ -6,7 +6,8 @@ from people.entities import Person
 from experiences.entities import Experience
 from experiences.interactors import GetExperiencesInteractor, CreateNewExperienceInteractor, \
         ModifyExperienceInteractor, UploadExperiencePictureInteractor, SaveUnsaveExperienceInteractor, \
-        SearchExperiencesInteractor, GetOrCreateExperienceShareIdInteractor, IdGenerator
+        SearchExperiencesInteractor, GetOrCreateExperienceShareIdInteractor, IdGenerator, \
+        GetExperienceIdFromShareIdInteractor
 
 
 class TestGetExperiences:
@@ -941,7 +942,6 @@ class TestGetOrCreateExperienceShareIdInteractor:
                                                            id_generator=self.id_generator) \
                     .set_params(experience_id=self.experience.id, logged_person_id=self.logged_person_id).execute()
             except Exception as e:
-                print(e)
                 self.error = e
             return self
 
@@ -997,4 +997,75 @@ class TestIdGenerator:
 
         def results_should_be_different(self):
             assert self.result_a != self.result_b
+            return self
+
+
+class TestGetExperienceIdFromShareIdInteractor:
+
+    def test_if_no_logged_person_raises_no_logged_person(self):
+        TestGetExperienceIdFromShareIdInteractor.ScenarioMaker() \
+                .given_a_logged_person_id('0') \
+                .given_a_permissions_validator_that_raises_no_logged() \
+                .given_an_experience_on_repo(id='4') \
+                .when_execute_interactor(share_id='asdf') \
+                .then_should_validate_person(id='0') \
+                .then_should_let_no_logged_exception_pass()
+
+    def test_given_a_share_id_returns_id(self):
+        TestGetExperienceIdFromShareIdInteractor.ScenarioMaker() \
+                .given_a_logged_person_id('8') \
+                .given_a_permissions_validator_that_validates() \
+                .given_an_experience_on_repo(id='4') \
+                .when_execute_interactor(share_id='aS4') \
+                .then_should_validate_person(id='8') \
+                .then_should_call_repo_get_experience_with_share_id('aS4') \
+                .then_should_return('4')
+
+    class ScenarioMaker:
+
+        def given_a_logged_person_id(self, id):
+            self.logged_person_id = id
+            return self
+
+        def given_a_permissions_validator_that_validates(self):
+            self.permissions_validator = Mock()
+            self.permissions_validator.return_value = True
+            return self
+
+        def given_a_permissions_validator_that_raises_no_logged(self):
+            self.permissions_validator = Mock()
+            self.permissions_validator.validate_permissions.side_effect = NoLoggedException()
+            return self
+
+        def given_an_experience_on_repo(self, id):
+            self.experience = Experience(id=id, title='as', description='er', author_id='9')
+            self.repo = Mock()
+            self.repo.get_experience.return_value = self.experience
+            return self
+
+        def when_execute_interactor(self, share_id):
+            try:
+                self.result = \
+                    GetExperienceIdFromShareIdInteractor(experience_repo=self.repo,
+                                                         permissions_validator=self.permissions_validator) \
+                    .set_params(experience_share_id=share_id, logged_person_id=self.logged_person_id).execute()
+            except Exception as e:
+                self.error = e
+            return self
+
+        def then_should_call_repo_get_experience_with_share_id(self, share_id):
+            self.repo.get_experience.assert_called_once_with(share_id=share_id)
+            return self
+
+        def then_should_validate_person(self, id):
+            self.permissions_validator.validate_permissions \
+                    .assert_called_once_with(logged_person_id=self.logged_person_id)
+            return self
+
+        def then_should_return(self, id):
+            assert self.result == id
+            return self
+
+        def then_should_let_no_logged_exception_pass(self):
+            assert type(self.error) == NoLoggedException
             return self

@@ -8,9 +8,10 @@ from .repositories import ExperienceRepo, ExperienceSearchRepo
 from .validators import ExperienceValidator, ExperiencePermissionsValidator
 from .interactors import GetExperiencesInteractor, CreateNewExperienceInteractor, \
         ModifyExperienceInteractor, UploadExperiencePictureInteractor, SaveUnsaveExperienceInteractor, \
-        SearchExperiencesInteractor, GetOrCreateExperienceShareIdInteractor, IdGenerator
+        SearchExperiencesInteractor, GetOrCreateExperienceShareIdInteractor, IdGenerator, \
+        GetExperienceIdFromShareIdInteractor
 from .views import ExperiencesView, ExperienceView, UploadExperiencePictureView, SaveExperienceView, \
-        SearchExperiencesView, ExperienceShareUrlView
+        SearchExperiencesView, ExperienceShareUrlView, TranslateExperienceShareIdView
 
 
 def create_experience_elastic_repo():
@@ -72,6 +73,11 @@ def create_get_or_create_experience_share_id_interactor():
                                                   id_generator=create_id_generator())
 
 
+def create_get_experience_id_from_share_id_interactor():
+    return GetExperienceIdFromShareIdInteractor(experience_repo=create_experience_repo(),
+                                                permissions_validator=create_person_permissions_validator())
+
+
 def create_experiences_view(request, **kwargs):
     return ExperiencesView(get_experiences_interactor=create_get_experiences_interactor(),
                            get_experiences_base_url=request.build_absolute_uri(reverse('experiences')),
@@ -100,3 +106,8 @@ def create_experience_share_url_view(request, **kwargs):
     return ExperienceShareUrlView(
         base_url=settings.PUBLIC_DOMAIN,
         get_or_create_experience_share_id_interactor=create_get_or_create_experience_share_id_interactor())
+
+
+def create_translate_experience_share_id_view(request, **kwargs):
+    return TranslateExperienceShareIdView(
+            get_experience_id_from_share_id_interactor=create_get_experience_id_from_share_id_interactor())

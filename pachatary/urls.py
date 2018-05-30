@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 
 from experiences.factories import create_experiences_view, create_experience_view, \
         create_upload_experience_picture_view, create_save_experience_view, create_search_experiences_view, \
-        create_experience_share_url_view
+        create_experience_share_url_view, create_translate_experience_share_id_view
 from scenes.factories import create_scenes_view, create_scene_view, create_upload_scene_picture_view
 from people.factories import create_people_view, create_person_view, create_email_confirmation_view, \
         create_login_email_view, create_login_view
@@ -32,6 +32,10 @@ urlpatterns = [
     url(r'^experiences/(?P<experience_id>[0-9]+)/share-url$',
         ViewWrapper.as_view(view_creator_func=create_experience_share_url_view),
         name='experience-share-url'),
+
+    url(r'^experiences/(?P<experience_share_id>[a-zA-Z0-9]+)/id$',
+        ViewWrapper.as_view(view_creator_func=create_translate_experience_share_id_view),
+        name='translate-experience-share-id'),
 
     url(r'experiences/(?P<experience_id>[0-9]+)/save/$',
         ViewWrapper.as_view(view_creator_func=create_save_experience_view),

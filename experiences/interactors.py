@@ -211,3 +211,20 @@ class IdGenerator:
 
     def generate(self):
         return ''.join(random.choice(IdGenerator.CHOICES) for _ in range(IdGenerator.LENGTH))
+
+
+class GetExperienceIdFromShareIdInteractor:
+
+    def __init__(self, experience_repo, permissions_validator):
+        self.experience_repo = experience_repo
+        self.permissions_validator = permissions_validator
+
+    def set_params(self, experience_share_id, logged_person_id):
+        self.experience_share_id = experience_share_id
+        self.logged_person_id = logged_person_id
+        return self
+
+    def execute(self):
+        self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
+
+        return self.experience_repo.get_experience(share_id=self.experience_share_id).id
