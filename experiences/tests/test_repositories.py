@@ -74,12 +74,29 @@ class ExperienceRepoTestCase(TestCase):
                 .when_get_person_experiences(target_person=2, offset=3, limit=3) \
                 .then_result_should_be_experiences_and_offset([2, 1], None)
 
-    def test_get_experience_returns_experience(self):
+    def test_get_mine_experience_returns_experience(self):
         ExperienceRepoTestCase.ScenarioMaker() \
-                .given_a_person_in_db('other.user') \
+                .given_a_person_in_db('me') \
                 .given_an_experience_in_db(created_by_person=1) \
-                .when_get_experience(1) \
-                .then_repo_should_return_experience(1)
+                .when_get_experience(1, person=1) \
+                .then_repo_should_return_experience(1, mine=True, saved=False)
+
+    def test_get_others_experience_returns_experience(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_a_person_in_db('other.user') \
+                .given_an_experience_in_db(created_by_person=2) \
+                .when_get_experience(1, person=1) \
+                .then_repo_should_return_experience(1, mine=False, saved=False)
+
+    def test_get_saved_experience_returns_experience(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_a_person_in_db('other.user') \
+                .given_an_experience_in_db(created_by_person=2) \
+                .given_I_save_experience(experience=1) \
+                .when_get_experience(1, person=1) \
+                .then_repo_should_return_experience(1, mine=False, saved=True)
 
     def test_get_unexistent_experience_raises_error(self):
         ExperienceRepoTestCase.ScenarioMaker() \
@@ -216,8 +233,9 @@ class ExperienceRepoTestCase(TestCase):
                                                            offset=offset, limit=limit)
             return self
 
-        def when_get_experience(self, position):
-            self.result = self.repo.get_experience(id=self.experiences[position-1].id)
+        def when_get_experience(self, position, person=0):
+            self.result = self.repo.get_experience(id=self.experiences[position-1].id,
+                                                   logged_person_id=self.persons[person-1].id)
             return self
 
         def when_get_unexistent_experience(self):
@@ -273,6 +291,8 @@ class ExperienceRepoTestCase(TestCase):
         def then_repo_should_return_experience(self, position, mine=False, saved=False):
             orm_experience = self.experiences[position-1]
             parsed_experience = self.repo._decode_db_experience(orm_experience, is_mine=mine, is_saved=saved)
+            if saved:
+                parsed_experience = parsed_experience.builder().saves_count(1).build()
             assert self.result == parsed_experience
             return self
 

@@ -71,7 +71,11 @@ class ExperienceRepo:
     def get_experience(self, id, logged_person_id=None):
         try:
             db_experience = ORMExperience.objects.select_related('author').get(id=id)
-            return self._decode_db_experience(db_experience, is_mine=(logged_person_id == db_experience.author_id))
+            is_mine = (logged_person_id == db_experience.author_id)
+            is_saved = False
+            if logged_person_id is not None and not is_mine:
+                is_saved = ORMSave.objects.filter(experience_id=id, person_id=logged_person_id).exists()
+            return self._decode_db_experience(db_experience, is_mine=is_mine, is_saved=is_saved)
         except ORMExperience.DoesNotExist:
             raise EntityDoesNotExistException()
 
