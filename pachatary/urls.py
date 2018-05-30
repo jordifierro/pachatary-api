@@ -9,7 +9,7 @@ from experiences.factories import create_experiences_view, create_experience_vie
 from scenes.factories import create_scenes_view, create_scene_view, create_upload_scene_picture_view
 from people.factories import create_people_view, create_person_view, create_email_confirmation_view, \
         create_login_email_view, create_login_view
-from people.django_views import email_confirmation_redirect, login_redirect
+from redirects.django_views import email_confirmation_redirect, login_redirect
 
 from .views import ViewWrapper, client_versions, privacy_policy, terms_and_conditions
 

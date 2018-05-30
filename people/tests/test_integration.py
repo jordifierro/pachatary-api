@@ -9,7 +9,6 @@ from django.core import mail
 from django.template.loader import get_template
 
 from people.models import ORMAuthToken, ORMPerson, ORMConfirmationToken, ORMLoginToken
-from people.django_views import ANDROID_EMAIL_CONFIRMATION_PATH, ANDROID_LOGIN_PATH
 
 
 class CreatePersonTestCase(TestCase):
@@ -365,27 +364,6 @@ class PostEmailConfirmationTestCase(TestCase):
             return self
 
 
-class RedirectConfirmEmailTestCase(TestCase):
-
-    def test_when_called_redirect_view_redirects_to_apps_url(self):
-        RedirectConfirmEmailTestCase.ScenarioMaker() \
-                .when_call_get_email_confirmation() \
-                .then_response_should_be_a_redirect_to_app_deeplink_with_params()
-
-    class ScenarioMaker:
-
-        def when_call_get_email_confirmation(self):
-            client = Client()
-            self.response = client.get('{}?{}'.format(reverse('email-confirmation-redirect'), 'token=ABXZ'))
-            return self
-
-        def then_response_should_be_a_redirect_to_app_deeplink_with_params(self):
-            assert self.response.status_code == 302
-            assert self.response['Location'] == '{}{}?token=ABXZ'.format(settings.ANDROID_DEEPLINK_DOMAIN,
-                                                                         ANDROID_EMAIL_CONFIRMATION_PATH)
-            return self
-
-
 class LoginEmailTestCase(TestCase):
 
     def test_login_email(self):
@@ -487,25 +465,4 @@ class LoginTestCase(TestCase):
 
         def then_login_token_should_be_deleted_for_that_person(self):
             assert len(ORMLoginToken.objects.filter(person_id=self.orm_person.id)) == 0
-            return self
-
-
-class RedirectLoginEmailTestCase(TestCase):
-
-    def test_when_called_redirect_view_redirects_to_apps_url(self):
-        RedirectLoginEmailTestCase.ScenarioMaker() \
-                .when_call_login_email_redirect() \
-                .then_response_should_be_a_redirect_to_app_deeplink_with_params()
-
-    class ScenarioMaker:
-
-        def when_call_login_email_redirect(self):
-            client = Client()
-            self.response = client.get('{}?{}'.format(reverse('login-redirect'), 'token=ABXZ'))
-            return self
-
-        def then_response_should_be_a_redirect_to_app_deeplink_with_params(self):
-            assert self.response.status_code == 302
-            assert self.response['Location'] == '{}{}?token=ABXZ'.format(settings.ANDROID_DEEPLINK_DOMAIN,
-                                                                         ANDROID_LOGIN_PATH)
             return self
