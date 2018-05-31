@@ -39,7 +39,6 @@ def serialize_experience(experience):
                'title': experience.title,
                'description': experience.description,
                'picture': serialize_picture(experience.picture),
-               'author_id': experience.author_id,
                'author_username': experience.author_username,
                'is_mine': experience.is_mine,
                'is_saved': experience.is_saved,
