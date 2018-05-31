@@ -156,6 +156,29 @@ _422_
 }
 ```
 
+
+### `GET /experiences/<experience_id>`
+
+Simple endpoint to fetch single experience by id.
+
+_Response:_
+
+_200_
+```json
+{
+    "id": "8",
+    "title": "MainSquare",
+    "description": "A new description",
+    "picture": null,
+    "author_id": "8",
+    "author_username": "my.name",
+    "is_mine": true,
+    "is_saved": false,
+    "saves_count": 8
+}
+```
+
+
 ### `PATCH /experiences/<experience_id>`
 
 _Request(application/x-www-form-urlencoded):_

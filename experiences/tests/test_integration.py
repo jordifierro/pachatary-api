@@ -536,3 +536,45 @@ class TranslateExperienceShareIdTestCase(TestCase):
             assert json.loads(self.response.content) == {'experience_id': str(self.experience.id)}
             assert self.response.status_code == 200
             return self
+
+
+class GetExperienceTestCase(TestCase):
+
+    def test_returns_experience(self):
+        GetExperienceTestCase.ScenarioMaker() \
+                .given_a_person_with_auth_token() \
+                .given_an_experience_in_db() \
+                .when_get_is_called_for_experience() \
+                .then_response_should_be_experience_and_200()
+
+    class ScenarioMaker:
+
+        def given_a_person_with_auth_token(self):
+            self.orm_person = ORMPerson.objects.create()
+            self.orm_auth_token = ORMAuthToken.objects.create(person_id=self.orm_person.id)
+            return self
+
+        def given_an_experience_in_db(self):
+            self.experience = ORMExperience.objects.create(author=self.orm_person)
+            return self
+
+        def when_get_is_called_for_experience(self):
+            client = Client()
+            auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(self.orm_auth_token.access_token), }
+            self.response = client.get(reverse('experience', args=[str(self.experience.id)]), **auth_headers)
+            return self
+
+        def then_response_should_be_experience_and_200(self):
+            assert json.loads(self.response.content) == {
+                        'id': str(self.experience.id),
+                        'title': self.experience.title,
+                        'description': self.experience.description,
+                        'picture': None,
+                        'author_id': self.experience.author_id,
+                        'author_username': self.experience.author.username,
+                        'is_mine': True,
+                        'is_saved': False,
+                        'saves_count': self.experience.saves_count,
+                    }
+            assert self.response.status_code == 200
+            return self

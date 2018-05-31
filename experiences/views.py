@@ -41,8 +41,18 @@ class ExperiencesView:
 
 class ExperienceView:
 
-    def __init__(self, modify_experience_interactor=None):
+    def __init__(self, get_experience_interactor=None, modify_experience_interactor=None):
+        self.get_experience_interactor = get_experience_interactor
         self.modify_experience_interactor = modify_experience_interactor
+
+    @serialize_exceptions
+    def get(self, logged_person_id, experience_id):
+        experience = self.get_experience_interactor.set_params(logged_person_id=logged_person_id,
+                                                               experience_id=experience_id).execute()
+        body = serialize_experience(experience)
+        status = 200
+
+        return body, status
 
     @serialize_exceptions
     def patch(self, experience_id, title=None, description=None, logged_person_id=None):

@@ -9,7 +9,7 @@ from .validators import ExperienceValidator, ExperiencePermissionsValidator
 from .interactors import GetExperiencesInteractor, CreateNewExperienceInteractor, \
         ModifyExperienceInteractor, UploadExperiencePictureInteractor, SaveUnsaveExperienceInteractor, \
         SearchExperiencesInteractor, GetOrCreateExperienceShareIdInteractor, IdGenerator, \
-        GetExperienceIdFromShareIdInteractor
+        GetExperienceIdFromShareIdInteractor, GetExperienceInteractor
 from .views import ExperiencesView, ExperienceView, UploadExperiencePictureView, SaveExperienceView, \
         SearchExperiencesView, ExperienceShareUrlView, TranslateExperienceShareIdView
 
@@ -78,6 +78,11 @@ def create_get_experience_id_from_share_id_interactor():
                                                 permissions_validator=create_person_permissions_validator())
 
 
+def create_get_experience_interactor():
+    return GetExperienceInteractor(experience_repo=create_experience_repo(),
+                                   permissions_validator=create_person_permissions_validator())
+
+
 def create_experiences_view(request, **kwargs):
     return ExperiencesView(get_experiences_interactor=create_get_experiences_interactor(),
                            get_experiences_base_url=request.build_absolute_uri(reverse('experiences')),
@@ -90,7 +95,8 @@ def create_search_experiences_view(request, **kwargs):
 
 
 def create_experience_view(request, **kwargs):
-    return ExperienceView(modify_experience_interactor=create_modify_experience_interactor())
+    return ExperienceView(get_experience_interactor=create_get_experience_interactor(),
+                          modify_experience_interactor=create_modify_experience_interactor())
 
 
 def create_upload_experience_picture_view(request, **kwargs):

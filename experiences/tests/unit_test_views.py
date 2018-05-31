@@ -150,6 +150,38 @@ class TestExperienceView:
                            'saves_count': 8
                        }
 
+    def test_returns_experience(self):
+        TestExperienceView.ScenarioMaker() \
+                .given_an_interactor_that_returns_experience() \
+                .when_get_is_called(logged_person_id='4', experience_id='9') \
+                .then_should_call_interactor_with(logged_person_id='4', experience_id='9') \
+                .then_response_should_be_experience_and_200()
+
+    class ScenarioMaker:
+
+        def given_an_interactor_that_returns_experience(self):
+            self.interactor = Mock()
+            self.interactor.set_params.return_value = self.interactor
+            self.experience = Experience(id='9', title='as', description='er', author_id='9')
+            self.interactor.execute.return_value = self.experience
+            return self
+
+        def when_get_is_called(self, logged_person_id, experience_id):
+            self.body, self.status = ExperienceView(get_experience_interactor=self.interactor) \
+                    .get(logged_person_id=logged_person_id, experience_id=experience_id)
+            return self
+
+        def then_should_call_interactor_with(self, logged_person_id, experience_id):
+            self.interactor.set_params.assert_called_once_with(logged_person_id=logged_person_id,
+                                                               experience_id=experience_id)
+            self.interactor.execute.assert_called_once_with()
+            return self
+
+        def then_response_should_be_experience_and_200(self):
+            assert self.body == serialize_experience(self.experience)
+            assert self.status == 200
+            return self
+
 
 class TestUploadExperiencePictureView:
 
