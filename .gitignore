@@ -3,3 +3,4 @@ __pycache__/
 db.sqlite3
 media/
 .cache/
+.pytest_cache/

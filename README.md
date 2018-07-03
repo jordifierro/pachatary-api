@@ -685,7 +685,7 @@ and then run:
 * Install python version specified on `runtime.txt`
 and run:
 ```bash
-virtualenv -p `which python3.6` ../env
+virtualenv -p `which python3.7` ../env
 ```
 * Add this to the end of `../env/bin/activate` file:
 ```bash
