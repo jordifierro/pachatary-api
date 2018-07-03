@@ -21,13 +21,13 @@ class LoggingMiddleware:
             person = "{:06}".format(int(request.logged_person_id))
         except (AttributeError, TypeError):
             person = 'anonym'
-        code = response.status_code
+        status = response.status_code
         total_time = int(round((time.time() - request.start_time) * 1000))
         client = request.META.get('HTTP_USER_AGENT')
         path = "{} {}".format(request.method, request.get_full_path())
 
-        log = 'ip={}\tperson={}\tclient={}\tcode={}\tpath="{}"\ttime={}ms' \
-              .format(ip, person, client, code, path, total_time)
+        log = 'ip={}\tperson={}\tclient={}\tstatus={}\tpath="{}"\ttime={}ms' \
+              .format(ip, person, client, status, path, total_time)
 
         if not request.META['SERVER_NAME'] == 'testserver':
             print(log)
