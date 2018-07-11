@@ -51,6 +51,7 @@ EXTERN_APPS = [
     'django.contrib.staticfiles',
     'stdimage',
     'storages',
+    'django_rq',
 ]
 
 PROJECT_APPS = [
@@ -204,3 +205,6 @@ if not LOCAL_DEPLOY:
 ANDROID_MIN_VERSION = os.environ['ANDROID_MIN_VERSION']
 
 LOCALE_PATHS = ('locale', )
+
+REDIS_URL = os.environ['REDIS_URL']
+RQ_QUEUES = {'default': {'URL': REDIS_URL}}

@@ -682,6 +682,11 @@ and then run:
 ```bash
 ../env/elasticsearch-6.2.4/bin/elasticsearch &
 ```
+* Download redis-4.0.10, extract it inside `../env` folder
+and then run:
+```bash
+../env/redis-4.0.10/src/redis-server &
+```
 * Install python version specified on `runtime.txt`
 and run:
 ```bash
