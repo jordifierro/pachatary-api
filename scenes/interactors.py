@@ -22,10 +22,11 @@ class GetScenesFromExperienceInteractor:
 
 class CreateNewSceneInteractor:
 
-    def __init__(self, scene_repo, scene_validator, permissions_validator):
+    def __init__(self, scene_repo, scene_validator, permissions_validator, reindex_experience):
         self.scene_repo = scene_repo
         self.scene_validator = scene_validator
         self.permissions_validator = permissions_validator
+        self.reindex_experience = reindex_experience
 
     def set_params(self, title, description, latitude, longitude, experience_id, logged_person_id):
         self.title = title
@@ -42,7 +43,11 @@ class CreateNewSceneInteractor:
         scene = Scene(title=self.title, description=self.description,
                       latitude=self.latitude, longitude=self.longitude, experience_id=self.experience_id)
         self.scene_validator.validate_scene(scene)
-        return self.scene_repo.create_scene(scene)
+        created_scene = self.scene_repo.create_scene(scene)
+
+        self.reindex_experience(self.experience_id)
+
+        return created_scene
 
 
 class ModifySceneInteractor:
@@ -112,7 +117,7 @@ class IndexExperiencesInteractor:
         return self
 
     def execute(self):
-        for i in range(self.from_id, self.to_id + 1):
+        for i in range(int(self.from_id), int(self.to_id) + 1):
             try:
                 experience = self.experience_repo.get_experience(str(i))
                 scenes = self.scene_repo.get_scenes(str(i))

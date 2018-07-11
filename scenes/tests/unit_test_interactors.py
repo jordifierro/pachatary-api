@@ -104,10 +104,12 @@ class TestCreateNewScene:
                 .given_an_scene_validator_that_accepts_that_scene() \
                 .given_an_scene() \
                 .given_an_scene_repo_that_returns_scene_on_create() \
+                .given_an_reindex_experience_method() \
                 .when_interactor_is_executed() \
                 .then_validate_permissions_is_called_with_logged_person_id_and_experience_id() \
                 .then_validate_scene_is_called_with_previous_params() \
                 .then_create_scene_is_called_with_previous_params() \
+                .then_should_call_reindex_experience_method_with_experience_id() \
                 .then_result_should_be_scene()
 
     def test_invalid_scene_returns_error_and_doesnt_create_it(self):
@@ -121,6 +123,7 @@ class TestCreateNewScene:
                 .given_an_experience_id() \
                 .given_an_scene_validator_that_raises_invalid_params() \
                 .given_an_scene_repo() \
+                .given_an_reindex_experience_method() \
                 .when_interactor_is_executed() \
                 .then_validate_permissions_is_called_with_logged_person_id_and_experience_id() \
                 .then_validate_scene_is_called_with_previous_params() \
@@ -138,6 +141,7 @@ class TestCreateNewScene:
                 .given_an_experience_id() \
                 .given_an_scene_validator_that_raises_invalid_params() \
                 .given_an_scene_repo() \
+                .given_an_reindex_experience_method() \
                 .when_interactor_is_executed() \
                 .then_validate_permissions_is_called_with_logged_person_id_and_experience_id() \
                 .then_create_scene_should_not_be_called() \
@@ -157,6 +161,10 @@ class TestCreateNewScene:
         def given_a_permissions_validator_that_raises_no_permissions_exception(self):
             self.permissions_validator = Mock()
             self.permissions_validator.validate_permissions.side_effect = NoPermissionException()
+            return self
+
+        def given_an_reindex_experience_method(self):
+            self.reindex_experience = Mock()
             return self
 
         def given_a_title(self):
@@ -180,7 +188,7 @@ class TestCreateNewScene:
             return self
 
         def given_an_scene(self):
-            self.created_scene = Scene(title='Title', description='', latitude=1, longitude=0, experience_id=1)
+            self.created_scene = Scene(title='Title', description='', latitude=1, longitude=0, experience_id='1')
             return self
 
         def given_an_scene_validator_that_accepts_that_scene(self):
@@ -205,7 +213,7 @@ class TestCreateNewScene:
         def when_interactor_is_executed(self):
             try:
                 self.result = CreateNewSceneInteractor(self.scene_repo, self.scene_validator,
-                                                       self.permissions_validator) \
+                                                       self.permissions_validator, self.reindex_experience) \
                     .set_params(title=self.title, description=self.description, latitude=self.latitude,
                                 longitude=self.longitude, experience_id=self.experience_id,
                                 logged_person_id=self.logged_person_id).execute()
@@ -247,6 +255,10 @@ class TestCreateNewScene:
 
         def then_should_raise_no_permissions_exception(self):
             assert type(self.error) is NoPermissionException
+            return self
+
+        def then_should_call_reindex_experience_method_with_experience_id(self):
+            self.reindex_experience.assert_called_once_with(self.experience_id)
             return self
 
 
@@ -531,7 +543,7 @@ class TestIndexExperiencesInteractor:
                 .given_an_scene(id='7', experience_id='3') \
                 .given_an_scene(id='8', experience_id='3') \
                 .given_an_experience_repo_that_returns_them() \
-                .when_index(from_id=1, to_id=10) \
+                .when_index(from_id='1', to_id='10') \
                 .should_call_get_experiences_and_their_scenes() \
                 .should_index_experiences_and_their_scenes()
 

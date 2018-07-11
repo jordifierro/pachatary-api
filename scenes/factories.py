@@ -1,3 +1,5 @@
+from django_rq import job
+
 from experiences.factories import create_experience_repo, create_experience_permissions_validator, \
         create_experience_elastic_repo
 from .repositories import SceneRepo
@@ -27,7 +29,8 @@ def create_get_scenes_from_experience_interactor():
 
 def create_create_new_scene_interactor():
     return CreateNewSceneInteractor(scene_repo=create_scene_repo(), scene_validator=create_scene_validator(),
-                                    permissions_validator=create_experience_permissions_validator())
+                                    permissions_validator=create_experience_permissions_validator(),
+                                    reindex_experience=reindex_experience_enqueuer)
 
 
 def create_modify_scene_interactor():
@@ -38,6 +41,16 @@ def create_modify_scene_interactor():
 def create_upload_scene_picture_interactor():
     return UploadScenePictureInteractor(scene_repo=create_scene_repo(),
                                         permissions_validator=create_scene_permissions_validator())
+
+
+def reindex_experience_enqueuer(experience_id):
+    reindex_experience_async.delay(experience_id)
+
+
+@job
+def reindex_experience_async(experience_id):
+    index_experience_interactor = create_index_experiences_interactor()
+    index_experience_interactor.set_params(from_id=experience_id, to_id=experience_id).execute()
 
 
 def create_index_experiences_interactor():
