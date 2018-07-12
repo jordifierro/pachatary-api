@@ -59,6 +59,7 @@ PROJECT_APPS = [
     'scenes',
     'people',
     'pachatary',
+    'profiles',
 ]
 
 INSTALLED_APPS = EXTERN_APPS + PROJECT_APPS
