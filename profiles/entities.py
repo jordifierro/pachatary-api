@@ -22,8 +22,27 @@ class Profile:
     def picture(self):
         return self._picture
 
+    def builder(self):
+        return Profile.Builder(self)
+
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
     def __ne__(self, other):
         return not self == other
+
+    class Builder:
+
+        def __init__(self, profile):
+            self._person_id = profile.person_id
+            self._username = profile.username
+            self._bio = profile.bio
+            self._picture = profile.picture
+
+        def bio(self, bio):
+            self._bio = bio
+            return self
+
+        def build(self):
+            return Profile(person_id=self._person_id, username=self._username,
+                           bio=self._bio, picture=self._picture)

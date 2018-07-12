@@ -10,6 +10,7 @@ from experiences.factories import create_experiences_view, create_experience_vie
 from scenes.factories import create_scenes_view, create_scene_view, create_upload_scene_picture_view
 from people.factories import create_people_view, create_person_view, create_email_confirmation_view, \
         create_login_email_view, create_login_view
+from profiles.factories import create_profile_view, create_upload_profile_picture_view
 from redirects.django_views import email_confirmation_redirect, login_redirect, experience_redirect
 
 from .views import ViewWrapper, client_versions, privacy_policy, terms_and_conditions
@@ -103,6 +104,15 @@ urlpatterns = [
     url(r'^redirects/e/(?P<experience_share_id>[a-zA-Z0-9]+)$',
         experience_redirect,
         name='experience-redirect'),
+
+    url(r'^profiles/(?P<username>[a-z0-9._]+)$',
+        ViewWrapper.as_view(view_creator_func=create_profile_view),
+        name='profile'),
+
+    url(r'profiles/me/picture/$',
+        ViewWrapper.as_view(view_creator_func=create_upload_profile_picture_view,
+                            upload_picture_name='picture'),
+        name='upload-profile-picture'),
 ]
 
 if settings.LOCAL_DEPLOY:

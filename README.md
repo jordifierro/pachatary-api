@@ -15,6 +15,7 @@ A `person` can use api as anonymous guest.
 Later, she can register specifying just username and email.
 Posterior email confirmation is required to create content.
 There is no password, so login will be implemented using email token system.
+A registered person has a `profile`.
 
 A `person` can `save` their favourite `experiences`.
 
@@ -634,6 +635,88 @@ _200_
     }
 }
 ```
+
+
+
+### `GET /profiles/<username>`
+### `GET /profiles/self`
+
+Simple endpoint to fetch profile by username.
+
+_Response:_
+
+_200_
+```json
+{
+    "username": "usr.nm",
+    "bio": "This is my account",
+    "picture": {
+        "medium_url": "https://experiences/8c29.medium.jpg",
+        "small_url": "https://experiences/8c29.small.jpg",
+        "tiny_url": "https://experiences/8c29.tiny.jpg"
+    },
+}
+```
+
+
+### `PATCH /profiles/self`
+
+Endpoint to edit your own bio.
+
+_Request(application/x-www-form-urlencoded):_
+```json
+{
+    "bio": "A new description of myself",
+}
+```
+
+_Response:_
+
+_200_
+```json
+{
+    "username": "usr.nm",
+    "bio": "A new description of myself",
+    "picture": {
+        "medium_url": "https://experiences/8c29.medium.jpg",
+        "small_url": "https://experiences/8c29.small.jpg",
+        "tiny_url": "https://experiences/8c29.tiny.jpg"
+    },
+}
+```
+
+_422_
+```json
+{
+    "error": {
+        "source": "bio",
+        "code": "wrong_size",
+        "message": "Bio can not be longer than 140 chars"
+    }
+}
+```
+
+### `POST /profiles/self/picture`
+
+_Request(multipart/form-data):_
+
+Param name to send the file: `picture`
+
+_Response:_
+
+_200_
+```json
+{
+    "username": "usr.nm",
+    "bio": "A new description of myself",
+    "picture": {
+        "medium_url": "https://experiences/8c29.medium.jpg",
+        "small_url": "https://experiences/8c29.small.jpg",
+        "tiny_url": "https://experiences/8c29.tiny.jpg"
+    },
+}
+```
+
 
 
 ## Documentation
