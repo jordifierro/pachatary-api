@@ -8,6 +8,7 @@ from django.urls import reverse
 
 from experiences.models import ORMExperience
 from scenes.models import ORMScene
+from profiles.models import ORMProfile
 from people.models import ORMPerson, ORMAuthToken
 
 
@@ -16,6 +17,7 @@ class ExperienceDetailTestCase(TestCase):
     def test_scenes_from_experience_returns_experience(self):
         orm_person = ORMPerson.objects.create(username='usr')
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
+        ORMProfile.objects.create(person_id=orm_person.id, username='usr')
         exp_c = ORMExperience.objects.create(title='Exp c', description='stuffs', author=orm_person)
         scene_d = ORMScene.objects.create(title='Scene d', description='D',
                                           latitude=Decimal('1.2'), longitude=Decimal('-3.4'), experience=exp_c)
@@ -55,6 +57,7 @@ class CreateSceneTestCase(TestCase):
     def test_create_scene_creates_and_returns_scene(self):
         orm_person = ORMPerson.objects.create(username='usr')
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
+        ORMProfile.objects.create(person_id=orm_person.id, username='usr')
         experience = ORMExperience.objects.create(title='Exp', author=orm_person)
 
         client = Client()
@@ -84,6 +87,7 @@ class CreateSceneTestCase(TestCase):
     def test_wrong_attributes_doesnt_create_and_returns_error(self):
         orm_person = ORMPerson.objects.create(username='usr')
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
+        ORMProfile.objects.create(person_id=orm_person.id, username='usr')
         experience = ORMExperience.objects.create(title='Exp', author=orm_person)
 
         client = Client()
@@ -113,6 +117,7 @@ class ModifySceneTestCase(TestCase):
 
     def test_modifies_and_returns_scene(self):
         orm_person = ORMPerson.objects.create(username='usr')
+        ORMProfile.objects.create(person_id=orm_person.id, username='usr')
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
         experience = ORMExperience.objects.create(title='Exp', author=orm_person)
         orm_scene = ORMScene.objects.create(title='T', description='',
@@ -144,6 +149,7 @@ class ModifySceneTestCase(TestCase):
     def test_wrong_attributes_doesnt_update_and_returns_error(self):
         orm_person = ORMPerson.objects.create(username='usr')
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
+        ORMProfile.objects.create(person_id=orm_person.id, username='usr')
         experience = ORMExperience.objects.create(title='Exp', author=orm_person)
         orm_scene = ORMScene.objects.create(title='T', description='',
                                             latitude=1, longitude=2, experience_id=experience.id)

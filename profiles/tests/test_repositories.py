@@ -10,40 +10,41 @@ from profiles.entities import Profile
 class ProfileRepoTestCase(TestCase):
 
     def test_create_profile(self):
-        ProfileRepoTestCase._ScenarioMaker() \
+        ProfileRepoTestCase.ScenarioMaker() \
                 .given_a_person() \
                 .when_create_profile(person=1, username='u', bio='b') \
-                .then_result_should_be_profile(person=1, username='u', bio='b') \
+                .then_result_should_be_profile(person=1, username='u', bio='b', is_me=True) \
                 .then_that_profile_should_be_saved_in_db(person=1, username='u', bio='b')
 
     def test_update_profile(self):
-        ProfileRepoTestCase._ScenarioMaker() \
+        ProfileRepoTestCase.ScenarioMaker() \
                 .given_a_person() \
                 .when_create_profile(person=1, username='u', bio='b') \
                 .when_update_profile(person=1, username='t', bio='o') \
-                .then_result_should_be_profile(person=1, username='t', bio='o') \
+                .then_result_should_be_profile(person=1, username='t', bio='o', is_me=True) \
                 .then_that_profile_should_be_saved_in_db(person=1, username='t', bio='o')
 
     def test_get_profile_by_person_id(self):
-        ProfileRepoTestCase._ScenarioMaker() \
+        ProfileRepoTestCase.ScenarioMaker() \
                 .given_a_person() \
                 .given_a_profile(person=1, username='u', bio='b') \
                 .when_get_profile_from_person_id(person=1) \
-                .then_result_should_be_profile(person=1, username='u', bio='b')
+                .then_result_should_be_profile(person=1, username='u', bio='b', is_me=True)
 
     def test_get_profile_by_username(self):
-        ProfileRepoTestCase._ScenarioMaker() \
+        ProfileRepoTestCase.ScenarioMaker() \
                 .given_a_person() \
                 .given_a_profile(person=1, username='u', bio='b') \
                 .when_get_profile_from_username(username='u') \
-                .then_result_should_be_profile(person=1, username='u', bio='b')
+                .then_result_should_be_profile(person=1, username='u', bio='b', is_me=True)
 
     def test_get_unexistent_profile_raises_entity_does_not_exist_exception(self):
-        ProfileRepoTestCase._ScenarioMaker() \
+        ProfileRepoTestCase.ScenarioMaker() \
+                .given_a_person() \
                 .when_get_profile_from_username(username='none') \
                 .then_result_should_raise_entity_does_not_exist()
 
-    class _ScenarioMaker:
+    class ScenarioMaker:
 
         def __init__(self):
             self.persons = []
@@ -54,33 +55,35 @@ class ProfileRepoTestCase(TestCase):
             return self
 
         def given_a_profile(self, person, username, bio):
-            profile = Profile(person_id=self.persons[person-1].id, username=username, bio=bio)
+            profile = Profile(person_id=str(self.persons[person-1].id), username=username, bio=bio, is_me=True)
             self.repo.create_profile(profile)
             return self
 
         def when_create_profile(self, person, username, bio):
-            profile = Profile(person_id=self.persons[person-1].id, username=username, bio=bio)
+            profile = Profile(person_id=str(self.persons[person-1].id), username=username, bio=bio)
             self.result = self.repo.create_profile(profile)
             return self
 
         def when_update_profile(self, person, username, bio):
-            profile = Profile(person_id=self.persons[person-1].id, username=username, bio=bio)
+            profile = Profile(person_id=str(self.persons[person-1].id), username=username, bio=bio)
             self.result = self.repo.update_profile(profile)
             return self
 
         def when_get_profile_from_person_id(self, person):
-            self.result = self.repo.get_profile(person_id=self.persons[person-1].id)
+            self.result = self.repo.get_profile(person_id=str(self.persons[person-1].id),
+                                                logged_person_id=str(self.persons[0].id))
             return self
 
         def when_get_profile_from_username(self, username):
             try:
-                self.result = self.repo.get_profile(username=username)
+                self.result = self.repo.get_profile(username=username, logged_person_id=str(self.persons[0].id))
             except Exception as e:
                 self.error = e
             return self
 
-        def then_result_should_be_profile(self, person, username, bio):
-            assert self.result == Profile(person_id=self.persons[person-1].id, username=username, bio=bio)
+        def then_result_should_be_profile(self, person, username, bio, is_me):
+            assert self.result == Profile(person_id=str(self.persons[person-1].id),
+                                          username=username, bio=bio, is_me=is_me)
             return self
 
         def then_that_profile_should_be_saved_in_db(self, person, username, bio):

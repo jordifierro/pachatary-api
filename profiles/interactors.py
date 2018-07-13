@@ -16,8 +16,9 @@ class GetProfileInteractor:
         self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
 
         if self.username == 'self':
-            return self.profile_repo.get_profile(person_id=self.logged_person_id)
-        return self.profile_repo.get_profile(username=self.username)
+            return self.profile_repo.get_profile(person_id=self.logged_person_id,
+                                                 logged_person_id=self.logged_person_id)
+        return self.profile_repo.get_profile(username=self.username, logged_person_id=self.logged_person_id)
 
 
 class ModifyProfileInteractor:
@@ -36,7 +37,8 @@ class ModifyProfileInteractor:
     def execute(self):
         self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
 
-        profile = self.profile_repo.get_profile(person_id=self.logged_person_id)
+        profile = self.profile_repo.get_profile(person_id=self.logged_person_id,
+                                                logged_person_id=self.logged_person_id)
 
         if len(self.bio) > ModifyProfileInteractor.MAX_BIO_LENGTH:
             raise InvalidEntityException(source='bio', code='wrong_size',

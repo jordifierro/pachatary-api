@@ -72,7 +72,7 @@ class TestGetExperiences:
 
         def given_an_experience(self):
             self.experiences.append(Experience(id=len(self.experiences)+1, title='t', description='d',
-                                               picture=None, author_id='1', author_username='usr'))
+                                               picture=None, author_id='1'))
             return self
 
         def given_a_repo_that_returns_experiences_and_offset(self, offset):
@@ -206,13 +206,11 @@ class TestSearchExperiences:
             return self
 
         def given_an_experience(self):
-            self.experience_a = Experience(id=1, title='A', description='some',
-                                           picture=None, author_id='1', author_username='usr')
+            self.experience_a = Experience(id=1, title='A', description='some', picture=None, author_id='1')
             return self
 
         def given_another_experience(self):
-            self.experience_b = Experience(id=2, title='B', description='other',
-                                           picture=None, author_id='1', author_username='usr')
+            self.experience_b = Experience(id=2, title='B', description='other', picture=None, author_id='1')
             return self
 
         def given_a_next_offset(self):
@@ -497,8 +495,7 @@ class TestModifyExperience:
     class ScenarioMaker:
 
         def given_an_experience(self):
-            self.experience = Experience(id='1', title='Title', description='some',
-                                         author_id='2', author_username='usr')
+            self.experience = Experience(id='1', title='Title', description='some', author_id='2')
             return self
 
         def given_an_id(self):
@@ -525,8 +522,7 @@ class TestModifyExperience:
 
         def given_another_experience_updated_with_that_params(self):
             self.updated_experience = Experience(id=self.experience.id, title=self.experience.title,
-                                                 description=self.description, author_id=self.experience.author_id,
-                                                 author_username=self.experience.author_username)
+                                                 description=self.description, author_id=self.experience.author_id)
             return self
 
         def given_an_experience_repo_that_returns_both_experiences_on_get_and_update(self):

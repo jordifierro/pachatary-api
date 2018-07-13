@@ -37,10 +37,10 @@ class GetProfileTestCase(TestCase):
 
         def then_response_should_be_profile_and_200(self):
             assert json.loads(self.response.content) == {
-                        'person_id': str(self.profile.person_id),
                         'username': self.profile.username,
                         'bio': self.profile.bio,
                         'picture': None,
+                        'is_me': True,
                     }
             assert self.response.status_code == 200
             return self
@@ -76,10 +76,10 @@ class ModifyProfileTestCase(TestCase):
 
         def then_response_should_be_profile_and_200(self, bio):
             assert json.loads(self.response.content) == {
-                        'person_id': str(self.profile.person_id),
                         'username': self.profile.username,
                         'bio': bio,
                         'picture': None,
+                        'is_me': True,
                     }
             assert self.response.status_code == 200
             return self

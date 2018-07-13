@@ -45,7 +45,12 @@ _Response:_
                 "title": "Magic Castle of Lost Swamps",
                 "description": "Don't even try to go there!",
                 "picture": null,
-                "author_username": "da_usr",
+                "author_profile": {
+                    "username": "da_usr",
+                    "bio": "about me",
+                    "picture": null,
+                    "is_me": true,
+                },
                 "is_mine": false,
                 "is_saved": false,
                 "saves_count": 5
@@ -57,9 +62,18 @@ _Response:_
                 "picture": {
                     "small_url": "https://experiences/8c29.small.jpg",
                     "medium_url": "https://experiences/8c29.medium.jpg",
-                    "large_url": "https://experiences/8c29.large.jpg"
+                    "large_url": "https://experiences/8c29.large.jpg",
                 },
-                "author_username": "usr.nam",
+                "author_profile": {
+                    "username": "usr.nam",
+                    "bio": "user info",
+                    "picture": {
+                        "tiny_url": "https://experiences/029d.tiny.jpg",
+                        "small_url": "https://experiences/029d.small.jpg",
+                        "medium_url": "https://experiences/029d.medium.jpg",
+                    },
+                    "is_me": false,
+                },
                 "is_mine": false,
                 "is_saved": false,
                 "saves_count": 32
@@ -91,7 +105,12 @@ _Response:_
                 "title": "Magic Castle of Culture",
                 "description": "Don't even try to go there!",
                 "picture": null,
-                "author_username": "da_usr",
+                "author_profile": {
+                    "username": "da_usr",
+                    "bio": "about me",
+                    "picture": null,
+                    "is_me": true,
+                },
                 "is_mine": false,
                 "is_saved": false,
                 "saves_count": 5
@@ -103,9 +122,18 @@ _Response:_
                 "picture": {
                     "small_url": "https://experiences/8c29.small.jpg",
                     "medium_url": "https://experiences/8c29.medium.jpg",
-                    "large_url": "https://experiences/8c29.large.jpg"
+                    "large_url": "https://experiences/8c29.large.jpg",
                 },
-                "author_username": "usr.nam",
+                "author_profile": {
+                    "username": "usr.nam",
+                    "bio": "user info",
+                    "picture": {
+                        "tiny_url": "https://experiences/029d.tiny.jpg",
+                        "small_url": "https://experiences/029d.small.jpg",
+                        "medium_url": "https://experiences/029d.medium.jpg",
+                    },
+                    "is_me": false,
+                },
                 "is_mine": false,
                 "is_saved": false,
                 "saves_count": 32
@@ -134,7 +162,16 @@ _201_
     "title": "My travel",
     "description": "and other adventures",
     "picture": null,
-    "author_username": "my.name",
+    "author_profile": {
+        "username": "usr.nam",
+        "bio": "user info",
+        "picture": {
+            "tiny_url": "https://experiences/029d.tiny.jpg",
+            "small_url": "https://experiences/029d.small.jpg",
+            "medium_url": "https://experiences/029d.medium.jpg",
+        },
+        "is_me": true,
+    },
     "is_mine": true,
     "is_saved": false,
     "saves_count": 2
@@ -166,7 +203,16 @@ _200_
     "title": "MainSquare",
     "description": "A new description",
     "picture": null,
-    "author_username": "my.name",
+    "author_profile": {
+        "username": "usr.nam",
+        "bio": "user info",
+        "picture": {
+            "tiny_url": "https://experiences/029d.tiny.jpg",
+            "small_url": "https://experiences/029d.small.jpg",
+            "medium_url": "https://experiences/029d.medium.jpg",
+        },
+        "is_me": true,
+    },
     "is_mine": true,
     "is_saved": false,
     "saves_count": 8
@@ -195,7 +241,16 @@ _200_
     "title": "MainSquare",
     "description": "A new description",
     "picture": null,
-    "author_username": "my.name",
+    "author_profile": {
+        "username": "usr.nam",
+        "bio": "user info",
+        "picture": {
+            "tiny_url": "https://experiences/029d.tiny.jpg",
+            "small_url": "https://experiences/029d.small.jpg",
+            "medium_url": "https://experiences/029d.medium.jpg",
+        },
+        "is_me": true,
+    },
     "is_mine": true,
     "is_saved": false,
     "saves_count": 8
@@ -295,7 +350,16 @@ _200_
         "medium_url": "https://scenes/37d6.medium.jpeg",
         "large_url": "https://scenes/37d6.large.jpeg"
     },
-    "author_username": "my.name",
+    "author_profile": {
+        "username": "usr.nam",
+        "bio": "user info",
+        "picture": {
+            "tiny_url": "https://experiences/029d.tiny.jpg",
+            "small_url": "https://experiences/029d.small.jpg",
+            "medium_url": "https://experiences/029d.medium.jpg",
+        },
+        "is_me": true,
+    },
     "is_mine": true,
     "is_saved": false
 }
@@ -655,6 +719,7 @@ _200_
         "small_url": "https://experiences/8c29.small.jpg",
         "tiny_url": "https://experiences/8c29.tiny.jpg"
     },
+    "is_me": false,
 }
 ```
 
@@ -682,6 +747,7 @@ _200_
         "small_url": "https://experiences/8c29.small.jpg",
         "tiny_url": "https://experiences/8c29.tiny.jpg"
     },
+    "is_me": true,
 }
 ```
 
@@ -714,6 +780,7 @@ _200_
         "small_url": "https://experiences/8c29.small.jpg",
         "tiny_url": "https://experiences/8c29.tiny.jpg"
     },
+    "is_me": true,
 }
 ```
 

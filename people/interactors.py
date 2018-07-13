@@ -34,7 +34,7 @@ class AuthenticateInteractor:
     def execute(self):
         try:
             auth_token = self.auth_token_repo.get_auth_token(access_token=self.access_token)
-            return auth_token.person_id
+            return str(auth_token.person_id)
         except EntityDoesNotExistException:
             return None
 

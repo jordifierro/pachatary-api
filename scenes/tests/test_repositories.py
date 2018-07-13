@@ -24,10 +24,10 @@ class ExperienceRepoTestCase(TestCase):
 
         result = SceneRepo().get_scenes(experience_id=orm_exp.id)
 
-        scene_1 = Scene(id=orm_sce_1.id, title='S1', description='desc 1', picture=None,
-                        latitude=Decimal('1.2'), longitude=Decimal('-3.4'), experience_id=orm_exp.id)
-        scene_2 = Scene(id=orm_sce_2.id, title='S2', description='desc 2', picture=None,
-                        latitude=Decimal('5.6'), longitude=Decimal('-7.8'), experience_id=orm_exp.id)
+        scene_1 = Scene(id=str(orm_sce_1.id), title='S1', description='desc 1', picture=None,
+                        latitude=Decimal('1.2'), longitude=Decimal('-3.4'), experience_id=str(orm_exp.id))
+        scene_2 = Scene(id=str(orm_sce_2.id), title='S2', description='desc 2', picture=None,
+                        latitude=Decimal('5.6'), longitude=Decimal('-7.8'), experience_id=str(orm_exp.id))
         assert result == [scene_1, scene_2] or result == [scene_2, scene_1]
 
     def test_create_new_scene(self):
@@ -77,6 +77,6 @@ class ExperienceRepoTestCase(TestCase):
 
         result = SceneRepo().get_scene(id=orm_sce_1.id)
 
-        scene_1 = Scene(id=orm_sce_1.id, title='S1', description='desc 1', picture=None,
-                        latitude=Decimal('1.2'), longitude=Decimal('-3.4'), experience_id=orm_exp.id)
+        scene_1 = Scene(id=str(orm_sce_1.id), title='S1', description='desc 1', picture=None,
+                        latitude=Decimal('1.2'), longitude=Decimal('-3.4'), experience_id=str(orm_exp.id))
         assert result == scene_1

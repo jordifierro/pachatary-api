@@ -34,7 +34,7 @@ class PersonRepo:
         return self._decode_db_person(orm_person)
 
     def _decode_db_person(self, db_person):
-        return Person(id=db_person.id, is_registered=db_person.is_registered,
+        return Person(id=str(db_person.id), is_registered=db_person.is_registered,
                       username=db_person.username, email=db_person.email,
                       is_email_confirmed=db_person.is_email_confirmed)
 
@@ -56,7 +56,7 @@ class AuthTokenRepo:
             raise EntityDoesNotExistException
 
     def _decode_db_auth_token(self, db_auth_token):
-        return AuthToken(person_id=db_auth_token.person_id,
+        return AuthToken(person_id=str(db_auth_token.person_id),
                          access_token=str(db_auth_token.access_token),
                          refresh_token=str(db_auth_token.refresh_token))
 
@@ -65,7 +65,7 @@ class ConfirmationTokenRepo:
 
     def get_person_id(self, confirmation_token):
         try:
-            return ORMConfirmationToken.objects.get(token=confirmation_token).person_id
+            return str(ORMConfirmationToken.objects.get(token=confirmation_token).person_id)
         except ORMConfirmationToken.DoesNotExist:
             raise EntityDoesNotExistException
 
@@ -82,7 +82,7 @@ class LoginTokenRepo:
 
     def get_person_id(self, login_token):
         try:
-            return ORMLoginToken.objects.get(token=login_token).person_id
+            return str(ORMLoginToken.objects.get(token=login_token).person_id)
         except ORMLoginToken.DoesNotExist:
             raise EntityDoesNotExistException
 

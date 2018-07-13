@@ -27,7 +27,8 @@ class TestProfileView:
             self.interactor = Mock()
             self.interactor.set_params.return_value = self.interactor
             self.profile = Profile(person_id='4', username='u', bio='b',
-                                   picture=Picture(tiny_url='t', small_url='s', medium_url='m'))
+                                   picture=Picture(tiny_url='t', small_url='s', medium_url='m'),
+                                   is_me=True)
             self.interactor.execute.return_value = self.profile
             return self
 
@@ -53,14 +54,14 @@ class TestProfileView:
 
         def then_response_should_be_profile_and_200(self):
             assert self.body == {
-                                    'person_id': self.profile.person_id,
                                     'username': self.profile.username,
                                     'bio': self.profile.bio,
                                     'picture': {
                                         'tiny_url': self.profile.picture.tiny_url,
                                         'small_url': self.profile.picture.small_url,
                                         'medium_url': self.profile.picture.medium_url,
-                                    }
+                                    },
+                                    'is_me': self.profile.is_me,
                                 }
             assert self.status == 200
             return self
@@ -86,7 +87,8 @@ class TestUploadProfilePictureView:
 
         def given_a_profile(self):
             self.profile = Profile(person_id='4', username='u', bio='b',
-                                   picture=Picture(tiny_url='t', small_url='s', medium_url='m'))
+                                   picture=Picture(tiny_url='t', small_url='s', medium_url='m'),
+                                   is_me=True)
             return self
 
         def given_an_interactor_that_returns_that_profile(self):
@@ -111,14 +113,14 @@ class TestUploadProfilePictureView:
 
         def then_response_should_be_profile_and_200(self):
             assert self.body == {
-                                    'person_id': self.profile.person_id,
                                     'username': self.profile.username,
                                     'bio': self.profile.bio,
                                     'picture': {
                                         'tiny_url': self.profile.picture.tiny_url,
                                         'small_url': self.profile.picture.small_url,
                                         'medium_url': self.profile.picture.medium_url,
-                                    }
+                                    },
+                                    'is_me': self.profile.is_me,
                                 }
             assert self.status == 200
             return self

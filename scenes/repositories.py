@@ -55,10 +55,10 @@ class SceneRepo:
                               medium_url=db_scene.picture.medium.url,
                               large_url=db_scene.picture.large.url)
 
-        return Scene(id=db_scene.id,
+        return Scene(id=str(db_scene.id),
                      title=db_scene.title,
                      description=db_scene.description,
                      picture=picture,
                      latitude=db_scene.latitude,
                      longitude=db_scene.longitude,
-                     experience_id=db_scene.experience_id)
+                     experience_id=str(db_scene.experience_id))

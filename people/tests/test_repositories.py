@@ -54,7 +54,7 @@ class PersonRepoTestCase(TestCase):
             return self
 
         def given_a_person_entity_with_db_person_id(self):
-            self.person = Person(id=self.orm_person.id, is_registered=True,
+            self.person = Person(id=str(self.orm_person.id), is_registered=True,
                                  username='U', email='E', is_email_confirmed=True)
             return self
 
@@ -63,7 +63,7 @@ class PersonRepoTestCase(TestCase):
             return self
 
         def when_get_person_with_her_id(self):
-            self.result = PersonRepo().get_person(id=self.orm_person.id)
+            self.result = PersonRepo().get_person(id=str(self.orm_person.id))
             return self
 
         def when_get_person_with_her_username(self):
@@ -103,7 +103,7 @@ class PersonRepoTestCase(TestCase):
             return self
 
         def then_result_should_be_that_person(self):
-            assert self.orm_person.id == self.result.id
+            assert str(self.orm_person.id) == self.result.id
             assert self.orm_person.is_registered == self.result.is_registered
             assert self.orm_person.username == self.result.username
             assert self.orm_person.email == self.result.email

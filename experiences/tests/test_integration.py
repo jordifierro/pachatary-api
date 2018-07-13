@@ -13,7 +13,9 @@ from experiences.repositories import ExperienceRepo
 from experiences.factories import create_experience_elastic_repo
 from experiences.serializers import serialize_multiple_experiences
 from people.models import ORMPerson, ORMAuthToken
+from profiles.models import ORMProfile
 from scenes.entities import Scene
+from profiles.entities import Profile
 
 
 class ExperiencesTestCase(TestCase):
@@ -21,6 +23,7 @@ class ExperiencesTestCase(TestCase):
     def test_mine_experiences_returns_my_experiences(self):
         orm_person = ORMPerson.objects.create(username='usr')
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
+        ORMProfile.objects.create(person_id=orm_person.id, username='a', bio='b')
         ORMExperience.objects.create(title='Exp c', description='other description', author=orm_person)
         exp_b = ORMExperience.objects.create(title='Exp b', description='other description', author=orm_person)
         exp_a = ORMExperience.objects.create(title='Exp a', description='some description', author=orm_person)
@@ -38,7 +41,12 @@ class ExperiencesTestCase(TestCase):
                                'title': 'Exp a',
                                'description': 'some description',
                                'picture': None,
-                               'author_username': orm_person.username,
+                               'author_profile': {
+                                   'username': 'a',
+                                   'bio': 'b',
+                                   'picture': None,
+                                   'is_me': True,
+                                },
                                'is_mine': True,
                                'is_saved': False,
                                'saves_count': 0
@@ -48,7 +56,12 @@ class ExperiencesTestCase(TestCase):
                                'title': 'Exp b',
                                'description': 'other description',
                                'picture': None,
-                               'author_username': orm_person.username,
+                               'author_profile': {
+                                   'username': 'a',
+                                   'bio': 'b',
+                                   'picture': None,
+                                   'is_me': True,
+                                },
                                'is_mine': True,
                                'is_saved': False,
                                'saves_count': 0
@@ -57,10 +70,12 @@ class ExperiencesTestCase(TestCase):
                 'next_url': 'http://testserver/experiences/?username=self&limit=2&offset=2'
             }
 
-    def test_others_experiences_returns_my_experiences(self):
+    def test_others_experiences_returns_others_experiences(self):
         orm_person = ORMPerson.objects.create(username='usr')
+        ORMProfile.objects.create(person_id=orm_person.id, username='a')
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
         orm_other_person = ORMPerson.objects.create(username='other')
+        ORMProfile.objects.create(person_id=orm_other_person.id, username='b', bio='c')
         exp_a = ORMExperience.objects.create(title='Exp a', description='some description', author=orm_other_person)
         exp_b = ORMExperience.objects.create(title='Exp b', description='other description', author=orm_other_person)
         exp_c = ORMExperience.objects.create(title='Exp c', description='third description', author=orm_other_person)
@@ -79,7 +94,12 @@ class ExperiencesTestCase(TestCase):
                                'title': 'Exp c',
                                'description': 'third description',
                                'picture': None,
-                               'author_username': orm_other_person.username,
+                               'author_profile': {
+                                   'username': 'b',
+                                   'bio': 'c',
+                                   'picture': None,
+                                   'is_me': False,
+                                },
                                'is_mine': False,
                                'is_saved': True,
                                'saves_count': 1
@@ -89,7 +109,12 @@ class ExperiencesTestCase(TestCase):
                                'title': 'Exp b',
                                'description': 'other description',
                                'picture': None,
-                               'author_username': orm_other_person.username,
+                               'author_profile': {
+                                   'username': 'b',
+                                   'bio': 'c',
+                                   'picture': None,
+                                   'is_me': False,
+                                },
                                'is_mine': False,
                                'is_saved': False,
                                'saves_count': 0
@@ -109,7 +134,12 @@ class ExperiencesTestCase(TestCase):
                                'title': 'Exp a',
                                'description': 'some description',
                                'picture': None,
-                               'author_username': orm_other_person.username,
+                               'author_profile': {
+                                   'username': 'b',
+                                   'bio': 'c',
+                                   'picture': None,
+                                   'is_me': False,
+                                },
                                'is_mine': False,
                                'is_saved': False,
                                'saves_count': 0
@@ -120,7 +150,9 @@ class ExperiencesTestCase(TestCase):
 
     def test_saved_experiences_returns_only_saved_scenes(self):
         orm_person = ORMPerson.objects.create(username='usr')
+        ORMProfile.objects.create(person_id=orm_person.id, username='a')
         orm_person_b = ORMPerson.objects.create(username='nme')
+        ORMProfile.objects.create(person_id=orm_person_b.id, username='b', bio='bs')
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
         exp_a = ORMExperience.objects.create(title='Exp a', description='some description', author=orm_person_b)
         ORMExperience.objects.create(title='Exp b', description='other description', author=orm_person_b)
@@ -139,7 +171,12 @@ class ExperiencesTestCase(TestCase):
                                'title': 'Exp a',
                                'description': 'some description',
                                'picture': None,
-                               'author_username': orm_person_b.username,
+                               'author_profile': {
+                                   'username': 'b',
+                                   'bio': 'bs',
+                                   'picture': None,
+                                   'is_me': False,
+                                },
                                'is_mine': False,
                                'is_saved': True,
                                'saves_count': 1
@@ -154,6 +191,7 @@ class CreateExperienceTestCase(TestCase):
     def test_create_experience_creates_and_returns_experience(self):
         orm_person = ORMPerson.objects.create(username='usr.nm', is_email_confirmed=True)
         orm_auth_token = ORMAuthToken.objects.create(person_id=orm_person.id)
+        ORMProfile.objects.create(person_id=orm_person.id, username='usr.nm', bio='My bio')
         auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }
         client = Client()
         response = client.post(reverse('experiences'),
@@ -169,7 +207,12 @@ class CreateExperienceTestCase(TestCase):
                            'title': 'Experience title',
                            'description': 'Some description',
                            'picture': None,
-                           'author_username': orm_person.username,
+                           'author_profile': {
+                               'username': 'usr.nm',
+                               'bio': 'My bio',
+                               'picture': None,
+                               'is_me': True,
+                           },
                            'is_mine': True,
                            'is_saved': False,
                            'saves_count': 0
@@ -198,6 +241,7 @@ class ModifyExperienceTestCase(TestCase):
     def test_modifies_and_returns_experience(self):
         orm_person = ORMPerson.objects.create(username='usr.nm')
         orm_auth_token = ORMAuthToken.objects.create(person_id=orm_person.id)
+        ORMProfile.objects.create(person_id=orm_person.id, username='usr.nm')
         auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }
         orm_experience = ORMExperience.objects.create(title='T', description='', author=orm_person)
 
@@ -215,7 +259,12 @@ class ModifyExperienceTestCase(TestCase):
                            'title': 'T',
                            'description': 'New description',
                            'picture': None,
-                           'author_username': orm_person.username,
+                           'author_profile': {
+                               'username': 'usr.nm',
+                               'bio': '',
+                               'picture': None,
+                               'is_me': True,
+                           },
                            'is_mine': True,
                            'is_saved': False,
                            'saves_count': 0
@@ -224,6 +273,7 @@ class ModifyExperienceTestCase(TestCase):
     def test_wrong_attributes_doesnt_update_and_returns_error(self):
         orm_person = ORMPerson.objects.create()
         orm_auth_token = ORMAuthToken.objects.create(person_id=orm_person.id)
+        ORMProfile.objects.create(person_id=orm_person.id, username='a')
         orm_experience = ORMExperience.objects.create(title='T', description='', author=orm_person)
 
         auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }
@@ -267,10 +317,12 @@ class SaveUnsaveExperienceTestCase(TestCase):
         def given_a_person_with_auth_token(self):
             self.orm_person = ORMPerson.objects.create()
             self.orm_auth_token = ORMAuthToken.objects.create(person_id=self.orm_person.id)
+            ORMProfile.objects.create(person_id=self.orm_person.id, username='caller')
             return self
 
         def given_an_experience(self):
             orm_author = ORMPerson.objects.create()
+            ORMProfile.objects.create(person_id=orm_author.id, username='creator')
             self.orm_experience = ORMExperience.objects.create(title='T', description='', author=orm_author)
             return self
 
@@ -367,12 +419,14 @@ class SearchExperiencesTestCase(TestCase):
         def given_a_person_with_auth_token(self):
             self.orm_person = ORMPerson.objects.create()
             self.orm_auth_token = ORMAuthToken.objects.create(person_id=self.orm_person.id)
+            self.orm_profile = ORMProfile.objects.create(person_id=self.orm_person.id, username='u', bio='b')
             return self
 
         def given_an_experience(self, title='', description='', saves_count=0):
             experience = Experience(id=str(len(self.experiences)+1), title=title,
                                     description=description, author_id=self.orm_person.id,
-                                    author_username=self.orm_person.username,
+                                    author_profile=Profile(person_id=self.orm_person.id, username='u',
+                                                           bio='b', picture=None, is_me=True),
                                     saves_count=saves_count, is_mine=True)
 
             db_experience = ExperienceRepo().create_experience(experience)
@@ -464,6 +518,7 @@ class ExperienceShareUrlTestCase(TransactionTestCase):
         def given_a_person_with_auth_token(self):
             self.orm_person = ORMPerson.objects.create()
             self.orm_auth_token = ORMAuthToken.objects.create(person_id=self.orm_person.id)
+            self.orm_profile = ORMProfile.objects.create(person_id=self.orm_person.id, username=str(self.orm_person.id))
             return self
 
         def given_an_experience(self, share_id=None):
@@ -511,6 +566,7 @@ class TranslateExperienceShareIdTestCase(TestCase):
         def given_a_person_with_auth_token(self):
             self.orm_person = ORMPerson.objects.create()
             self.orm_auth_token = ORMAuthToken.objects.create(person_id=self.orm_person.id)
+            ORMProfile.objects.create(person_id=self.orm_person.id, username='a')
             return self
 
         def given_an_experience(self, share_id=None):
@@ -544,6 +600,7 @@ class GetExperienceTestCase(TestCase):
         def given_a_person_with_auth_token(self):
             self.orm_person = ORMPerson.objects.create()
             self.orm_auth_token = ORMAuthToken.objects.create(person_id=self.orm_person.id)
+            ORMProfile.objects.create(person_id=self.orm_person.id, username='a')
             return self
 
         def given_an_experience_in_db(self):
@@ -562,7 +619,12 @@ class GetExperienceTestCase(TestCase):
                         'title': self.experience.title,
                         'description': self.experience.description,
                         'picture': None,
-                        'author_username': self.experience.author.username,
+                        'author_profile': {
+                            'username': self.experience.author.profile.username,
+                            'bio':  self.experience.author.profile.bio,
+                            'picture': None,
+                            'is_me': True,
+                        },
                         'is_mine': True,
                         'is_saved': False,
                         'saves_count': self.experience.saves_count,

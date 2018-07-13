@@ -9,6 +9,7 @@ from experiences.repositories import ExperienceRepo
 from experiences.factories import create_experience_elastic_repo
 from scenes.entities import Scene
 from people.models import ORMPerson
+from profiles.models import ORMProfile
 
 
 class ExperienceRepoTestCase(TestCase):
@@ -79,7 +80,7 @@ class ExperienceRepoTestCase(TestCase):
                 .given_a_person_in_db('me') \
                 .given_an_experience_in_db(created_by_person=1) \
                 .when_get_experience(1, person=1) \
-                .then_repo_should_return_experience(1, mine=True, saved=False)
+                .then_repo_should_return_experience(1, person_logged=1, saved=False)
 
     def test_get_others_experience_returns_experience(self):
         ExperienceRepoTestCase.ScenarioMaker() \
@@ -87,7 +88,7 @@ class ExperienceRepoTestCase(TestCase):
                 .given_a_person_in_db('other.user') \
                 .given_an_experience_in_db(created_by_person=2) \
                 .when_get_experience(1, person=1) \
-                .then_repo_should_return_experience(1, mine=False, saved=False)
+                .then_repo_should_return_experience(1, person_logged=1, saved=False)
 
     def test_get_saved_experience_returns_experience(self):
         ExperienceRepoTestCase.ScenarioMaker() \
@@ -96,14 +97,14 @@ class ExperienceRepoTestCase(TestCase):
                 .given_an_experience_in_db(created_by_person=2) \
                 .given_I_save_experience(experience=1) \
                 .when_get_experience(1, person=1) \
-                .then_repo_should_return_experience(1, mine=False, saved=True)
+                .then_repo_should_return_experience(1, person_logged=1, saved=True)
 
     def test_get_experience_by_share_id_returns_experience(self):
         ExperienceRepoTestCase.ScenarioMaker() \
                 .given_a_person_in_db('me') \
                 .given_an_experience_in_db(created_by_person=1, share_id='sdREwe43') \
                 .when_get_experience_by_share_id('sdREwe43', person=1) \
-                .then_repo_should_return_experience(1, mine=True, saved=False)
+                .then_repo_should_return_experience(1, person_logged=1, saved=False)
 
     def test_get_unexistent_experience_raises_error(self):
         ExperienceRepoTestCase.ScenarioMaker() \
@@ -206,13 +207,15 @@ class ExperienceRepoTestCase(TestCase):
 
         def __init__(self):
             self.persons = []
+            self.profiles = []
             self.experiences = []
             self.saves = []
             self.search_repo = Mock()
             self.repo = ExperienceRepo(self.search_repo)
 
         def given_a_person_in_db(self, username):
-            self.persons.append(ORMPerson.objects.create(username=username))
+            self.persons.append(ORMPerson.objects.create())
+            self.profiles.append(ORMProfile.objects.create(person=self.persons[len(self.persons)-1], username=username))
             return self
 
         def given_an_experience_in_db(self, created_by_person, share_id=None):
@@ -221,8 +224,8 @@ class ExperienceRepoTestCase(TestCase):
             return self
 
         def given_I_save_experience(self, experience):
-            experience_id = self.experiences[experience-1].id
-            self.repo.save_experience(person_id=self.persons[0].id, experience_id=experience_id)
+            experience_id = str(self.experiences[experience-1].id)
+            self.repo.save_experience(person_id=str(self.persons[0].id), experience_id=experience_id)
             self.saves.append(experience_id)
             return self
 
@@ -239,23 +242,23 @@ class ExperienceRepoTestCase(TestCase):
             return self
 
         def when_get_saved_experiences(self, offset, limit):
-            self.result = self.repo.get_saved_experiences(logged_person_id=self.persons[0].id,
+            self.result = self.repo.get_saved_experiences(logged_person_id=str(self.persons[0].id),
                                                           offset=offset, limit=limit)
             return self
 
         def when_get_person_experiences(self, target_person, offset, limit):
-            self.result = self.repo.get_person_experiences(logged_person_id=self.persons[0].id,
-                                                           target_person_id=self.persons[target_person-1].id,
+            self.result = self.repo.get_person_experiences(logged_person_id=str(self.persons[0].id),
+                                                           target_person_id=str(self.persons[target_person-1].id),
                                                            offset=offset, limit=limit)
             return self
 
         def when_get_experience(self, position, person=0):
-            self.result = self.repo.get_experience(id=self.experiences[position-1].id,
-                                                   logged_person_id=self.persons[person-1].id)
+            self.result = self.repo.get_experience(id=str(self.experiences[position-1].id),
+                                                   logged_person_id=str(self.persons[person-1].id))
             return self
 
         def when_get_experience_by_share_id(self, share_id, person=0):
-            self.result = self.repo.get_experience(share_id=share_id, logged_person_id=self.persons[person-1].id)
+            self.result = self.repo.get_experience(share_id=share_id, logged_person_id=str(self.persons[person-1].id))
             return self
 
         def when_get_unexistent_experience(self):
@@ -267,32 +270,33 @@ class ExperienceRepoTestCase(TestCase):
 
         def when_create_experience(self, title, description, author):
             orm_author = self.persons[author-1]
-            experience = Experience(title=title, description=description, author_id=orm_author.id)
+            experience = Experience(title=title, description=description, author_id=str(orm_author.id))
             self.result = self.repo.create_experience(experience)
             return self
 
         def when_update_experience(self, experience, title, description, share_id=None):
-            experience = self.repo.get_experience(id=self.experiences[experience-1].id,
-                                                  logged_person_id=self.persons[0].id)
+            experience = self.repo.get_experience(id=str(self.experiences[experience-1].id),
+                                                  logged_person_id=str(self.persons[0].id))
             updated_experience = experience.builder().title(title).description(description).share_id(share_id).build()
             try:
-                self.result = self.repo.update_experience(updated_experience, logged_person_id=self.persons[0].id)
+                self.result = self.repo.update_experience(updated_experience, logged_person_id=str(self.persons[0].id))
             except Exception as e:
                 self.error = e
             return self
 
         def when_save_experience(self, position):
             experience = self.experiences[position-1]
-            self.result = self.repo.save_experience(person_id=self.persons[0].id, experience_id=experience.id)
+            self.result = self.repo.save_experience(person_id=str(self.persons[0].id), experience_id=str(experience.id))
             return self
 
         def when_unsave_experience(self, position):
             experience = self.experiences[position-1]
-            self.result = self.repo.unsave_experience(person_id=self.persons[0].id, experience_id=experience.id)
+            self.result = self.repo.unsave_experience(person_id=str(self.persons[0].id),
+                                                      experience_id=str(experience.id))
             return self
 
         def when_search_experiences(self):
-            self.result = self.repo.search_experiences(self.persons[0].id, self.word,
+            self.result = self.repo.search_experiences(str(self.persons[0].id), self.word,
                                                        self.location, self.offset, self.limit)
             return self
 
@@ -302,16 +306,17 @@ class ExperienceRepoTestCase(TestCase):
             for i in range(len(experiences_positions)):
                 orm_experience = self.experiences[experiences_positions[i]-1]
                 orm_experience.refresh_from_db()
-                mine = orm_experience.author_id == self.persons[0].id
-                saved = orm_experience.id in self.saves
-                parsed_experience = self.repo._decode_db_experience(orm_experience, is_mine=mine, is_saved=saved)
+                saved = str(orm_experience.id) in self.saves
+                parsed_experience = self.repo._decode_db_experience(orm_experience,
+                                                                    str(self.persons[0].id), is_saved=saved)
                 assert self.result['results'][i] == parsed_experience
 
             return self
 
-        def then_repo_should_return_experience(self, position, mine=False, saved=False):
+        def then_repo_should_return_experience(self, position, person_logged, saved=False):
             orm_experience = self.experiences[position-1]
-            parsed_experience = self.repo._decode_db_experience(orm_experience, is_mine=mine, is_saved=saved)
+            parsed_experience = self.repo._decode_db_experience(orm_experience, str(self.persons[person_logged-1].id),
+                                                                is_saved=saved)
             if saved:
                 parsed_experience = parsed_experience.builder().saves_count(1).build()
             assert self.result == parsed_experience
@@ -324,7 +329,10 @@ class ExperienceRepoTestCase(TestCase):
         def then_should_return_experience(self, title, description, author, mine, share_id=None):
             assert self.result.title == title
             assert self.result.description == description
-            assert self.result.author_id == self.persons[author-1].id
+            assert self.result.author_profile.person_id == str(self.profiles[author-1].person_id)
+            assert self.result.author_profile.username == self.profiles[author-1].username
+            assert self.result.author_profile.bio == self.profiles[author-1].bio
+            assert self.result.author_profile.is_me == mine
             assert self.result.is_mine == mine
             assert self.result.share_id == share_id
             return self
@@ -334,7 +342,9 @@ class ExperienceRepoTestCase(TestCase):
             assert str(orm_experience.id) == self.result.id
             assert orm_experience.title == self.result.title
             assert orm_experience.description == self.result.description
-            assert orm_experience.author_id == self.result.author_id
+            assert str(orm_experience.author.profile.person_id) == self.result.author_profile.person_id
+            assert orm_experience.author.profile.username == self.result.author_profile.username
+            assert orm_experience.author.profile.bio == self.result.author_profile.bio
             assert orm_experience.share_id == self.result.share_id
             return self
 

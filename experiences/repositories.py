@@ -3,6 +3,7 @@ from django.db import IntegrityError
 
 from pachatary.entities import Picture
 from pachatary.exceptions import EntityDoesNotExistException, ConflictException
+from profiles.entities import Profile
 from .models import ORMExperience, ORMSave
 from .entities import Experience
 
@@ -12,7 +13,7 @@ class ExperienceRepo:
     def __init__(self, search_repo=None):
         self.search_repo = search_repo
 
-    def _decode_db_experience(self, db_experience, is_mine=False, is_saved=False):
+    def _decode_db_experience(self, db_experience, logged_person_id, is_saved=False):
         if not db_experience.picture:
             picture = None
         else:
@@ -20,20 +21,36 @@ class ExperienceRepo:
                               medium_url=db_experience.picture.medium.url,
                               large_url=db_experience.picture.large.url)
 
+        author_profile = self._decode_db_profile(db_experience.author.profile, logged_person_id)
         return Experience(id=str(db_experience.id),
                           title=db_experience.title,
                           description=db_experience.description,
                           picture=picture,
-                          author_id=db_experience.author.id,
-                          author_username=db_experience.author.username,
-                          is_mine=is_mine,
+                          author_id=str(db_experience.author_id),
+                          author_profile=author_profile,
+                          is_mine=(logged_person_id == author_profile.person_id),
                           is_saved=is_saved,
                           saves_count=db_experience.saves_count,
                           share_id=db_experience.share_id)
 
+    def _decode_db_profile(self, db_profile, logged_person_id):
+        if not db_profile.picture:
+            picture = None
+        else:
+            picture = Picture(tiny_url=db_profile.picture.tiny.url,
+                              small_url=db_profile.picture.small.url,
+                              medium_url=db_profile.picture.medium.url)
+        return Profile(person_id=str(db_profile.person_id),
+                       username=db_profile.username,
+                       bio=db_profile.bio,
+                       picture=picture,
+                       is_me=(str(db_profile.person_id) == logged_person_id))
+
     def get_saved_experiences(self, logged_person_id, offset=0, limit=100):
         db_saves_and_experiences = ORMSave.objects \
-                .order_by('-id').select_related('experience', 'experience__author').filter(person_id=logged_person_id)
+                                          .order_by('-id') \
+                                          .select_related('experience', 'experience__author__profile') \
+                                          .filter(person_id=logged_person_id)
 
         paginated_db_saves = db_saves_and_experiences[offset:offset+limit+1]
         next_offset = None
@@ -42,12 +59,14 @@ class ExperienceRepo:
 
         experiences = []
         for db_save in paginated_db_saves[0:limit]:
-            experiences.append(self._decode_db_experience(db_save.experience, is_mine=False, is_saved=True))
+            experiences.append(self._decode_db_experience(db_save.experience, logged_person_id, is_saved=True))
         return {'results': experiences, 'next_offset': next_offset}
 
     def get_person_experiences(self, logged_person_id, target_person_id, offset=0, limit=100, mine=False, saved=False):
-        person_db_experiences = \
-                ORMExperience.objects.order_by('-id').select_related('author').filter(author_id=target_person_id)
+        person_db_experiences = ORMExperience.objects \
+                                                .order_by('-id') \
+                                                .select_related('author__profile') \
+                                                .filter(author_id=target_person_id)
 
         paginated_db_experiences = person_db_experiences[offset:offset+limit+1]
         next_offset = None
@@ -63,22 +82,20 @@ class ExperienceRepo:
             is_saved = False
             if not are_my_experiences and len([x for x in orm_my_saves if x.experience_id == db_experience.id]) > 0:
                 is_saved = True
-            experiences.append(self._decode_db_experience(db_experience,
-                                                          is_mine=are_my_experiences,
-                                                          is_saved=is_saved))
+            experiences.append(self._decode_db_experience(db_experience, logged_person_id, is_saved=is_saved))
         return {"results": experiences, "next_offset": next_offset}
 
     def get_experience(self, id=None, share_id=None, logged_person_id=None):
         try:
             if id is not None:
-                db_experience = ORMExperience.objects.select_related('author').get(id=id)
+                db_experience = ORMExperience.objects.select_related('author__profile').get(id=id)
             else:
-                db_experience = ORMExperience.objects.select_related('author').get(share_id=share_id)
+                db_experience = ORMExperience.objects.select_related('author__profile').get(share_id=share_id)
             is_mine = (logged_person_id == db_experience.author_id)
             is_saved = False
             if logged_person_id is not None and not is_mine:
                 is_saved = ORMSave.objects.filter(experience_id=id, person_id=logged_person_id).exists()
-            return self._decode_db_experience(db_experience, is_mine=is_mine, is_saved=is_saved)
+            return self._decode_db_experience(db_experience, logged_person_id, is_saved=is_saved)
         except ORMExperience.DoesNotExist:
             raise EntityDoesNotExistException()
 
@@ -86,13 +103,13 @@ class ExperienceRepo:
         db_experience = ORMExperience.objects.create(title=experience.title,
                                                      description=experience.description,
                                                      author_id=experience.author_id)
-        return self._decode_db_experience(db_experience, is_mine=True)
+        return self._decode_db_experience(db_experience, db_experience.author_id)
 
     def attach_picture_to_experience(self, experience_id, picture):
         experience = ORMExperience.objects.get(id=experience_id)
         experience.picture = picture
         experience.save()
-        return self._decode_db_experience(experience, is_mine=True)
+        return self._decode_db_experience(experience, experience.author_id)
 
     def update_experience(self, experience, logged_person_id=None):
         orm_experience = ORMExperience.objects.get(id=experience.id)
@@ -105,7 +122,7 @@ class ExperienceRepo:
             orm_experience.save()
         except IntegrityError:
             raise ConflictException(source='share_id', code='duplicate', message='Duplicate share_id')
-        return self._decode_db_experience(orm_experience, is_mine=(logged_person_id == orm_experience.author_id))
+        return self._decode_db_experience(orm_experience, logged_person_id)
 
     def save_experience(self, person_id, experience_id):
         if not ORMSave.objects.filter(person_id=person_id, experience_id=experience_id).exists():
@@ -127,10 +144,11 @@ class ExperienceRepo:
 
     def _populate(self, logged_person_id, experiences_ids):
         preserved = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(experiences_ids)])
-        orm_experiences = ORMExperience.objects.filter(id__in=experiences_ids).order_by(preserved)
+        orm_experiences = ORMExperience.objects.select_related('author__profile') \
+                                               .filter(id__in=experiences_ids) \
+                                               .order_by(preserved)
         orm_saves = list(ORMSave.objects.filter(experience_id__in=experiences_ids, person_id=logged_person_id))
-        return [self._decode_db_experience(experience,
-                                           experience.author_id == logged_person_id,
+        return [self._decode_db_experience(experience, logged_person_id,
                                            len([x for x in orm_saves if x.experience_id == experience.id]) > 0)
                 for experience in orm_experiences]
 

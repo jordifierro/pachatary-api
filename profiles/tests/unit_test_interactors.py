@@ -72,9 +72,11 @@ class TestGetProfileInteractor:
 
         def then_should_call_repo_get_profile_with(self, person_id=None, username=None):
             if person_id is not None:
-                self.repo.get_profile.assert_called_once_with(person_id=person_id)
+                self.repo.get_profile.assert_called_once_with(person_id=person_id,
+                                                              logged_person_id=self.logged_person_id)
             elif username is not None:
-                self.repo.get_profile.assert_called_once_with(username=username)
+                self.repo.get_profile.assert_called_once_with(username=username,
+                                                              logged_person_id=self.logged_person_id)
             return self
 
         def then_should_validate_person(self, id):
@@ -169,7 +171,8 @@ class TestModifyProfileInteractor:
             return self
 
         def then_should_call_repo_get_profile(self):
-            self.repo.get_profile.assert_called_once_with(person_id=self.logged_person_id)
+            self.repo.get_profile.assert_called_once_with(person_id=self.logged_person_id,
+                                                          logged_person_id=self.logged_person_id)
             return self
 
         def then_should_call_repo_update_profile_with(self, bio):

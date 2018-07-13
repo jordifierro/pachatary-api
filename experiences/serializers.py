@@ -1,4 +1,5 @@
 from pachatary.serializers import serialize_picture
+from profiles.serializers import serialize_profile
 
 
 def serialize_experiences_response(experiences, base_url, username, saved, next_limit, next_offset):
@@ -39,7 +40,7 @@ def serialize_experience(experience):
                'title': experience.title,
                'description': experience.description,
                'picture': serialize_picture(experience.picture),
-               'author_username': experience.author_username,
+               'author_profile': serialize_profile(experience.author_profile),
                'is_mine': experience.is_mine,
                'is_saved': experience.is_saved,
                'saves_count': experience.saves_count

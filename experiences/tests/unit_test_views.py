@@ -1,6 +1,7 @@
 from mock import Mock
 
 from pachatary.entities import Picture
+from profiles.entities import Profile
 from experiences.entities import Experience
 from experiences.views import ExperiencesView, ExperienceView, UploadExperiencePictureView, SaveExperienceView, \
         SearchExperiencesView, ExperienceShareUrlView, TranslateExperienceShareIdView
@@ -45,13 +46,15 @@ class TestExperiencesView:
         def given_an_experience_a(self):
             picture_a = Picture(small_url='small.a', medium_url='medium.a', large_url='large.a')
             self.experience_a = Experience(id=1, title='A', description='some', picture=picture_a,
-                                           author_id='4', author_username='usr', saves_count=4)
+                                           author_id='4', saves_count=4,
+                                           author_profile=Profile(username='a', bio='aa', is_me=True))
             return self
 
         def given_an_experience_b(self):
             picture_b = Picture(small_url='small.b', medium_url='medium.b', large_url='large.b')
             self.experience_b = Experience(id=2, title='B', description='other', picture=picture_b,
-                                           author_id='5', author_username='nms', saves_count=9)
+                                           author_id='5', saves_count=9,
+                                           author_profile=Profile(username='b', bio='bb', is_me=True))
             return self
 
         def given_a_next_limit_and_offset(self):
@@ -99,7 +102,10 @@ class TestExperiencesView:
 
     def test_post_returns_experience_serialized_and_200(self):
         experience = Experience(id='1', title='B', description='some',
-                                author_id='6', author_username='usr', saves_count=8)
+                                author_id='6', saves_count=8,
+                                author_profile=Profile(person_id='9', username='u', bio='b',
+                                                       picture=Picture(tiny_url='t', small_url='s', medium_url='m'),
+                                                       is_me=True))
 
         interactor_mock = Mock()
         interactor_mock.set_params.return_value = interactor_mock
@@ -115,7 +121,16 @@ class TestExperiencesView:
                            'title': 'B',
                            'description': 'some',
                            'picture': None,
-                           'author_username': 'usr',
+                           'author_profile': {
+                               'username': 'u',
+                               'bio': 'b',
+                               'picture': {
+                                   'tiny_url': 't',
+                                   'small_url': 's',
+                                   'medium_url': 'm',
+                               },
+                               'is_me': True
+                           },
                            'is_mine': False,
                            'is_saved': False,
                            'saves_count': 8
@@ -126,7 +141,10 @@ class TestExperienceView:
 
     def test_patch_returns_experience_serialized_and_200(self):
         experience = Experience(id='1', title='B', description='some',
-                                author_id='8', author_username='usrnm', saves_count=8)
+                                author_id='6', saves_count=8,
+                                author_profile=Profile(person_id='9', username='u', bio='b',
+                                                       picture=Picture(tiny_url='t', small_url='s', medium_url='m'),
+                                                       is_me=True))
 
         interactor_mock = Mock()
         interactor_mock.set_params.return_value = interactor_mock
@@ -142,7 +160,16 @@ class TestExperienceView:
                            'title': 'B',
                            'description': 'some',
                            'picture': None,
-                           'author_username': 'usrnm',
+                           'author_profile': {
+                               'username': 'u',
+                               'bio': 'b',
+                               'picture': {
+                                   'tiny_url': 't',
+                                   'small_url': 's',
+                                   'medium_url': 'm',
+                               },
+                               'is_me': True
+                           },
                            'is_mine': False,
                            'is_saved': False,
                            'saves_count': 8
@@ -160,7 +187,8 @@ class TestExperienceView:
         def given_an_interactor_that_returns_experience(self):
             self.interactor = Mock()
             self.interactor.set_params.return_value = self.interactor
-            self.experience = Experience(id='9', title='as', description='er', author_id='9')
+            self.experience = Experience(id='9', title='as', description='er', author_id='9',
+                                         author_profile=Profile(username='b', bio='bb', is_me=True))
             self.interactor.execute.return_value = self.experience
             return self
 
@@ -211,7 +239,8 @@ class TestUploadExperiencePictureView:
             return self
 
         def given_an_experience(self):
-            self._experience = Experience(id='1', title='B', description='some', author_id='3')
+            self._experience = Experience(id='1', title='B', description='some', author_id='3',
+                                          author_profile=Profile(username='b', bio='bb', is_me=True))
             return self
 
         def given_an_interactor_that_returns_that_experience(self):
@@ -383,13 +412,15 @@ class TestSearchExperiencesView:
         def given_an_experience_a(self):
             picture_a = Picture(small_url='small.a', medium_url='medium.a', large_url='large.a')
             self.experience_a = Experience(id=1, title='A', description='some', picture=picture_a,
-                                           author_id='4', author_username='usr', saves_count=4)
+                                           author_id='4', saves_count=4,
+                                           author_profile=Profile(username='a', bio='aa', is_me=True))
             return self
 
         def given_an_experience_b(self):
             picture_b = Picture(small_url='small.b', medium_url='medium.b', large_url='large.b')
             self.experience_b = Experience(id=2, title='B', description='other', picture=picture_b,
-                                           author_id='5', author_username='nms', saves_count=9)
+                                           author_id='5', saves_count=9,
+                                           author_profile=Profile(username='a', bio='aa', is_me=True))
             return self
 
         def given_a_next_limit_and_offset(self):
