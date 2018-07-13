@@ -71,11 +71,11 @@ class ExperiencesTestCase(TestCase):
             }
 
     def test_others_experiences_returns_others_experiences(self):
-        orm_person = ORMPerson.objects.create(username='usr')
+        orm_person = ORMPerson.objects.create(username='doesntmattera')
         ORMProfile.objects.create(person_id=orm_person.id, username='a')
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
-        orm_other_person = ORMPerson.objects.create(username='other')
-        ORMProfile.objects.create(person_id=orm_other_person.id, username='b', bio='c')
+        orm_other_person = ORMPerson.objects.create(username='doesntmatterb')
+        ORMProfile.objects.create(person_id=orm_other_person.id, username='other', bio='c')
         exp_a = ORMExperience.objects.create(title='Exp a', description='some description', author=orm_other_person)
         exp_b = ORMExperience.objects.create(title='Exp b', description='other description', author=orm_other_person)
         exp_c = ORMExperience.objects.create(title='Exp c', description='third description', author=orm_other_person)
@@ -95,7 +95,7 @@ class ExperiencesTestCase(TestCase):
                                'description': 'third description',
                                'picture': None,
                                'author_profile': {
-                                   'username': 'b',
+                                   'username': 'other',
                                    'bio': 'c',
                                    'picture': None,
                                    'is_me': False,
@@ -110,7 +110,7 @@ class ExperiencesTestCase(TestCase):
                                'description': 'other description',
                                'picture': None,
                                'author_profile': {
-                                   'username': 'b',
+                                   'username': 'other',
                                    'bio': 'c',
                                    'picture': None,
                                    'is_me': False,
@@ -135,7 +135,7 @@ class ExperiencesTestCase(TestCase):
                                'description': 'some description',
                                'picture': None,
                                'author_profile': {
-                                   'username': 'b',
+                                   'username': 'other',
                                    'bio': 'c',
                                    'picture': None,
                                    'is_me': False,

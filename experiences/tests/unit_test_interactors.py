@@ -2,7 +2,7 @@ from mock import Mock, call
 
 from pachatary.exceptions import InvalidEntityException, EntityDoesNotExistException, NoLoggedException, \
         NoPermissionException, ConflictException
-from people.entities import Person
+from profiles.entities import Profile
 from experiences.entities import Experience
 from experiences.interactors import GetExperiencesInteractor, CreateNewExperienceInteractor, \
         ModifyExperienceInteractor, UploadExperiencePictureInteractor, SaveUnsaveExperienceInteractor, \
@@ -31,11 +31,11 @@ class TestGetExperiences:
                 .given_an_experience() \
                 .given_an_experience() \
                 .given_a_repo_that_returns_experiences_and_offset(7) \
-                .given_a_person_repo_that_returns_other_person_with_id('13') \
+                .given_a_profile_repo_that_returns_other_person_with_id('13') \
                 .given_a_permission_validator_that_returns_true() \
                 .when_interactor_is_executed(logged_person_id='2', username='usr.nm', offset=4,
                                              limit=GetExperiencesInteractor.MAX_PAGINATE_LIMIT + 1) \
-                .then_should_call_get_person_with_username('usr.nm') \
+                .then_should_call_get_profile_with_username('usr.nm', logged_person_id='2') \
                 .then_should_call_get_person_experiences_with(logged_person_id='2', target_person_id='13', offset=4,
                                                               limit=GetExperiencesInteractor.MAX_PAGINATE_LIMIT) \
                 .then_validate_permissions_should_be_called_with(logged_person_id='2') \
@@ -68,7 +68,7 @@ class TestGetExperiences:
         def __init__(self):
             self.experiences = []
             self.repo = Mock()
-            self.person_repo = Mock()
+            self.profile_repo = Mock()
 
         def given_an_experience(self):
             self.experiences.append(Experience(id=len(self.experiences)+1, title='t', description='d',
@@ -90,13 +90,13 @@ class TestGetExperiences:
             self.permissions_validator.validate_permissions.side_effect = NoLoggedException()
             return self
 
-        def given_a_person_repo_that_returns_other_person_with_id(self, person_id):
-            self.person_repo.get_person.return_value = Person(id=person_id)
+        def given_a_profile_repo_that_returns_other_person_with_id(self, person_id):
+            self.profile_repo.get_profile.return_value = Profile(person_id=person_id)
             return self
 
         def when_interactor_is_executed(self, logged_person_id, saved=False, username=None, offset=0, limit=20):
             try:
-                self.result = GetExperiencesInteractor(experience_repo=self.repo, person_repo=self.person_repo,
+                self.result = GetExperiencesInteractor(experience_repo=self.repo, profile_repo=self.profile_repo,
                                                        permissions_validator=self.permissions_validator) \
                         .set_params(username=username, saved=saved,
                                     logged_person_id=logged_person_id, offset=offset, limit=limit).execute()
@@ -115,8 +115,9 @@ class TestGetExperiences:
                                                                     offset=offset, limit=limit)
             return self
 
-        def then_should_call_get_person_with_username(self, username):
-            self.person_repo.get_person.assert_called_once_with(username=username)
+        def then_should_call_get_profile_with_username(self, username, logged_person_id):
+            self.profile_repo.get_profile.assert_called_once_with(username=username,
+                                                                  logged_person_id=logged_person_id)
             return self
 
         def then_validate_permissions_should_be_called_with(self, logged_person_id):
