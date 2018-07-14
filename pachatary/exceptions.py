@@ -13,6 +13,12 @@ class PachataryException(Exception):
     def code(self):
         return self._code
 
+    def __eq__(self, other):
+        return ((self.__dict__ == other.__dict__) and (type(self) is type(other)))
+
+    def __ne__(self, other):
+        return not self == other
+
 
 class InvalidEntityException(PachataryException):
     pass

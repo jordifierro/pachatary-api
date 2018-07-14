@@ -1,6 +1,7 @@
 from pachatary.exceptions import EntityDoesNotExistException, ConflictException, NoLoggedException, \
         InvalidEntityException
 from people.entities import Person
+from profiles.entities import Profile
 
 
 class CreateGuestPersonAndReturnAuthTokenInteractor:
@@ -41,9 +42,12 @@ class AuthenticateInteractor:
 
 class RegisterUsernameAndEmailInteractor:
 
-    def __init__(self, person_validator, person_repo, confirmation_token_repo, mailer_service):
+    def __init__(self, person_validator, person_repo, profile_validator, profile_repo,
+                 confirmation_token_repo, mailer_service):
         self.person_validator = person_validator
         self.person_repo = person_repo
+        self.profile_validator = profile_validator
+        self.profile_repo = profile_repo
         self.confirmation_token_repo = confirmation_token_repo
         self.mailer_service = mailer_service
 
@@ -61,15 +65,29 @@ class RegisterUsernameAndEmailInteractor:
         if person.is_email_confirmed:
             raise ConflictException(source='person', code='already_registered', message='Person already registered')
 
-        updated_person = Person(id=person.id, is_registered=True,
-                                username=self.username, email=self.email, is_email_confirmed=False)
+        updated_person = Person(id=person.id, is_registered=True, email=self.email, is_email_confirmed=False)
         self.person_validator.validate(updated_person)
+        try:
+            profile = self.profile_repo.get_profile(person_id=self.logged_person_id,
+                                                    logged_person_id=self.logged_person_id)
+            updated_profile = profile.builder().username(self.username).build()
+
+            self.profile_validator.validate(updated_profile)
+
+            profile = self.profile_repo.update_profile(updated_profile)
+        except EntityDoesNotExistException:
+            new_profile = Profile(person_id=self.logged_person_id, username=self.username)
+
+            self.profile_validator.validate(new_profile)
+
+            profile = self.profile_repo.create_profile(new_profile)
+
         updated_person = self.person_repo.update_person(updated_person)
 
-        self.confirmation_token_repo.delete_confirmation_tokens(person_id=updated_person.id)
-        confirmation_token = self.confirmation_token_repo.create_confirmation_token(person_id=updated_person.id)
+        self.confirmation_token_repo.delete_confirmation_tokens(person_id=self.logged_person_id)
+        confirmation_token = self.confirmation_token_repo.create_confirmation_token(person_id=self.logged_person_id)
         self.mailer_service.send_ask_confirmation_mail(confirmation_token=confirmation_token,
-                                                       username=updated_person.username, email=updated_person.email)
+                                                       username=self.username, email=self.email)
         return updated_person
 
 

@@ -9,6 +9,7 @@ from django.core import mail
 from django.template.loader import get_template
 
 from people.models import ORMAuthToken, ORMPerson, ORMConfirmationToken, ORMLoginToken
+from profiles.models import ORMProfile
 
 
 class CreatePersonTestCase(TestCase):
@@ -117,7 +118,7 @@ class ModifyPersonTestCase(TestCase):
                 .then_old_confirmation_tokens_should_be_deleted() \
                 .then_ask_confirmation_email_should_be_sent(last=1)
 
-    def test_wrong_client_secret_key_returns_error(self):
+    def test_already_email_confirmed_returns_conflict(self):
         ModifyPersonTestCase._ScenarioMaker() \
                 .given_a_registered_and_confirmed_person() \
                 .given_a_username() \
@@ -195,7 +196,7 @@ class ModifyPersonTestCase(TestCase):
 
         def then_response_body_should_be_person_info(self):
             body = json.loads(self.response.content)
-            assert body['username'] == self.username
+            assert body['username'] is None
             assert body['email'] == self.email
             assert body['is_registered'] is True
             assert body['is_email_confirmed'] is False
@@ -203,10 +204,14 @@ class ModifyPersonTestCase(TestCase):
 
         def then_person_should_be_updated_and_marked_as_registered(self):
             orm_updated_person = ORMPerson.objects.get(id=self.orm_person.id)
-            assert orm_updated_person.username == self.username
             assert orm_updated_person.email == self.email
             assert orm_updated_person.is_registered is True
             assert orm_updated_person.is_email_confirmed is False
+
+            assert orm_updated_person.username is None
+            orm_profile = ORMProfile.objects.get(person_id=self.orm_person.id)
+            assert orm_profile.username == self.username
+
             return self
 
         def then_old_confirmation_tokens_should_be_deleted(self):

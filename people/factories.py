@@ -2,16 +2,14 @@ import json
 
 from django.conf import settings
 
-from .repositories import PersonRepo, AuthTokenRepo, ConfirmationTokenRepo, LoginTokenRepo
-from .validators import ClientSecretKeyValidator, PersonValidator, PersonPermissionsValidator
+from profiles.factories import create_profile_repo, create_profile_validator
+from .basic_factories import create_person_repo
+from .repositories import AuthTokenRepo, ConfirmationTokenRepo, LoginTokenRepo
+from .validators import ClientSecretKeyValidator, PersonValidator
 from .interactors import CreateGuestPersonAndReturnAuthTokenInteractor, RegisterUsernameAndEmailInteractor, \
         AuthenticateInteractor, ConfirmEmailInteractor, LoginEmailInteractor, LoginInteractor
 from .views import PeopleView, PersonView, EmailConfirmationView, LoginEmailView, LoginView
 from .services import MailerService
-
-
-def create_person_repo():
-    return PersonRepo()
 
 
 def create_auth_token_repo():
@@ -30,26 +28,13 @@ def create_client_secret_key_validator():
     return ClientSecretKeyValidator(valid_client_secret_key=settings.CLIENT_SECRET_KEY)
 
 
-def create_person_permissions_validator():
-    return PersonPermissionsValidator(person_repo=create_person_repo())
-
-
 def create_person_validator():
-    project_name = settings.PROJECT_NAME
-
-    generic_forbidden_usernames_json = open('people/generic_forbidden_usernames.json')
-    generic_forbidden_usernames = json.load(generic_forbidden_usernames_json)
-    custom_forbidden_usernames_json = open('people/custom_forbidden_usernames.json')
-    custom_forbidden_usernames = json.load(custom_forbidden_usernames_json)
-    forbidden_usernames = generic_forbidden_usernames + custom_forbidden_usernames
-
     forbidden_email_domains_json = open('people/forbidden_email_domains.json')
     forbidden_email_domains = json.load(forbidden_email_domains_json)
 
     person_repo = create_person_repo()
 
-    return PersonValidator(project_name=project_name, forbidden_usernames=forbidden_usernames,
-                           forbidden_email_domains=forbidden_email_domains, person_repo=person_repo)
+    return PersonValidator(forbidden_email_domains=forbidden_email_domains, person_repo=person_repo)
 
 
 def create_mailer_service():
@@ -70,10 +55,12 @@ def create_guest_person_and_return_auth_token_interactor():
 def create_register_username_and_email_interactor():
     person_validator = create_person_validator()
     person_repo = create_person_repo()
+    profile_validator = create_profile_validator()
+    profile_repo = create_profile_repo()
     confirmation_token_repo = create_confirmation_token_repo()
     mailer_service = create_mailer_service()
-    return RegisterUsernameAndEmailInteractor(person_validator=person_validator,
-                                              person_repo=person_repo,
+    return RegisterUsernameAndEmailInteractor(person_validator=person_validator, person_repo=person_repo,
+                                              profile_validator=profile_validator, profile_repo=profile_repo,
                                               confirmation_token_repo=confirmation_token_repo,
                                               mailer_service=mailer_service)
 

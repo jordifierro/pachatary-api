@@ -3,7 +3,7 @@ from elasticsearch import Elasticsearch
 from django.urls import reverse
 from django.conf import settings
 
-from people.factories import create_person_permissions_validator
+from people.basic_factories import create_person_permissions_validator
 from profiles.factories import create_profile_repo
 from .repositories import ExperienceRepo, ExperienceSearchRepo
 from .validators import ExperienceValidator, ExperiencePermissionsValidator

@@ -5,6 +5,7 @@ from pachatary.exceptions import InvalidEntityException, EntityDoesNotExistExcep
 from people.entities import Person, AuthToken
 from people.interactors import CreateGuestPersonAndReturnAuthTokenInteractor, AuthenticateInteractor, \
         RegisterUsernameAndEmailInteractor, ConfirmEmailInteractor, LoginEmailInteractor, LoginInteractor
+from profiles.entities import Profile
 
 
 class TestCreateGuestPersonAndReturnAuthToken:
@@ -178,235 +179,258 @@ class TestAuthenticateInteractor:
 
 class TestRegisterUsernameAndEmailInteractor:
 
-    def test_correct_username_and_email_updates_person_and_returns_it(self):
+    def test_correct_username_and_email_when_profile_doesnt_exist(self):
         TestRegisterUsernameAndEmailInteractor.ScenarioMaker() \
-                .given_a_logged_person_id() \
-                .given_a_username_and_email() \
-                .given_a_person_validator_that_accepts_them() \
-                .given_a_first_person() \
-                .given_a_second_person() \
-                .given_a_person_repo() \
-                .given_that_repo_returns_first_person_on_get() \
-                .given_that_repo_returns_second_person_on_update() \
-                .given_a_confirmation_token() \
-                .given_confirmation_token_repo_that_returns_that_token() \
-                .given_a_mailer_service() \
-                .when_register_interactor_is_called() \
-                .then_should_call_repo_get_with_logged_person_id() \
-                .then_should_call_validate_with_new_username_and_email() \
-                .then_should_call_repo_update_with_new_username_and_email() \
-                .then_should_delete_previous_person_confirmation_tokens() \
-                .then_should_create_confirmation_token() \
-                .then_should_send_email_with_confirmation_token() \
-                .then_result_should_be_second_person()
+                .given_a_person_validator_that_returns(True) \
+                .given_a_person_repo_that_returns_on_get(Person(id='3', email='b', is_email_confirmed=False)) \
+                .given_a_person_repo_that_returns_on_update(
+                        Person(id='4', email='o', is_registered=True, is_email_confirmed=False)) \
+                .given_a_profile_validator_that_returns(True) \
+                .given_a_profile_repo_that_returns_on_get(False) \
+                .given_a_confirmation_token_repo_that_returns('KT') \
+                .when_execute(logged_person_id='1', username='u', email='e') \
+                .then_should_call_person_repo_get_with(id='1') \
+                .then_should_call_person_validator_with(
+                        Person(id='3', is_registered=True, email='e', is_email_confirmed=False)) \
+                .then_should_call_profile_repo_get_with(person_id='1', logged_person_id='1') \
+                .then_should_call_profile_validator_with(Profile(person_id='1', username='u')) \
+                .then_should_call_profile_repo_create_with(Profile(person_id='1', username='u')) \
+                .then_should_call_person_repo_update_with(
+                        Person(id='3', is_registered=True, email='e', is_email_confirmed=False)) \
+                .then_should_call_confirmation_token_repo_delete_with(person_id='1') \
+                .then_should_call_confirmation_token_repo_create_with(person_id='1') \
+                .then_should_call_mailer_with(confirmation_token='KT', username='u', email='e') \
+                .then_should_return(Person(id='4', email='o', is_registered=True, is_email_confirmed=False))
 
-    def test_wrong_attributes_raises_invalid_entity_exception(self):
+    def test_correct_username_and_email_when_profile_exists(self):
         TestRegisterUsernameAndEmailInteractor.ScenarioMaker() \
-                .given_a_logged_person_id() \
-                .given_a_username_and_email() \
-                .given_a_person_validator_that_raises_invalid_entity_exception() \
-                .given_a_first_person() \
-                .given_a_person_repo() \
-                .given_that_repo_returns_first_person_on_get() \
-                .given_confirmation_token_repo() \
-                .given_a_mailer_service() \
-                .when_register_interactor_is_called() \
-                .then_should_call_repo_get_with_logged_person_id() \
-                .then_should_call_validate_with_new_username_and_email() \
-                .then_should_not_call_repo_update() \
-                .then_should_not_delete_previous_person_confirmation_tokens() \
-                .then_should_not_create_confirmation_token() \
-                .then_should_not_send_email_with_confirmation_token() \
-                .then_should_raise_invalid_entity_exception()
+                .given_a_person_validator_that_returns(True) \
+                .given_a_person_repo_that_returns_on_get(Person(id='3', email='b', is_email_confirmed=False)) \
+                .given_a_person_repo_that_returns_on_update(
+                        Person(id='4', email='o', is_registered=True, is_email_confirmed=False)) \
+                .given_a_profile_validator_that_returns(True) \
+                .given_a_profile_repo_that_returns_on_get(Profile(person_id='7', username='p')) \
+                .given_a_confirmation_token_repo_that_returns('KT') \
+                .when_execute(logged_person_id='1', username='u', email='e') \
+                .then_should_call_person_repo_get_with(id='1') \
+                .then_should_call_person_validator_with(
+                        Person(id='3', is_registered=True, email='e', is_email_confirmed=False)) \
+                .then_should_call_profile_repo_get_with(person_id='1', logged_person_id='1') \
+                .then_should_call_profile_validator_with(Profile(person_id='7', username='u')) \
+                .then_should_call_profile_repo_update_with(Profile(person_id='7', username='u')) \
+                .then_should_call_person_repo_update_with(
+                        Person(id='3', is_registered=True, email='e', is_email_confirmed=False)) \
+                .then_should_call_confirmation_token_repo_delete_with(person_id='1') \
+                .then_should_call_confirmation_token_repo_create_with(person_id='1') \
+                .then_should_call_mailer_with(confirmation_token='KT', username='u', email='e') \
+                .then_should_return(Person(id='4', email='o', is_registered=True, is_email_confirmed=False))
 
-    def test_already_confirmed_email_doesnt_let_update_and_raises_conflict_exception(self):
+    def test_incorrect_email_raises_invalid_entity_exception(self):
         TestRegisterUsernameAndEmailInteractor.ScenarioMaker() \
-                .given_a_logged_person_id() \
-                .given_a_person_with_confirmed_email() \
-                .given_a_person_repo() \
-                .given_that_repo_returns_first_person_on_get() \
-                .given_confirmation_token_repo() \
-                .given_a_mailer_service() \
-                .when_register_interactor_is_called() \
-                .then_should_call_repo_get_with_logged_person_id() \
-                .then_should_not_call_repo_update() \
-                .then_should_not_delete_previous_person_confirmation_tokens() \
-                .then_should_not_create_confirmation_token() \
-                .then_should_not_send_email_with_confirmation_token() \
-                .then_should_raise_conflict_exception()
+                .given_a_person_validator_that_returns(
+                        error=InvalidEntityException(source='e', code='i', message='m')) \
+                .given_a_person_repo_that_returns_on_get(Person(id='3', email='b', is_email_confirmed=False)) \
+                .when_execute(logged_person_id='1', username='u', email='e') \
+                .then_should_call_person_repo_get_with(id='1') \
+                .then_should_call_person_validator_with(
+                        Person(id='3', is_registered=True, email='e', is_email_confirmed=False)) \
+                .then_should_call_profile_repo_get_with(False) \
+                .then_should_call_profile_validator_with(False) \
+                .then_should_call_profile_repo_update_with(False) \
+                .then_should_call_person_repo_update_with(False) \
+                .then_should_call_confirmation_token_repo_delete_with(False) \
+                .then_should_call_confirmation_token_repo_create_with(False) \
+                .then_should_call_mailer_with(False) \
+                .then_should_raise(InvalidEntityException(source='e', code='i', message='m'))
+
+    def test_incorrect_username_raises_invalid_entity_exception(self):
+        TestRegisterUsernameAndEmailInteractor.ScenarioMaker() \
+                .given_a_person_validator_that_returns(True) \
+                .given_a_person_repo_that_returns_on_get(Person(id='3', email='b', is_email_confirmed=False)) \
+                .given_a_profile_validator_that_returns(
+                        error=InvalidEntityException(source='u', code='i', message='m')) \
+                .given_a_profile_repo_that_returns_on_get(False) \
+                .when_execute(logged_person_id='1', username='u', email='e') \
+                .then_should_call_person_repo_get_with(id='1') \
+                .then_should_call_person_validator_with(
+                        Person(id='3', is_registered=True, email='e', is_email_confirmed=False)) \
+                .then_should_call_profile_repo_get_with(person_id='1', logged_person_id='1') \
+                .then_should_call_profile_validator_with(Profile(person_id='1', username='u')) \
+                .then_should_call_profile_repo_update_with(False) \
+                .then_should_call_person_repo_update_with(False) \
+                .then_should_call_confirmation_token_repo_delete_with(False) \
+                .then_should_call_confirmation_token_repo_create_with(False) \
+                .then_should_call_mailer_with(False) \
+                .then_should_raise(InvalidEntityException(source='u', code='i', message='m'))
+
+    def test_cannot_register_once_email_is_confirmed(self):
+        TestRegisterUsernameAndEmailInteractor.ScenarioMaker() \
+                .given_a_person_validator_that_returns(True) \
+                .given_a_person_repo_that_returns_on_get(Person(id='3', email='b', is_email_confirmed=True)) \
+                .when_execute(logged_person_id='1', username='u', email='e') \
+                .then_should_call_person_repo_get_with(id='1') \
+                .then_should_call_person_validator_with(False) \
+                .then_should_call_profile_repo_get_with(False) \
+                .then_should_call_profile_validator_with(False) \
+                .then_should_call_profile_repo_update_with(False) \
+                .then_should_call_person_repo_update_with(False) \
+                .then_should_call_confirmation_token_repo_delete_with(False) \
+                .then_should_call_confirmation_token_repo_create_with(False) \
+                .then_should_call_mailer_with(False) \
+                .then_should_raise(
+                        ConflictException(source='person', code='already_registered',
+                                          message='Person already registered'))
 
     def test_no_logged_person_id_raises_unauthorized(self):
         TestRegisterUsernameAndEmailInteractor.ScenarioMaker() \
-                .given_a_person_repo() \
-                .given_confirmation_token_repo() \
-                .given_a_mailer_service() \
-                .when_register_interactor_is_called() \
-                .then_should_raise_unauthorized_exception() \
-                .then_should_not_call_repo_update() \
-                .then_should_not_delete_previous_person_confirmation_tokens() \
-                .then_should_not_create_confirmation_token() \
-                .then_should_not_send_email_with_confirmation_token() \
-
+                .when_execute(logged_person_id=None, username='u', email='e') \
+                .then_should_call_person_repo_get_with(False) \
+                .then_should_call_person_validator_with(False) \
+                .then_should_call_profile_repo_get_with(False) \
+                .then_should_call_profile_validator_with(False) \
+                .then_should_call_profile_repo_update_with(False) \
+                .then_should_call_person_repo_update_with(False) \
+                .then_should_call_confirmation_token_repo_delete_with(False) \
+                .then_should_call_confirmation_token_repo_create_with(False) \
+                .then_should_call_mailer_with(False) \
+                .then_should_raise(NoLoggedException())
 
     class ScenarioMaker:
 
         def __init__(self):
-            self.logged_person_id = None
-            self.username = None
-            self.email = None
-            self.person_validator = None
-            self.person = None
-            self.second_person = None
-            self.person_repo = None
-            self.confirmation_token = None
-            self.confirmation_token_repo = None
-            self.mailer_service = None
-            self.result = None
-            self.error = None
-
-        def given_a_logged_person_id(self):
-            self.logged_person_id = '5'
-            return self
-
-        def given_a_username_and_email(self):
-            self.username = 'usr'
-            self.email = 'e@m'
-            return self
-
-        def given_a_person_validator_that_accepts_them(self):
             self.person_validator = Mock()
-            self.person_validator.validate.return_value = True
-            return self
-
-        def given_a_person_validator_that_raises_invalid_entity_exception(self):
-            self.person_validator = Mock()
-            self.person_validator.validate.side_effect = InvalidEntityException(source='username', code='already_used',
-                                                                                message='Username already used')
-            return self
-
-        def given_a_first_person(self):
-            self.person = Person(id='8', is_registered=True, username='u', email='e')
-            return self
-
-        def given_a_second_person(self):
-            self.second_person = Person(id='9', is_registered=True, username='o', email='i')
-            return self
-
-        def given_a_person_with_confirmed_email(self):
-            self.person = Person(id='8', is_registered=True, username='u', email='e', is_email_confirmed=True)
-            return self
-
-        def given_a_person_repo(self):
             self.person_repo = Mock()
-            return self
-
-        def given_that_repo_returns_first_person_on_get(self):
-            self.person_repo.get_person.return_value = self.person
-            return self
-
-        def given_that_repo_returns_second_person_on_update(self):
-            self.person_repo.update_person.return_value = self.second_person
-            return self
-
-        def given_a_confirmation_token(self):
-            self.confirmation_token = 'K_T'
-            return self
-
-        def given_confirmation_token_repo_that_returns_that_token(self):
-            self.given_confirmation_token_repo()
-            self.confirmation_token_repo.create_confirmation_token.return_value = self.confirmation_token
-            return self
-
-        def given_confirmation_token_repo(self):
+            self.profile_validator = Mock()
+            self.profile_repo = Mock()
             self.confirmation_token_repo = Mock()
-            return self
-
-        def given_a_mailer_service(self):
             self.mailer_service = Mock()
+
+        def given_a_person_validator_that_returns(self, is_correct=False, error=None):
+            if not is_correct:
+                self.person_validator.validate.side_effect = error
+            else:
+                self.person_validator.validate.return_value = True
             return self
 
-        def when_register_interactor_is_called(self):
+        def given_a_person_repo_that_returns_on_get(self, person):
+            if person is False:
+                self.person_repo.get_person.side_effect = EntityDoesNotExistException()
+            else:
+                self.person_repo.get_person.return_value = person
+            return self
+
+        def given_a_person_repo_that_returns_on_update(self, person):
+            self.person_repo.update_person.return_value = person
+            return self
+
+        def given_a_profile_validator_that_returns(self, is_correct=False, error=None):
+            if not is_correct:
+                self.profile_validator.validate.side_effect = error
+            else:
+                self.profile_validator.validate.return_value = True
+            return self
+
+        def given_a_profile_repo_that_returns_on_get(self, profile):
+            if profile is False:
+                self.profile_repo.get_profile.side_effect = EntityDoesNotExistException()
+            else:
+                self.profile_repo.get_profile.return_value = profile
+            return self
+
+        def given_a_confirmation_token_repo_that_returns(self, confirmation_token):
+            self.confirmation_token_repo.create_confirmation_token.return_value = confirmation_token
+            return self
+
+        def when_execute(self, logged_person_id, username, email):
             try:
-                interactor = RegisterUsernameAndEmailInteractor(person_validator=self.person_validator,
-                                                                person_repo=self.person_repo,
-                                                                confirmation_token_repo=self.confirmation_token_repo,
-                                                                mailer_service=self.mailer_service)
-                self.result = interactor.set_params(self.logged_person_id, self.username, self.email).execute()
+                self.result = RegisterUsernameAndEmailInteractor(
+                        person_repo=self.person_repo, person_validator=self.person_validator,
+                        profile_repo=self.profile_repo, profile_validator=self.profile_validator,
+                        confirmation_token_repo=self.confirmation_token_repo,
+                        mailer_service=self.mailer_service) \
+                    .set_params(logged_person_id=logged_person_id, username=username, email=email).execute()
             except Exception as e:
-                print('ERROR')
-                print(e)
                 self.error = e
             return self
 
-        def then_should_call_repo_get_with_logged_person_id(self):
-            self.person_repo.get_person.assert_called_once_with(id=self.logged_person_id)
+        def then_should_call_person_repo_get_with(self, id):
+            if id is False:
+                self.person_repo.get_person.assert_not_called()
+            else:
+                self.person_repo.get_person.assert_called_once_with(id=id)
             return self
 
-        def then_should_call_validate_with_new_username_and_email(self):
-            self.person_validator.validate.assert_called_once_with(Person(id=self.person.id, is_registered=True,
-                                                                          username=self.username, email=self.email,
-                                                                          is_email_confirmed=False))
+        def then_should_call_person_validator_with(self, person):
+            if person is False:
+                self.person_validator.validate.assert_not_called()
+            else:
+                self.person_validator.validate.assert_called_once_with(person)
             return self
 
-        def then_should_call_repo_update_with_new_username_and_email(self):
-            self.person_repo.update_person.assert_called_once_with(Person(id=self.person.id, is_registered=True,
-                                                                          username=self.username, email=self.email,
-                                                                          is_email_confirmed=False))
+        def then_should_call_profile_repo_get_with(self, person_id, logged_person_id=None):
+            if person_id is False:
+                self.profile_repo.get_profile.assert_not_called()
+            else:
+                self.profile_repo.get_profile.assert_called_once_with(person_id=person_id,
+                                                                      logged_person_id=logged_person_id)
             return self
 
-        def then_should_delete_previous_person_confirmation_tokens(self):
-            self.confirmation_token_repo.delete_confirmation_tokens \
-                    .assert_called_once_with(person_id=self.second_person.id)
+        def then_should_call_profile_validator_with(self, profile):
+            if profile is False:
+                self.profile_validator.validate.assert_not_called()
+            else:
+                self.profile_validator.validate.assert_called_once_with(profile)
             return self
 
-        def then_should_create_confirmation_token(self):
-            self.confirmation_token_repo.create_confirmation_token \
-                    .assert_called_once_with(person_id=self.second_person.id)
+        def then_should_call_profile_repo_create_with(self, profile):
+            if profile is False:
+                self.profile_repo.create_profile.assert_not_called()
+            else:
+                self.profile_repo.create_profile.assert_called_once_with(profile)
             return self
 
-        def then_should_send_email_with_confirmation_token(self):
-            self.mailer_service.send_ask_confirmation_mail.assert_called_once_with(
-                    confirmation_token=self.confirmation_token,
-                    username=self.second_person.username,
-                    email=self.second_person.email)
+        def then_should_call_profile_repo_update_with(self, profile):
+            if profile is False:
+                self.profile_repo.update_profile.assert_not_called()
+            else:
+                self.profile_repo.update_profile.assert_called_once_with(profile)
             return self
 
-        def then_result_should_be_second_person(self):
-            assert self.result == self.second_person
+        def then_should_call_person_repo_update_with(self, person):
+            if person is False:
+                self.person_repo.update_person.assert_not_called()
+            else:
+                self.person_repo.update_person.assert_called_once_with(person)
             return self
 
-        def then_should_not_call_repo_update(self):
-            self.person_repo.update_person.assert_not_called()
+        def then_should_call_confirmation_token_repo_delete_with(self, person_id):
+            if person_id is False:
+                self.confirmation_token_repo.delete_confirmation_tokens.assert_not_called()
+            else:
+                self.confirmation_token_repo.delete_confirmation_tokens.assert_called_once_with(person_id=person_id)
             return self
 
-        def then_should_not_delete_previous_person_confirmation_tokens(self):
-            self.confirmation_token_repo.delete_confirmation_tokens.assert_not_called()
+        def then_should_call_confirmation_token_repo_create_with(self, person_id):
+            if person_id is False:
+                self.confirmation_token_repo.create_confirmation_token.assert_not_called()
+            else:
+                self.confirmation_token_repo.create_confirmation_token.assert_called_once_with(person_id=person_id)
             return self
 
-        def then_should_not_create_confirmation_token(self):
-            self.confirmation_token_repo.create_confirmation_token.assert_not_called()
+        def then_should_call_mailer_with(self, confirmation_token, username=None, email=None):
+            if confirmation_token is False:
+                self.mailer_service.send_ask_confirmation_mail.assert_not_called()
+            else:
+                self.mailer_service.send_ask_confirmation_mail.assert_called_once_with(
+                        confirmation_token=confirmation_token, username=username, email=email)
             return self
 
-        def then_should_not_send_email_with_confirmation_token(self):
-            self.mailer_service.send_ask_confirmation_mail.assert_not_called()
+        def then_should_return(self, person):
+            assert self.result == person
             return self
 
-        def then_should_raise_invalid_entity_exception(self):
-            assert type(self.error) is InvalidEntityException
-            assert self.error.source == 'username'
-            assert self.error.code == 'already_used'
-            assert str(self.error) == 'Username already used'
-            return self
-
-        def then_should_raise_conflict_exception(self):
-            assert type(self.error) is ConflictException
-            assert self.error.source == 'person'
-            assert self.error.code == 'already_registered'
-            assert str(self.error) == 'Person already registered'
-            return self
-
-        def then_should_raise_unauthorized_exception(self):
-            assert type(self.error) is NoLoggedException
+        def then_should_raise(self, error):
+            assert self.error == error
             return self
 
 

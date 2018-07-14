@@ -1,6 +1,6 @@
 class Profile:
 
-    def __init__(self, person_id=None, username=None, bio=None, picture=None, is_me=False):
+    def __init__(self, person_id=None, username=None, bio='', picture=None, is_me=False):
         self._person_id = person_id
         self._username = username
         self._bio = bio
@@ -47,6 +47,10 @@ class Profile:
 
         def bio(self, bio):
             self._bio = bio
+            return self
+
+        def username(self, username):
+            self._username = username
             return self
 
         def build(self):
