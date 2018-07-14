@@ -30,12 +30,6 @@ class PersonRepoTestCase(TestCase):
                 .when_get_person_with_her_id() \
                 .then_result_should_be_that_person()
 
-    def test_get_person_by_username(self):
-        PersonRepoTestCase._ScenarioMaker() \
-                .given_a_person_in_db() \
-                .when_get_person_with_her_username() \
-                .then_result_should_be_that_person()
-
     def test_get_person_by_email(self):
         PersonRepoTestCase._ScenarioMaker() \
                 .given_a_person_in_db() \
@@ -54,8 +48,7 @@ class PersonRepoTestCase(TestCase):
             return self
 
         def given_a_person_entity_with_db_person_id(self):
-            self.person = Person(id=str(self.orm_person.id), is_registered=True,
-                                 username='U', email='E', is_email_confirmed=True)
+            self.person = Person(id=str(self.orm_person.id), email='E', is_email_confirmed=True)
             return self
 
         def when_create_guest_person(self):
@@ -64,10 +57,6 @@ class PersonRepoTestCase(TestCase):
 
         def when_get_person_with_her_id(self):
             self.result = PersonRepo().get_person(id=str(self.orm_person.id))
-            return self
-
-        def when_get_person_with_her_username(self):
-            self.result = PersonRepo().get_person(username=self.orm_person.username)
             return self
 
         def when_get_person_with_her_email(self):
@@ -80,8 +69,6 @@ class PersonRepoTestCase(TestCase):
 
         def then_response_should_be_a_guest_person(self):
             assert self.result.id is not None
-            assert not self.result.is_registered
-            assert self.result.username is None
             assert self.result.email is None
             assert not self.result.is_email_confirmed
             return self
@@ -96,16 +83,12 @@ class PersonRepoTestCase(TestCase):
 
         def then_db_person_should_be_same_as_entity(self):
             updated_orm_person = ORMPerson.objects.get(id=self.orm_person.id)
-            assert updated_orm_person.is_registered == self.person.is_registered
-            assert updated_orm_person.username == self.person.username
             assert updated_orm_person.email == self.person.email
             assert updated_orm_person.is_email_confirmed == self.person.is_email_confirmed
             return self
 
         def then_result_should_be_that_person(self):
             assert str(self.orm_person.id) == self.result.id
-            assert self.orm_person.is_registered == self.result.is_registered
-            assert self.orm_person.username == self.result.username
             assert self.orm_person.email == self.result.email
             assert self.orm_person.is_email_confirmed == self.result.is_email_confirmed
             return self

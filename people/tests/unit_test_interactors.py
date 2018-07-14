@@ -183,20 +183,17 @@ class TestRegisterUsernameAndEmailInteractor:
         TestRegisterUsernameAndEmailInteractor.ScenarioMaker() \
                 .given_a_person_validator_that_returns(True) \
                 .given_a_person_repo_that_returns_on_get(Person(id='3', email='b', is_email_confirmed=False)) \
-                .given_a_person_repo_that_returns_on_update(
-                        Person(id='4', email='o', is_registered=True, is_email_confirmed=False)) \
+                .given_a_person_repo_that_returns_on_update(Person(id='4', email='o', is_email_confirmed=False)) \
                 .given_a_profile_validator_that_returns(True) \
                 .given_a_profile_repo_that_returns_on_get(False) \
                 .given_a_confirmation_token_repo_that_returns('KT') \
                 .when_execute(logged_person_id='1', username='u', email='e') \
                 .then_should_call_person_repo_get_with(id='1') \
-                .then_should_call_person_validator_with(
-                        Person(id='3', is_registered=True, email='e', is_email_confirmed=False)) \
+                .then_should_call_person_validator_with(Person(id='3', email='e', is_email_confirmed=False)) \
                 .then_should_call_profile_repo_get_with(person_id='1', logged_person_id='1') \
                 .then_should_call_profile_validator_with(Profile(person_id='1', username='u')) \
                 .then_should_call_profile_repo_create_with(Profile(person_id='1', username='u')) \
-                .then_should_call_person_repo_update_with(
-                        Person(id='3', is_registered=True, email='e', is_email_confirmed=False)) \
+                .then_should_call_person_repo_update_with(Person(id='3', email='e', is_email_confirmed=False)) \
                 .then_should_call_confirmation_token_repo_delete_with(person_id='1') \
                 .then_should_call_confirmation_token_repo_create_with(person_id='1') \
                 .then_should_call_mailer_with(confirmation_token='KT', username='u', email='e') \
@@ -206,20 +203,17 @@ class TestRegisterUsernameAndEmailInteractor:
         TestRegisterUsernameAndEmailInteractor.ScenarioMaker() \
                 .given_a_person_validator_that_returns(True) \
                 .given_a_person_repo_that_returns_on_get(Person(id='3', email='b', is_email_confirmed=False)) \
-                .given_a_person_repo_that_returns_on_update(
-                        Person(id='4', email='o', is_registered=True, is_email_confirmed=False)) \
+                .given_a_person_repo_that_returns_on_update(Person(id='4', email='o', is_email_confirmed=False)) \
                 .given_a_profile_validator_that_returns(True) \
                 .given_a_profile_repo_that_returns_on_get(Profile(person_id='7', username='p')) \
                 .given_a_confirmation_token_repo_that_returns('KT') \
                 .when_execute(logged_person_id='1', username='u', email='e') \
                 .then_should_call_person_repo_get_with(id='1') \
-                .then_should_call_person_validator_with(
-                        Person(id='3', is_registered=True, email='e', is_email_confirmed=False)) \
+                .then_should_call_person_validator_with(Person(id='3', email='e', is_email_confirmed=False)) \
                 .then_should_call_profile_repo_get_with(person_id='1', logged_person_id='1') \
                 .then_should_call_profile_validator_with(Profile(person_id='7', username='u')) \
                 .then_should_call_profile_repo_update_with(Profile(person_id='7', username='u')) \
-                .then_should_call_person_repo_update_with(
-                        Person(id='3', is_registered=True, email='e', is_email_confirmed=False)) \
+                .then_should_call_person_repo_update_with(Person(id='3', email='e', is_email_confirmed=False)) \
                 .then_should_call_confirmation_token_repo_delete_with(person_id='1') \
                 .then_should_call_confirmation_token_repo_create_with(person_id='1') \
                 .then_should_call_mailer_with(confirmation_token='KT', username='u', email='e') \
@@ -232,8 +226,7 @@ class TestRegisterUsernameAndEmailInteractor:
                 .given_a_person_repo_that_returns_on_get(Person(id='3', email='b', is_email_confirmed=False)) \
                 .when_execute(logged_person_id='1', username='u', email='e') \
                 .then_should_call_person_repo_get_with(id='1') \
-                .then_should_call_person_validator_with(
-                        Person(id='3', is_registered=True, email='e', is_email_confirmed=False)) \
+                .then_should_call_person_validator_with(Person(id='3', email='e', is_email_confirmed=False)) \
                 .then_should_call_profile_repo_get_with(False) \
                 .then_should_call_profile_validator_with(False) \
                 .then_should_call_profile_repo_update_with(False) \
@@ -252,8 +245,7 @@ class TestRegisterUsernameAndEmailInteractor:
                 .given_a_profile_repo_that_returns_on_get(False) \
                 .when_execute(logged_person_id='1', username='u', email='e') \
                 .then_should_call_person_repo_get_with(id='1') \
-                .then_should_call_person_validator_with(
-                        Person(id='3', is_registered=True, email='e', is_email_confirmed=False)) \
+                .then_should_call_person_validator_with(Person(id='3', email='e', is_email_confirmed=False)) \
                 .then_should_call_profile_repo_get_with(person_id='1', logged_person_id='1') \
                 .then_should_call_profile_validator_with(Profile(person_id='1', username='u')) \
                 .then_should_call_profile_repo_update_with(False) \
@@ -509,12 +501,11 @@ class TestConfirmEmailInteractor:
             return self
 
         def given_a_person(self):
-            self.person = Person(id='4', is_registered=True, username='usr', email='e@m.c', is_email_confirmed=False)
+            self.person = Person(id='4', email='e@m.c', is_email_confirmed=False)
             return self
 
         def given_an_updated_person(self):
-            self.updated_person = Person(id='4', is_registered=True, username='usr',
-                                         email='e@m.c', is_email_confirmed=True)
+            self.updated_person = Person(id='4', email='e@m.c', is_email_confirmed=True)
             return self
 
         def given_a_person_repo_that_returns_those_persons_on_get_and_update(self):
@@ -547,8 +538,7 @@ class TestConfirmEmailInteractor:
             return self
 
         def then_should_call_person_repo_update_with_is_email_confirmed_true(self):
-            update_person = Person(id=self.person.id, is_registered=self.person.is_registered,
-                                   username=self.person.username, email=self.person.email, is_email_confirmed=True)
+            update_person = Person(id=self.person.id, email=self.person.email, is_email_confirmed=True)
             self.person_repo.update_person.assert_called_once_with(update_person)
             return self
 
@@ -592,10 +582,13 @@ class TestLoginEmailInteractor:
                 .given_an_email() \
                 .given_a_person() \
                 .given_a_person_repo_that_returns_that_person() \
+                .given_a_profile() \
+                .given_a_profile_repo_that_returns_that_profile() \
                 .given_a_login_token() \
                 .given_a_login_token_repo_that_returns_that_token() \
                 .when_login_email_interactor_executed() \
                 .then_should_call_get_person_repo_with_the_email() \
+                .then_should_call_get_profile_repo_with_the_person_id() \
                 .then_should_call_delete_login_tokens_with_person_id() \
                 .then_should_call_create_login_token_with_person_id() \
                 .then_should_send_mail_with_token_username_to_person_email()
@@ -604,6 +597,7 @@ class TestLoginEmailInteractor:
 
         def __init__(self):
             self.person_repo = Mock()
+            self.profile_repo = Mock()
             self.login_token_repo = Mock()
             self.mailer_service = Mock()
 
@@ -612,7 +606,11 @@ class TestLoginEmailInteractor:
             return self
 
         def given_a_person(self):
-            self.person = Person(id='8', is_registered=True, username='u', email='e')
+            self.person = Person(id='8', email='e')
+            return self
+
+        def given_a_profile(self):
+            self.profile = Profile(person_id=self.person.id, username='u')
             return self
 
         def given_a_login_token(self):
@@ -627,6 +625,10 @@ class TestLoginEmailInteractor:
             self.person_repo.get_person.return_value = self.person
             return self
 
+        def given_a_profile_repo_that_returns_that_profile(self):
+            self.profile_repo.get_profile.return_value = self.profile
+            return self
+
         def given_a_login_token_repo_that_returns_that_token(self):
             self.login_token_repo.create_login_token.return_value = self.login_token
             return self
@@ -634,7 +636,9 @@ class TestLoginEmailInteractor:
         def when_login_email_interactor_executed(self):
             try:
                 interactor = LoginEmailInteractor(login_token_repo=self.login_token_repo,
-                                                  person_repo=self.person_repo, mailer_service=self.mailer_service)
+                                                  person_repo=self.person_repo,
+                                                  profile_repo=self.profile_repo,
+                                                  mailer_service=self.mailer_service)
                 self.result = interactor.set_params(email=self.email).execute()
             except Exception as e:
                 self.error = e
@@ -642,6 +646,11 @@ class TestLoginEmailInteractor:
 
         def then_should_call_get_person_repo_with_the_email(self):
             self.person_repo.get_person.assert_called_once_with(email=self.email)
+            return self
+
+        def then_should_call_get_profile_repo_with_the_person_id(self):
+            self.profile_repo.get_profile.assert_called_once_with(person_id=self.person.id,
+                                                                  logged_person_id=self.person.id)
             return self
 
         def then_should_not_call_login_token_repo(self):
@@ -663,7 +672,7 @@ class TestLoginEmailInteractor:
 
         def then_should_send_mail_with_token_username_to_person_email(self):
             self.mailer_service.send_login_mail.assert_called_once_with(login_token=self.login_token,
-                                                                        username=self.person.username,
+                                                                        username=self.profile.username,
                                                                         email=self.person.email)
             return self
 
@@ -701,7 +710,7 @@ class TestLoginInteractor:
             return self
 
         def given_a_person(self):
-            self.person = Person(id='9', username='a', email='e')
+            self.person = Person(id='9', email='e')
             return self
 
         def given_a_person_repo_that_returns_that_person(self):

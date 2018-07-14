@@ -99,7 +99,7 @@ class ModifyPersonTestCase(TestCase):
                 .when_that_person_call_patch_people_me_with_that_params() \
                 .then_response_status_should_be_204() \
                 .then_response_body_should_be_empty() \
-                .then_person_should_be_updated_and_marked_as_registered() \
+                .then_person_and_profile_should_be_updated() \
                 .then_old_confirmation_tokens_should_be_deleted() \
                 .then_ask_confirmation_email_should_be_sent()
 
@@ -114,13 +114,13 @@ class ModifyPersonTestCase(TestCase):
                 .when_that_person_call_patch_people_me_with_that_params() \
                 .then_response_status_should_be_204() \
                 .then_response_body_should_be_empty() \
-                .then_person_should_be_updated_and_marked_as_registered() \
+                .then_person_and_profile_should_be_updated() \
                 .then_old_confirmation_tokens_should_be_deleted() \
                 .then_ask_confirmation_email_should_be_sent(last=1)
 
     def test_already_email_confirmed_returns_conflict(self):
         ModifyPersonTestCase._ScenarioMaker() \
-                .given_a_registered_and_confirmed_person() \
+                .given_an_email_confirmed_person() \
                 .given_a_username() \
                 .given_an_email() \
                 .when_that_person_call_patch_people_me_with_that_params() \
@@ -155,9 +155,8 @@ class ModifyPersonTestCase(TestCase):
             self.orm_auth_token = ORMAuthToken.objects.create(person_id=self.orm_person.id)
             return self
 
-        def given_a_registered_and_confirmed_person(self):
-            self.orm_person = ORMPerson.objects.create(username='u', email='e@m.c',
-                                                       is_registered=True, is_email_confirmed=True)
+        def given_an_email_confirmed_person(self):
+            self.orm_person = ORMPerson.objects.create(email='e@m.c', is_email_confirmed=True)
             self.orm_auth_token = ORMAuthToken.objects.create(person_id=self.orm_person.id)
             return self
 
@@ -170,7 +169,7 @@ class ModifyPersonTestCase(TestCase):
             return self
 
         def given_another_confirmed_person_with_that_email(self):
-            ORMPerson.objects.create(username='oo', email=self.email, is_registered=True, is_email_confirmed=True)
+            ORMPerson.objects.create(username='oo', email=self.email, is_email_confirmed=True)
             return self
 
         def given_a_username(self):
@@ -198,13 +197,11 @@ class ModifyPersonTestCase(TestCase):
             assert len(self.response.content) == 0
             return self
 
-        def then_person_should_be_updated_and_marked_as_registered(self):
+        def then_person_and_profile_should_be_updated(self):
             orm_updated_person = ORMPerson.objects.get(id=self.orm_person.id)
             assert orm_updated_person.email == self.email
-            assert orm_updated_person.is_registered is True
             assert orm_updated_person.is_email_confirmed is False
 
-            assert orm_updated_person.username is None
             orm_profile = ORMProfile.objects.get(person_id=self.orm_person.id)
             assert orm_profile.username == self.username
 
@@ -257,9 +254,7 @@ class ModifyPersonTestCase(TestCase):
 
         def then_person_not_should_be_updated(self):
             orm_updated_person = ORMPerson.objects.get(id=self.orm_person.id)
-            assert orm_updated_person.username != self.username
             assert orm_updated_person.email != self.email
-            assert orm_updated_person.is_registered == self.orm_person.is_registered
             assert orm_updated_person.is_email_confirmed == self.orm_person.is_email_confirmed
             return self
 
@@ -299,8 +294,7 @@ class PostEmailConfirmationTestCase(TestCase):
             self.result = None
 
         def given_an_unconfirmed_registered_person(self):
-            self.orm_person = ORMPerson.objects.create(is_registered=True, username='usr',
-                                                       email='e@m.c', is_email_confirmed=False)
+            self.orm_person = ORMPerson.objects.create(email='e@m.c', is_email_confirmed=False)
             return self
 
         def given_an_auth_token_for_that_person(self):
@@ -362,7 +356,7 @@ class LoginEmailTestCase(TestCase):
 
     def test_login_email(self):
         LoginEmailTestCase.ScenarioMaker() \
-                .given_a_registered_and_confirmed_person() \
+                .given_an_email_confirmed_person() \
                 .when_anonymous_call_with_person_email_login_email() \
                 .then_response_status_should_be_empty_body_and_204() \
                 .then_login_token_should_be_created_for_that_person() \
@@ -374,9 +368,9 @@ class LoginEmailTestCase(TestCase):
             self.orm_person = None
             self.response = None
 
-        def given_a_registered_and_confirmed_person(self):
-            self.orm_person = ORMPerson.objects.create(username='u', email='e@m.c',
-                                                       is_registered=True, is_email_confirmed=True)
+        def given_an_email_confirmed_person(self):
+            self.orm_person = ORMPerson.objects.create(email='e@m.c', is_email_confirmed=True)
+            ORMProfile.objects.create(person_id=self.orm_person.id, username='u')
             return self
 
         def when_anonymous_call_with_person_email_login_email(self):
@@ -401,7 +395,7 @@ class LoginEmailTestCase(TestCase):
             assert mail.outbox[0].subject == 'Pachatary login'
             login_token = ORMLoginToken.objects.get(person_id=self.orm_person.id).token
             login_url = '{}/people/me/login?token={}'.format(settings.PUBLIC_DOMAIN, login_token)
-            context_params = {'username': self.orm_person.username, 'login_url': login_url}
+            context_params = {'username': self.orm_person.profile.username, 'login_url': login_url}
             plain_text_message = get_template('login_email.txt').render(context_params)
             html_message = get_template('login_email.html').render(context_params)
             assert mail.outbox[0].body == plain_text_message
@@ -415,7 +409,7 @@ class LoginTestCase(TestCase):
 
     def test_login(self):
         LoginTestCase.ScenarioMaker() \
-                .given_a_registered_and_confirmed_person_with_auth_token_and_login_token() \
+                .given_an_email_confirmed_person_with_auth_token_and_login_token() \
                 .when_anonymous_call_login_whith_login_token() \
                 .then_response_status_should_be_200() \
                 .then_response_content_should_be_auth_token() \
@@ -423,9 +417,8 @@ class LoginTestCase(TestCase):
 
     class ScenarioMaker:
 
-        def given_a_registered_and_confirmed_person_with_auth_token_and_login_token(self):
-            self.orm_person = ORMPerson.objects.create(username='u', email='e@m.c',
-                                                       is_registered=True, is_email_confirmed=True)
+        def given_an_email_confirmed_person_with_auth_token_and_login_token(self):
+            self.orm_person = ORMPerson.objects.create(email='e@m.c', is_email_confirmed=True)
             self.orm_auth_token = ORMAuthToken.objects.create(person_id=self.orm_person.id)
             self.orm_login_token = ORMLoginToken.objects.create(person_id=self.orm_person.id)
             return self

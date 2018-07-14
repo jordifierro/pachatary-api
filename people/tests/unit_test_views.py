@@ -94,7 +94,7 @@ class TestPersonView:
             return self
 
         def given_a_person(self):
-            self.person = Person(id='8', is_registered=True, username='a', email='b', is_email_confirmed=False)
+            self.person = Person(id='8', email='b', is_email_confirmed=False)
             return self
 
         def given_an_interactor_that_returns_true(self):

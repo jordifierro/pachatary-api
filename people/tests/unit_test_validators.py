@@ -142,11 +142,11 @@ class TestPersonValidator:
             return self
 
         def given_a_person_with_that_params(self):
-            self.person = Person(id='1', username='a', email=self.email)
+            self.person = Person(id='1', email=self.email)
             return self
 
         def given_a_second_person_with_that_params(self):
-            self.second_person = Person(id='2', username='b', email=self.email)
+            self.second_person = Person(id='2', email=self.email)
             return self
 
         def given_a_person_validator_with_forbidden_email_domains(self, forbidden_email_domains):
@@ -253,15 +253,13 @@ class TestPermissionsValidator:
 
         def given_a_person_repo_that_returns_a_person_without_email_confirmed(self):
             self.person_repo = Mock()
-            person_without_confirmation = Person(id='2', is_registered=True, username='usr',
-                                                 email='e@m.c', is_email_confirmed=False)
+            person_without_confirmation = Person(id='2', email='e@m.c', is_email_confirmed=False)
             self.person_repo.get_person.return_value = person_without_confirmation
             return self
 
         def given_a_person_repo_that_returns_a_person_with_email_confirmed(self):
             self.person_repo = Mock()
-            person_with_confirmation = Person(id='2', is_registered=True, username='usr',
-                                                 email='e@m.c', is_email_confirmed=True)
+            person_with_confirmation = Person(id='2', email='e@m.c', is_email_confirmed=True)
             self.person_repo.get_person.return_value = person_with_confirmation
             return self
 

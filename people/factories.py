@@ -71,8 +71,8 @@ def create_confirm_email_interactor():
 
 
 def create_login_email_interactor():
-    return LoginEmailInteractor(person_repo=create_person_repo(), login_token_repo=create_login_token_repo(),
-                                mailer_service=create_mailer_service())
+    return LoginEmailInteractor(person_repo=create_person_repo(), profile_repo=create_profile_repo(),
+                                login_token_repo=create_login_token_repo(), mailer_service=create_mailer_service())
 
 
 def create_login_interactor():

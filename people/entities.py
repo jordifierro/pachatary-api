@@ -1,23 +1,13 @@
 class Person:
 
-    def __init__(self, id=None, is_registered=False, username=None, email=None, is_email_confirmed=None):
+    def __init__(self, id=None, email=None, is_email_confirmed=None):
         self._id = id
-        self._is_registered = is_registered
-        self._username = username
         self._email = email
         self._is_email_confirmed = is_email_confirmed
 
     @property
     def id(self):
         return self._id
-
-    @property
-    def is_registered(self):
-        return self._is_registered
-
-    @property
-    def username(self):
-        return self._username
 
     @property
     def email(self):

@@ -65,7 +65,7 @@ class RegisterUsernameAndEmailInteractor:
         if person.is_email_confirmed:
             raise ConflictException(source='person', code='already_registered', message='Person already registered')
 
-        updated_person = Person(id=person.id, is_registered=True, email=self.email, is_email_confirmed=False)
+        updated_person = Person(id=person.id, email=self.email, is_email_confirmed=False)
         self.person_validator.validate(updated_person)
         try:
             profile = self.profile_repo.get_profile(person_id=self.logged_person_id,
@@ -119,9 +119,7 @@ class ConfirmEmailInteractor:
         self.confirmation_token_repo.delete_confirmation_tokens(person_id=person_id)
 
         person = self.person_repo.get_person(id=self.logged_person_id)
-        updated_person = Person(id=person.id, is_registered=person.is_registered,
-                                username=person.username, email=person.email,
-                                is_email_confirmed=True)
+        updated_person = Person(id=person.id, email=person.email, is_email_confirmed=True)
         self.person_repo.update_person(updated_person)
 
         return True
@@ -129,8 +127,9 @@ class ConfirmEmailInteractor:
 
 class LoginEmailInteractor:
 
-    def __init__(self, person_repo, login_token_repo, mailer_service):
+    def __init__(self, person_repo, profile_repo, login_token_repo, mailer_service):
         self.person_repo = person_repo
+        self.profile_repo = profile_repo
         self.login_token_repo = login_token_repo
         self.mailer_service = mailer_service
 
@@ -141,12 +140,13 @@ class LoginEmailInteractor:
     def execute(self):
         try:
             person = self.person_repo.get_person(email=self.email)
+            profile = self.profile_repo.get_profile(person_id=person.id, logged_person_id=person.id)
         except EntityDoesNotExistException:
             return None
 
         self.login_token_repo.delete_login_tokens(person_id=person.id)
         login_token = self.login_token_repo.create_login_token(person_id=person.id)
-        self.mailer_service.send_login_mail(login_token=login_token, username=person.username, email=person.email)
+        self.mailer_service.send_login_mail(login_token=login_token, username=profile.username, email=person.email)
 
         return None
 
