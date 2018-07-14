@@ -561,15 +561,9 @@ _(http headers)_
 
 _Response:_
 
-_200_
-```json
-{
-    "is_registered": true,
-    "username": "user.name",
-    "email": "email@example.com",
-    "is_email_confirmed": false
-}
-```
+_204_
+
+_(Register is not completed until email confirmation)_
 
 ### `POST /people/me/email-confirmation`
 
@@ -591,15 +585,9 @@ _(http headers)_
 
 _Response:_
 
-_200_
-```json
-{
-    "is_registered": true,
-    "username": "user.name",
-    "email": "email@example.com",
-    "is_email_confirmed": true
-}
-```
+_204_
+
+_(You can assume register is completed if success)_
 
 ### `GET /people/me/email-confirmation/redirect?token=ABXZ`
 
@@ -672,16 +660,8 @@ _Response:_
 _200_
 ```json
 {
-    "person": {
-        "is_registered": true,
-        "username": "user.name",
-        "email": "email@example.com",
-        "is_email_confirmed": true
-    },
-    "auth_token" : {
-        "access_token": "A_T_12345",
-        "refresh_token": "R_T_67890",
-    }
+    "access_token": "A_T_12345",
+    "refresh_token": "R_T_67890",
 }
 ```
 

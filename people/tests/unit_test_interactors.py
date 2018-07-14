@@ -200,7 +200,7 @@ class TestRegisterUsernameAndEmailInteractor:
                 .then_should_call_confirmation_token_repo_delete_with(person_id='1') \
                 .then_should_call_confirmation_token_repo_create_with(person_id='1') \
                 .then_should_call_mailer_with(confirmation_token='KT', username='u', email='e') \
-                .then_should_return(Person(id='4', email='o', is_registered=True, is_email_confirmed=False))
+                .then_should_return(True)
 
     def test_correct_username_and_email_when_profile_exists(self):
         TestRegisterUsernameAndEmailInteractor.ScenarioMaker() \
@@ -223,7 +223,7 @@ class TestRegisterUsernameAndEmailInteractor:
                 .then_should_call_confirmation_token_repo_delete_with(person_id='1') \
                 .then_should_call_confirmation_token_repo_create_with(person_id='1') \
                 .then_should_call_mailer_with(confirmation_token='KT', username='u', email='e') \
-                .then_should_return(Person(id='4', email='o', is_registered=True, is_email_confirmed=False))
+                .then_should_return(True)
 
     def test_incorrect_email_raises_invalid_entity_exception(self):
         TestRegisterUsernameAndEmailInteractor.ScenarioMaker() \
@@ -425,8 +425,8 @@ class TestRegisterUsernameAndEmailInteractor:
                         confirmation_token=confirmation_token, username=username, email=email)
             return self
 
-        def then_should_return(self, person):
-            assert self.result == person
+        def then_should_return(self, result):
+            assert self.result == result
             return self
 
         def then_should_raise(self, error):
@@ -449,7 +449,7 @@ class TestConfirmEmailInteractor:
                 .then_should_delete_all_confirmation_tokens_for_that_person() \
                 .then_should_call_person_repo_get() \
                 .then_should_call_person_repo_update_with_is_email_confirmed_true() \
-                .then_should_return_person_confirmed()
+                .then_should_return_true()
 
     def test_unauthenticated_raises_unauthorized(self):
         TestConfirmEmailInteractor.ScenarioMaker() \
@@ -552,8 +552,8 @@ class TestConfirmEmailInteractor:
             self.person_repo.update_person.assert_called_once_with(update_person)
             return self
 
-        def then_should_return_person_confirmed(self):
-            assert self.result == self.updated_person
+        def then_should_return_true(self):
+            assert self.result is True
             return self
 
         def then_should_raise_unauthorized(self):
@@ -682,9 +682,8 @@ class TestLoginInteractor:
                 .when_login_interactor_is_executed() \
                 .then_should_call_login_token_repo_get_person_id_with_login_token() \
                 .then_should_call_login_token_repo_delete_login_token_with_person_id() \
-                .then_should_call_person_repo_get_person_with_person_id() \
                 .then_should_call_auth_token_repo_get_auth_token_with_person_id() \
-                .then_should_return_person_and_auth_token()
+                .then_should_return_auth_token()
 
     class ScenarioMaker:
 
@@ -732,14 +731,10 @@ class TestLoginInteractor:
             self.login_token_repo.delete_login_tokens.assert_called_once_with(person_id=self.person_id)
             return self
 
-        def then_should_call_person_repo_get_person_with_person_id(self):
-            self.person_repo.get_person.assert_called_once_with(id=self.person_id)
-            return self
-
         def then_should_call_auth_token_repo_get_auth_token_with_person_id(self):
             self.auth_token_repo.get_auth_token.assert_called_once_with(person_id=self.person_id)
             return self
 
-        def then_should_return_person_and_auth_token(self):
-            self.result == (self.person, self.auth_token)
+        def then_should_return_auth_token(self):
+            self.result == self.auth_token
             return self

@@ -97,8 +97,8 @@ class ModifyPersonTestCase(TestCase):
                 .given_a_username() \
                 .given_an_email() \
                 .when_that_person_call_patch_people_me_with_that_params() \
-                .then_response_status_should_be_200() \
-                .then_response_body_should_be_person_info() \
+                .then_response_status_should_be_204() \
+                .then_response_body_should_be_empty() \
                 .then_person_should_be_updated_and_marked_as_registered() \
                 .then_old_confirmation_tokens_should_be_deleted() \
                 .then_ask_confirmation_email_should_be_sent()
@@ -112,8 +112,8 @@ class ModifyPersonTestCase(TestCase):
                 .given_an_email() \
                 .when_that_person_call_patch_people_me_with_that_params() \
                 .when_that_person_call_patch_people_me_with_that_params() \
-                .then_response_status_should_be_200() \
-                .then_response_body_should_be_person_info() \
+                .then_response_status_should_be_204() \
+                .then_response_body_should_be_empty() \
                 .then_person_should_be_updated_and_marked_as_registered() \
                 .then_old_confirmation_tokens_should_be_deleted() \
                 .then_ask_confirmation_email_should_be_sent(last=1)
@@ -190,16 +190,12 @@ class ModifyPersonTestCase(TestCase):
                                          **auth_headers)
             return self
 
-        def then_response_status_should_be_200(self):
-            assert self.response.status_code == 200
+        def then_response_status_should_be_204(self):
+            assert self.response.status_code == 204
             return self
 
-        def then_response_body_should_be_person_info(self):
-            body = json.loads(self.response.content)
-            assert body['username'] is None
-            assert body['email'] == self.email
-            assert body['is_registered'] is True
-            assert body['is_email_confirmed'] is False
+        def then_response_body_should_be_empty(self):
+            assert len(self.response.content) == 0
             return self
 
         def then_person_should_be_updated_and_marked_as_registered(self):
@@ -280,7 +276,7 @@ class PostEmailConfirmationTestCase(TestCase):
                 .given_an_auth_token_for_that_person() \
                 .given_a_confirmation_token_for_that_person() \
                 .when_post_email_confirmation() \
-                .then_response_should_be_200_and_person() \
+                .then_response_should_be_204() \
                 .then_person_should_have_is_email_confirmed_true() \
                 .then_confirmation_token_should_be_removed()
 
@@ -329,15 +325,9 @@ class PostEmailConfirmationTestCase(TestCase):
                                         **auth_headers)
             return self
 
-        def then_response_should_be_200_and_person(self):
+        def then_response_should_be_204(self):
             self.response.status_code == 204
-            body = json.loads(self.response.content)
-            assert body == {
-                    'is_registered': True,
-                    'username': 'usr',
-                    'email': 'e@m.c',
-                    'is_email_confirmed': True
-                    }
+            assert len(self.response.content) == 0
             return self
 
         def then_person_should_have_is_email_confirmed_true(self):
@@ -428,7 +418,7 @@ class LoginTestCase(TestCase):
                 .given_a_registered_and_confirmed_person_with_auth_token_and_login_token() \
                 .when_anonymous_call_login_whith_login_token() \
                 .then_response_status_should_be_200() \
-                .then_response_content_should_be_person_and_auth_token() \
+                .then_response_content_should_be_auth_token() \
                 .then_login_token_should_be_deleted_for_that_person()
 
     class ScenarioMaker:
@@ -451,18 +441,10 @@ class LoginTestCase(TestCase):
             assert self.response.status_code == 200
             return self
 
-        def then_response_content_should_be_person_and_auth_token(self):
+        def then_response_content_should_be_auth_token(self):
             assert json.loads(self.response.content) == {
-                'person': {
-                    'username': self.orm_person.username,
-                    'email': self.orm_person.email,
-                    'is_registered': self.orm_person.is_registered,
-                    'is_email_confirmed': self.orm_person.is_email_confirmed,
-                },
-                'auth_token': {
-                    'access_token': str(self.orm_auth_token.access_token),
-                    'refresh_token': str(self.orm_auth_token.refresh_token)
-                }
+                'access_token': str(self.orm_auth_token.access_token),
+                'refresh_token': str(self.orm_auth_token.refresh_token)
             }
             return self
 

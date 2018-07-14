@@ -1,5 +1,5 @@
 from pachatary.decorators import serialize_exceptions
-from .serializers import serialize_auth_token, serialize_person, serialize_person_auth_token
+from .serializers import serialize_auth_token
 
 
 class PeopleView:
@@ -24,11 +24,11 @@ class PersonView:
 
     @serialize_exceptions
     def patch(self, logged_person_id, username, email):
-        person = self.register_username_and_email_interactor \
+        self.register_username_and_email_interactor \
             .set_params(logged_person_id=logged_person_id, username=username, email=email).execute()
 
-        body = serialize_person(person)
-        status = 200
+        body = None
+        status = 204
         return body, status
 
 
@@ -39,11 +39,11 @@ class EmailConfirmationView:
 
     @serialize_exceptions
     def post(self, logged_person_id, confirmation_token):
-        updated_person = self.confirm_email_interactor.set_params(logged_person_id=logged_person_id,
-                                                                  confirmation_token=confirmation_token).execute()
+        self.confirm_email_interactor.set_params(logged_person_id=logged_person_id,
+                                                 confirmation_token=confirmation_token).execute()
 
-        body = serialize_person(updated_person)
-        status = 200
+        body = None
+        status = 204
         return body, status
 
 
@@ -68,8 +68,8 @@ class LoginView:
 
     @serialize_exceptions
     def post(self, token, logged_person_id=None):
-        person, auth_token = self.login_interactor.set_params(login_token=token).execute()
+        auth_token = self.login_interactor.set_params(login_token=token).execute()
 
-        body = serialize_person_auth_token(person, auth_token)
+        body = serialize_auth_token(auth_token)
         status = 200
         return body, status

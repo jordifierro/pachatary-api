@@ -88,7 +88,7 @@ class RegisterUsernameAndEmailInteractor:
         confirmation_token = self.confirmation_token_repo.create_confirmation_token(person_id=self.logged_person_id)
         self.mailer_service.send_ask_confirmation_mail(confirmation_token=confirmation_token,
                                                        username=self.username, email=self.email)
-        return updated_person
+        return True
 
 
 class ConfirmEmailInteractor:
@@ -122,9 +122,9 @@ class ConfirmEmailInteractor:
         updated_person = Person(id=person.id, is_registered=person.is_registered,
                                 username=person.username, email=person.email,
                                 is_email_confirmed=True)
-        updated_person = self.person_repo.update_person(updated_person)
+        self.person_repo.update_person(updated_person)
 
-        return updated_person
+        return True
 
 
 class LoginEmailInteractor:
@@ -165,6 +165,5 @@ class LoginInteractor:
     def execute(self):
         person_id = self.login_token_repo.get_person_id(login_token=self.login_token)
         self.login_token_repo.delete_login_tokens(person_id=person_id)
-        person = self.person_repo.get_person(id=person_id)
         auth_token = self.auth_token_repo.get_auth_token(person_id=person_id)
-        return person, auth_token
+        return auth_token
