@@ -610,6 +610,7 @@ Location: 'app://pachatary.com/people/me/email-confirmation?token=ABXZ'
 
 This endpoint is used to ask login email.
 An email will be sent with an authenticated (using a token) link to login.
+Person email has to be confirmed to receive login email.
 
 _Request(application/x-www-form-urlencoded):_
 
@@ -664,6 +665,8 @@ _200_
     "refresh_token": "R_T_67890",
 }
 ```
+
+_(You can assume register is completed if success)_
 
 ### `GET /client-versions`
 

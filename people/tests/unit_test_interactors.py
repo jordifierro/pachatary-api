@@ -577,6 +577,15 @@ class TestLoginEmailInteractor:
                 .then_should_not_call_login_token_repo() \
                 .then_should_not_call_mailer_service()
 
+    def test_when_email_has_not_been_confirmed(self):
+        TestLoginEmailInteractor.ScenarioMaker() \
+                .given_an_email() \
+                .given_a_person_repo_that_returns_person_without_confirmed_email() \
+                .when_login_email_interactor_executed() \
+                .then_should_call_get_person_repo_with_the_email() \
+                .then_should_not_call_login_token_repo() \
+                .then_should_not_call_mailer_service()
+
     def test_success(self):
         TestLoginEmailInteractor.ScenarioMaker() \
                 .given_an_email() \
@@ -606,7 +615,7 @@ class TestLoginEmailInteractor:
             return self
 
         def given_a_person(self):
-            self.person = Person(id='8', email='e')
+            self.person = Person(id='8', email='e', is_email_confirmed=True)
             return self
 
         def given_a_profile(self):
@@ -619,6 +628,10 @@ class TestLoginEmailInteractor:
 
         def given_a_person_repo_that_raises_entity_does_not_exist(self):
             self.person_repo.get_person.side_effect = EntityDoesNotExistException()
+            return self
+
+        def given_a_person_repo_that_returns_person_without_confirmed_email(self):
+            self.person_repo.get_person.return_value = Person(id='5', is_email_confirmed=False)
             return self
 
         def given_a_person_repo_that_returns_that_person(self):

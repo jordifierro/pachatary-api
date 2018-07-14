@@ -140,6 +140,8 @@ class LoginEmailInteractor:
     def execute(self):
         try:
             person = self.person_repo.get_person(email=self.email)
+            if not person.is_email_confirmed:
+                return None
             profile = self.profile_repo.get_profile(person_id=person.id, logged_person_id=person.id)
         except EntityDoesNotExistException:
             return None
