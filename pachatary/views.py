@@ -52,7 +52,8 @@ class ViewWrapper(View):
             body, status = self.view_creator_func(request, **kwargs).patch(picture, **kwargs)
         else:
             body, status = self.view_creator_func(request, **kwargs).patch(**kwargs)
-        return HttpResponse(json.dumps(body), status=status, content_type='application/json')
+        content = json.dumps(body) if body is not None else ''
+        return HttpResponse(content, status=status, content_type='application/json')
 
     def delete(self, request, *args, **kwargs):
         data = dict(urllib.parse.parse_qsl(request.body.decode("utf-8"), keep_blank_values=True))
