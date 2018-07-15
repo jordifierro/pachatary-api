@@ -565,6 +565,20 @@ _204_
 
 _(Register is not completed until email confirmation)_
 
+_400_
+```json
+{
+    "error": {
+        "source": "person",
+        "code": "already_registered",
+        "message": "Person already registered"
+    }
+}
+```
+
+_(You can assume register is completed if that error)_
+
+
 ### `POST /people/me/email-confirmation`
 
 This endpoint is to confirm email and finish `person` register.
