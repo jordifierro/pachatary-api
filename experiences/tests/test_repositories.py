@@ -1,3 +1,4 @@
+from elasticsearch.exceptions import NotFoundError
 from mock import Mock
 
 from django.test import TestCase
@@ -601,7 +602,10 @@ class ExperienceElasticRepoTestCase(TestCase):
 
         def __init__(self):
             self.repo = create_experience_elastic_repo()
-            self.repo._delete_experience_index()
+            try:
+                self.repo._delete_experience_index()
+            except NotFoundError:
+                pass
             self.repo._create_experience_index()
             self.experiences = []
             self.scenes = []
