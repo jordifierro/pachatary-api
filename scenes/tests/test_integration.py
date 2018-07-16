@@ -15,7 +15,7 @@ from people.models import ORMPerson, ORMAuthToken
 class ExperienceDetailTestCase(TestCase):
 
     def test_scenes_from_experience_returns_experience(self):
-        orm_person = ORMPerson.objects.create(username='usr')
+        orm_person = ORMPerson.objects.create()
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
         ORMProfile.objects.create(person_id=orm_person.id, username='usr')
         exp_c = ORMExperience.objects.create(title='Exp c', description='stuffs', author=orm_person)
@@ -55,7 +55,7 @@ class ExperienceDetailTestCase(TestCase):
 class CreateSceneTestCase(TestCase):
 
     def test_create_scene_creates_and_returns_scene(self):
-        orm_person = ORMPerson.objects.create(username='usr')
+        orm_person = ORMPerson.objects.create()
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
         ORMProfile.objects.create(person_id=orm_person.id, username='usr')
         experience = ORMExperience.objects.create(title='Exp', author=orm_person)
@@ -85,7 +85,7 @@ class CreateSceneTestCase(TestCase):
                        }
 
     def test_wrong_attributes_doesnt_create_and_returns_error(self):
-        orm_person = ORMPerson.objects.create(username='usr')
+        orm_person = ORMPerson.objects.create()
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
         ORMProfile.objects.create(person_id=orm_person.id, username='usr')
         experience = ORMExperience.objects.create(title='Exp', author=orm_person)
@@ -116,7 +116,7 @@ class CreateSceneTestCase(TestCase):
 class ModifySceneTestCase(TestCase):
 
     def test_modifies_and_returns_scene(self):
-        orm_person = ORMPerson.objects.create(username='usr')
+        orm_person = ORMPerson.objects.create()
         ORMProfile.objects.create(person_id=orm_person.id, username='usr')
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
         experience = ORMExperience.objects.create(title='Exp', author=orm_person)
@@ -147,7 +147,7 @@ class ModifySceneTestCase(TestCase):
                        }
 
     def test_wrong_attributes_doesnt_update_and_returns_error(self):
-        orm_person = ORMPerson.objects.create(username='usr')
+        orm_person = ORMPerson.objects.create()
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
         ORMProfile.objects.create(person_id=orm_person.id, username='usr')
         experience = ORMExperience.objects.create(title='Exp', author=orm_person)

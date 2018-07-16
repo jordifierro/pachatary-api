@@ -21,7 +21,7 @@ from profiles.entities import Profile
 class ExperiencesTestCase(TestCase):
 
     def test_mine_experiences_returns_my_experiences(self):
-        orm_person = ORMPerson.objects.create(username='usr')
+        orm_person = ORMPerson.objects.create()
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
         ORMProfile.objects.create(person_id=orm_person.id, username='a', bio='b')
         ORMExperience.objects.create(title='Exp c', description='other description', author=orm_person)
@@ -71,10 +71,10 @@ class ExperiencesTestCase(TestCase):
             }
 
     def test_others_experiences_returns_others_experiences(self):
-        orm_person = ORMPerson.objects.create(username='doesntmattera')
+        orm_person = ORMPerson.objects.create()
         ORMProfile.objects.create(person_id=orm_person.id, username='a')
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
-        orm_other_person = ORMPerson.objects.create(username='doesntmatterb')
+        orm_other_person = ORMPerson.objects.create()
         ORMProfile.objects.create(person_id=orm_other_person.id, username='other', bio='c')
         exp_a = ORMExperience.objects.create(title='Exp a', description='some description', author=orm_other_person)
         exp_b = ORMExperience.objects.create(title='Exp b', description='other description', author=orm_other_person)
@@ -149,9 +149,9 @@ class ExperiencesTestCase(TestCase):
             }
 
     def test_saved_experiences_returns_only_saved_scenes(self):
-        orm_person = ORMPerson.objects.create(username='usr')
+        orm_person = ORMPerson.objects.create()
         ORMProfile.objects.create(person_id=orm_person.id, username='a')
-        orm_person_b = ORMPerson.objects.create(username='nme')
+        orm_person_b = ORMPerson.objects.create()
         ORMProfile.objects.create(person_id=orm_person_b.id, username='b', bio='bs')
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
         exp_a = ORMExperience.objects.create(title='Exp a', description='some description', author=orm_person_b)
@@ -189,7 +189,7 @@ class ExperiencesTestCase(TestCase):
 class CreateExperienceTestCase(TestCase):
 
     def test_create_experience_creates_and_returns_experience(self):
-        orm_person = ORMPerson.objects.create(username='usr.nm', is_email_confirmed=True)
+        orm_person = ORMPerson.objects.create(is_email_confirmed=True)
         orm_auth_token = ORMAuthToken.objects.create(person_id=orm_person.id)
         ORMProfile.objects.create(person_id=orm_person.id, username='usr.nm', bio='My bio')
         auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }
@@ -239,7 +239,7 @@ class CreateExperienceTestCase(TestCase):
 class ModifyExperienceTestCase(TestCase):
 
     def test_modifies_and_returns_experience(self):
-        orm_person = ORMPerson.objects.create(username='usr.nm')
+        orm_person = ORMPerson.objects.create()
         orm_auth_token = ORMAuthToken.objects.create(person_id=orm_person.id)
         ORMProfile.objects.create(person_id=orm_person.id, username='usr.nm')
         auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }

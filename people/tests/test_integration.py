@@ -169,7 +169,7 @@ class ModifyPersonTestCase(TestCase):
             return self
 
         def given_another_confirmed_person_with_that_email(self):
-            ORMPerson.objects.create(username='oo', email=self.email, is_email_confirmed=True)
+            ORMPerson.objects.create(email=self.email, is_email_confirmed=True)
             return self
 
         def given_a_username(self):
