@@ -1,4 +1,5 @@
 from pachatary.exceptions import EntityDoesNotExistException
+from pachatary.entities import Picture
 from .models import ORMProfile
 from .entities import Profile
 
@@ -37,5 +38,11 @@ class ProfileRepo:
         return self._decode_db_profile(profile, profile.person_id)
 
     def _decode_db_profile(self, db_profile, logged_person_id):
+        if not db_profile.picture:
+            picture = None
+        else:
+            picture = Picture(tiny_url=db_profile.picture.tiny.url,
+                              small_url=db_profile.picture.small.url,
+                              medium_url=db_profile.picture.medium.url)
         return Profile(person_id=str(db_profile.person_id), username=db_profile.username, bio=db_profile.bio,
-                       is_me=(logged_person_id == str(db_profile.person_id)))
+                       picture=picture, is_me=(logged_person_id == str(db_profile.person_id)))
