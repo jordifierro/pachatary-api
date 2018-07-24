@@ -35,7 +35,7 @@ class ProfileRepo:
         profile = ORMProfile.objects.get(person_id=person_id)
         profile.picture = picture
         profile.save()
-        return self._decode_db_profile(profile, profile.person_id)
+        return self._decode_db_profile(profile, str(profile.person_id))
 
     def _decode_db_profile(self, db_profile, logged_person_id):
         if not db_profile.picture:
