@@ -759,7 +759,7 @@ _422_
 }
 ```
 
-### `POST /profiles/self/picture`
+### `POST /profiles/me/picture/`
 
 _Request(multipart/form-data):_
 
