@@ -11,7 +11,7 @@ from scenes.factories import create_scenes_view, create_scene_view, create_uploa
 from people.factories import create_people_view, create_person_view, create_email_confirmation_view, \
         create_login_email_view, create_login_view
 from profiles.factories import create_profile_view, create_upload_profile_picture_view
-from redirects.django_views import email_confirmation_redirect, login_redirect, experience_redirect
+from redirects.django_views import email_confirmation_redirect, login_redirect, experience_redirect, profile_redirect
 
 from .views import ViewWrapper, client_versions, privacy_policy, terms_and_conditions
 
@@ -113,6 +113,10 @@ urlpatterns = [
         ViewWrapper.as_view(view_creator_func=create_upload_profile_picture_view,
                             upload_picture_name='picture'),
         name='upload-profile-picture'),
+
+    url(r'^redirects/p/(?P<username>[a-zA-Z0-9._]+)$',
+        profile_redirect,
+        name='profile-redirect'),
 ]
 
 if settings.LOCAL_DEPLOY:

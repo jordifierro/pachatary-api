@@ -63,3 +63,23 @@ class RedirectExperienceTestCase(TestCase):
             assert self.response.status_code == 302
             assert self.response['Location'] == '{}/experiences/AsdE43E4'.format(settings.ANDROID_DEEPLINK_DOMAIN)
             return self
+
+
+class RedirectProfileTestCase(TestCase):
+
+    def test_when_called_redirect_view_redirects_to_profile_url(self):
+        RedirectProfileTestCase.ScenarioMaker() \
+                .when_call_profile_redirect() \
+                .then_response_should_be_a_redirect_to_app_deeplink_with_params()
+
+    class ScenarioMaker:
+
+        def when_call_profile_redirect(self):
+            client = Client()
+            self.response = client.get(reverse('profile-redirect', args=['a_b.c']))
+            return self
+
+        def then_response_should_be_a_redirect_to_app_deeplink_with_params(self):
+            assert self.response.status_code == 302
+            assert self.response['Location'] == '{}/profiles/a_b.c'.format(settings.ANDROID_DEEPLINK_DOMAIN)
+            return self
