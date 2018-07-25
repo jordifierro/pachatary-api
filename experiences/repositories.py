@@ -103,13 +103,13 @@ class ExperienceRepo:
         db_experience = ORMExperience.objects.create(title=experience.title,
                                                      description=experience.description,
                                                      author_id=experience.author_id)
-        return self._decode_db_experience(db_experience, db_experience.author_id)
+        return self._decode_db_experience(db_experience, str(db_experience.author_id))
 
     def attach_picture_to_experience(self, experience_id, picture):
         experience = ORMExperience.objects.get(id=experience_id)
         experience.picture = picture
         experience.save()
-        return self._decode_db_experience(experience, experience.author_id)
+        return self._decode_db_experience(experience, str(experience.author_id))
 
     def update_experience(self, experience, logged_person_id=None):
         orm_experience = ORMExperience.objects.get(id=experience.id)
