@@ -39,11 +39,11 @@ urlpatterns = [
         ViewWrapper.as_view(view_creator_func=create_translate_experience_share_id_view),
         name='translate-experience-share-id'),
 
-    url(r'experiences/(?P<experience_id>[0-9]+)/save/$',
+    url(r'experiences/(?P<experience_id>[0-9]+)/save$',
         ViewWrapper.as_view(view_creator_func=create_save_experience_view),
         name='experience-save'),
 
-    url(r'experiences/(?P<experience_id>[0-9]+)/picture/$',
+    url(r'experiences/(?P<experience_id>[0-9]+)/picture$',
         ViewWrapper.as_view(view_creator_func=create_upload_experience_picture_view,
                             upload_picture_name='picture'),
         name='upload-experience-picture'),
@@ -56,7 +56,7 @@ urlpatterns = [
         ViewWrapper.as_view(view_creator_func=create_scene_view),
         name='scene'),
 
-    url(r'scenes/(?P<scene_id>[0-9]+)/picture/$',
+    url(r'scenes/(?P<scene_id>[0-9]+)/picture$',
         ViewWrapper.as_view(view_creator_func=create_upload_scene_picture_view,
                             upload_picture_name='picture'),
         name='upload-scene-picture'),
@@ -109,7 +109,7 @@ urlpatterns = [
         ViewWrapper.as_view(view_creator_func=create_profile_view),
         name='profile'),
 
-    url(r'profiles/me/picture/$',
+    url(r'profiles/me/picture$',
         ViewWrapper.as_view(view_creator_func=create_upload_profile_picture_view,
                             upload_picture_name='picture'),
         name='upload-profile-picture'),

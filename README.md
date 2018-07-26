@@ -143,7 +143,7 @@ _Response:_
 }
 ```
 
-### `POST /experiences`
+### `POST /experiences/`
 
 _Request(application/x-www-form-urlencoded):_
 ```json
@@ -314,7 +314,7 @@ _200_
 
 
 
-### `POST /experiences/<experience_id>/save/`
+### `POST /experiences/<experience_id>/save`
 
 Endpoint to save experience as favourite.
 
@@ -322,7 +322,7 @@ _Response:_
 
 _201_
 
-### `DELETE /experiences/<experience_id>/save/`
+### `DELETE /experiences/<experience_id>/save`
 
 Endpoint to unsave experience as favourite.
 
@@ -331,7 +331,7 @@ _Response:_
 _204_
 
 
-### `POST /experiences/<experience_id>/picture/`
+### `POST /experiences/<experience_id>/picture`
 
 _Request(multipart/form-data):_
 
@@ -395,7 +395,7 @@ _Response:_
 ]
 ```
 
-### `POST /scenes`
+### `POST /scenes/`
 
 _Request(application/x-www-form-urlencoded):_
 ```json
@@ -487,7 +487,7 @@ _422_
 
 
 
-### `POST /scenes/<scene_id>/picture/`
+### `POST /scenes/<scene_id>/picture`
 
 _Request(multipart/form-data):_
 
@@ -759,7 +759,7 @@ _422_
 }
 ```
 
-### `POST /profiles/me/picture/`
+### `POST /profiles/me/picture`
 
 _Request(multipart/form-data):_
 
