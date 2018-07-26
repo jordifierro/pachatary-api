@@ -1,4 +1,4 @@
-e Pachatary API
+# Pachatary API
 
 This repo contains the backend code for Pachatary project.
 This simple app aims to be a reference
@@ -23,6 +23,8 @@ For the moment, the api is only consumed by
 [pachatary-android](https://github.com/jordifierro/pachatary-android) project.
 
 ## API Endpoints
+
+## Experiences
 
 ### `GET /experiences?username=self&limit=20`
 ### `GET /experiences?username=george&limit=20`
@@ -365,6 +367,8 @@ _200_
 }
 ```
 
+## Scenes
+
 ### `GET /scenes/?experience=<experience_id>`
 
 _Response:_
@@ -512,6 +516,8 @@ _200_
 }
 ```
 
+## People
+
 ### `POST /people/`
 
 This endpoint is to create a `person` instance.
@@ -603,23 +609,6 @@ _204_
 
 _(You can assume register is completed if success)_
 
-### `GET /people/me/email-confirmation/redirect?token=ABXZ`
-
-This endpoint is to let Android app catch url to get the token and
-call the previous endpoint, or if the user opens this link with a browser,
-it redirects to 'app://pachatary.com/...' to force open deeplink
-(both urls must be defined on Android app).
-
-_Request:_
-
-`token` as query param.
-
-_Response:_
-
-_304_
-
-Location: 'app://pachatary.com/people/me/email-confirmation?token=ABXZ'
-
 ### `POST /people/me/login-email`
 
 This endpoint is used to ask login email.
@@ -638,23 +627,6 @@ _Response:_
 
 _204_
 
-
-### `GET /people/me/login/redirect?token=ABXZ`
-
-This endpoint is to let Android app catch url to get the token and
-call the previous endpoint, or if the user opens this link with a browser,
-it redirects to 'app://pachatary.com/...' to force open deeplink
-(both urls must be defined on Android app).
-
-_Request:_
-
-`token` as query param.
-
-_Response:_
-
-_304_
-
-Location: 'app://pachatary.com/people/me/login?token=ABXZ'
 
 ### `POST /people/me/login`
 
@@ -682,22 +654,8 @@ _200_
 
 _(You can assume register is completed if success)_
 
-### `GET /client-versions`
 
-To check if client version has to be upgraded.
-
-_Response:_
-
-_200_
-```json
-{
-    "android": {
-        "min_version": 3
-    }
-}
-```
-
-
+## Profiles
 
 ### `GET /profiles/<username>`
 ### `GET /profiles/self`
@@ -780,6 +738,95 @@ _200_
     "is_me": true,
 }
 ```
+
+
+## Redirects
+
+### `GET /redirects/people/me/login?token=ABXZ`
+
+This endpoint is to let Android app catch url to get the token and
+call the previous endpoint, or if the user opens this link with a browser,
+it redirects to 'app://pachatary.com/...' to force open deeplink
+(both urls must be defined on Android app).
+
+_Request:_
+
+`token` as query param.
+
+_Response:_
+
+_304_
+
+Location: 'app://pachatary.com/people/me/login?token=ABXZ'
+
+### `GET /redirects/people/me/email-confirmation?token=ABXZ`
+
+This endpoint is to let Android app catch url to get the token and
+call the previous endpoint, or if the user opens this link with a browser,
+it redirects to 'app://pachatary.com/...' to force open deeplink
+(both urls must be defined on Android app).
+
+_Request:_
+
+`token` as query param.
+
+_Response:_
+
+_304_
+
+Location: 'app://pachatary.com/people/me/email-confirmation?token=ABXZ'
+
+### `GET /redirects/p/<username>`
+
+This endpoint is to let Android app catch url to redirect to profile.
+
+_Request:_
+
+`username` as query param.
+
+_Response:_
+
+_304_
+
+Location: 'app://pachatary.com/profiles/<username>'
+
+### `GET /redirects/e/<experience_share_id>`
+
+This endpoint is to let Android app catch url to redirect to experience.
+
+_Request:_
+
+`username` as query param.
+
+_Response:_
+
+_304_
+
+Location: 'app://pachatary.com/experiences/<experience_share_id>'
+
+
+## Settings
+
+### `GET /client-versions`
+
+To check if client version has to be upgraded.
+
+_Response:_
+
+_200_
+```json
+{
+    "android": {
+        "min_version": 3
+    }
+}
+```
+
+### `GET /privacy-policy`
+Get privacy policy html.
+
+### `GET /terms-and-conditions`
+Get terms and conditions html.
 
 
 
