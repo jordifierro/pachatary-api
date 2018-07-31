@@ -209,3 +209,5 @@ LOCALE_PATHS = ('locale', )
 
 REDIS_URL = os.environ['REDIS_URL']
 RQ_QUEUES = {'default': {'URL': REDIS_URL}}
+
+DYNAMIC_LINK = os.environ['DYNAMIC_LINK']

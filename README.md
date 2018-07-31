@@ -788,7 +788,9 @@ _Response:_
 
 _304_
 
-Location: 'app://pachatary.com/profiles/<username>'
+Location: 'app://pachatary.com/p/<username>'
+Location: 'http://dynamic.link/link=http://pachatary.com/p/<username>&other=param'
+(Depending if dynamic link variable is set)
 
 ### `GET /redirects/e/<experience_share_id>`
 
@@ -802,7 +804,9 @@ _Response:_
 
 _304_
 
-Location: 'app://pachatary.com/experiences/<experience_share_id>'
+Location: 'app://pachatary.com/e/<experience_share_id>'
+Location: 'http://dynamic.link/link=http://pachatary.com/e/<experience_share_id>&other=param'
+(Depending if dynamic link variable is set)
 
 
 ## Settings

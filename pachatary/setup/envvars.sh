@@ -27,6 +27,8 @@ export PUBLIC_DOMAIN='pachatary.domain'
 
 export REDIS_URL='redis://localhost:6379'
 
+export DYNAMIC_LINK=''
+
 # Remote deployment extra env vars
 # export HOST='domain.host.com'
 # export AWS_ACCESS_KEY_ID='amazon_key'
