@@ -127,3 +127,44 @@ class RedirectProfileTestCase(TestCase):
             assert self.response.status_code == 302
             assert self.response['Location'] == url
             return self
+
+
+class RedirectRootTestCase(TestCase):
+
+    def test_when_there_is_a_dynamic_link_wraps_public_domain_url(self):
+        RedirectRootTestCase.ScenarioMaker() \
+                .given_a_public_domain('http://pachatary.com') \
+                .given_a_dynamic_link('http://dynamic.link/link={}&other=param') \
+                .when_call_root_redirect() \
+                .then_response_should_be_a_redirect_to('http://dynamic.link/link=http://pachatary.com&other=param')
+
+    def test_when_there_is_no_dynamic_link_returns_deep_link(self):
+        RedirectRootTestCase.ScenarioMaker() \
+                .given_a_deep_link_domain('app://pachatary.com') \
+                .given_a_dynamic_link('') \
+                .when_call_root_redirect() \
+                .then_response_should_be_a_redirect_to('app://pachatary.com/')
+
+    class ScenarioMaker:
+
+        def given_a_public_domain(self, public_domain):
+            settings.PUBLIC_DOMAIN = public_domain
+            return self
+
+        def given_a_dynamic_link(self, dynamic_link):
+            settings.DYNAMIC_LINK = dynamic_link
+            return self
+
+        def given_a_deep_link_domain(self, deep_link_domain):
+            settings.ANDROID_DEEPLINK_DOMAIN = deep_link_domain
+            return self
+
+        def when_call_root_redirect(self):
+            client = Client()
+            self.response = client.get(reverse('root-redirect'))
+            return self
+
+        def then_response_should_be_a_redirect_to(self, url):
+            assert self.response.status_code == 302
+            assert self.response['Location'] == url
+            return self

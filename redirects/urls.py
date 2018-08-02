@@ -1,6 +1,7 @@
 from django.conf.urls import url
 
-from .django_views import email_confirmation_redirect, login_redirect, experience_redirect, profile_redirect
+from .django_views import email_confirmation_redirect, login_redirect, experience_redirect, profile_redirect, \
+        root_redirect
 
 urlpatterns = [
     url(r'^people/me/email-confirmation$',
@@ -18,4 +19,8 @@ urlpatterns = [
     url(r'^p/(?P<username>[a-zA-Z0-9._]+)$',
         profile_redirect,
         name='profile-redirect'),
+
+    url(r'^$',
+        root_redirect,
+        name='root-redirect'),
 ]
