@@ -36,7 +36,7 @@ DEBUG = bool(int(os.environ['DEBUG']))
 if not LOCAL_DEPLOY:
     ALLOWED_HOSTS = [os.environ['HOST'], ]
 
-ANDROID_DEEPLINK_DOMAIN = os.environ['ANDROID_DEEPLINK_DOMAIN']
+APP_DEEPLINK_DOMAIN = os.environ['APP_DEEPLINK_DOMAIN']
 
 PUBLIC_DOMAIN = os.environ['PUBLIC_DOMAIN']
 

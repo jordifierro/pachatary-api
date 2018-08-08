@@ -17,7 +17,7 @@ export EMAIL_HOST_USER='user@example.com'
 export EMAIL_HOST_ORIGIN='email@example.com'
 export EMAIL_PORT='123'
 
-export ANDROID_DEEPLINK_DOMAIN='app://local-pachatary.com'
+export APP_DEEPLINK_DOMAIN='local-pachatary://app'
 
 export ELASTICSEARCH_URL='http://localhost:9200/'
 

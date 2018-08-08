@@ -19,7 +19,7 @@ class RedirectConfirmEmailTestCase(TestCase):
 
         def then_response_should_be_a_redirect_to_app_deeplink_with_params(self):
             assert self.response.status_code == 302
-            assert self.response['Location'] == '{}{}?token=ABXZ'.format(settings.ANDROID_DEEPLINK_DOMAIN,
+            assert self.response['Location'] == '{}{}?token=ABXZ'.format(settings.APP_DEEPLINK_DOMAIN,
                                                                          '/people/me/email-confirmation')
             return self
 
@@ -40,7 +40,7 @@ class RedirectLoginEmailTestCase(TestCase):
 
         def then_response_should_be_a_redirect_to_app_deeplink_with_params(self):
             assert self.response.status_code == 302
-            assert self.response['Location'] == '{}{}?token=ABXZ'.format(settings.ANDROID_DEEPLINK_DOMAIN,
+            assert self.response['Location'] == '{}{}?token=ABXZ'.format(settings.APP_DEEPLINK_DOMAIN,
                                                                          '/people/me/login')
             return self
 
@@ -57,10 +57,10 @@ class RedirectExperienceTestCase(TestCase):
 
     def test_when_there_is_no_dynamic_link_returns_deep_link(self):
         RedirectExperienceTestCase.ScenarioMaker() \
-                .given_a_deep_link_domain('app://pachatary.com') \
+                .given_a_deep_link_domain('pachatary://app') \
                 .given_a_dynamic_link('') \
                 .when_call_experience_redirect('AsdE43E4') \
-                .then_response_should_be_a_redirect_to('app://pachatary.com/e/AsdE43E4')
+                .then_response_should_be_a_redirect_to('pachatary://app/experiences/AsdE43E4')
 
     class ScenarioMaker:
 
@@ -73,7 +73,7 @@ class RedirectExperienceTestCase(TestCase):
             return self
 
         def given_a_deep_link_domain(self, deep_link_domain):
-            settings.ANDROID_DEEPLINK_DOMAIN = deep_link_domain
+            settings.APP_DEEPLINK_DOMAIN = deep_link_domain
             return self
 
         def when_call_experience_redirect(self, share_id):
@@ -99,10 +99,10 @@ class RedirectProfileTestCase(TestCase):
 
     def test_when_there_is_no_dynamic_link_returns_deep_link(self):
         RedirectProfileTestCase.ScenarioMaker() \
-                .given_a_deep_link_domain('app://pachatary.com') \
+                .given_a_deep_link_domain('pachatary://app') \
                 .given_a_dynamic_link('') \
                 .when_call_profile_redirect('a_b.c') \
-                .then_response_should_be_a_redirect_to('app://pachatary.com/p/a_b.c')
+                .then_response_should_be_a_redirect_to('pachatary://app/profiles/a_b.c')
 
     class ScenarioMaker:
 
@@ -115,7 +115,7 @@ class RedirectProfileTestCase(TestCase):
             return self
 
         def given_a_deep_link_domain(self, deep_link_domain):
-            settings.ANDROID_DEEPLINK_DOMAIN = deep_link_domain
+            settings.APP_DEEPLINK_DOMAIN = deep_link_domain
             return self
 
         def when_call_profile_redirect(self, username):
@@ -140,10 +140,10 @@ class RedirectRootTestCase(TestCase):
 
     def test_when_there_is_no_dynamic_link_returns_deep_link(self):
         RedirectRootTestCase.ScenarioMaker() \
-                .given_a_deep_link_domain('app://pachatary.com') \
+                .given_a_deep_link_domain('pachatary://app') \
                 .given_a_dynamic_link('') \
                 .when_call_root_redirect() \
-                .then_response_should_be_a_redirect_to('app://pachatary.com/')
+                .then_response_should_be_a_redirect_to('pachatary://app/')
 
     class ScenarioMaker:
 
@@ -156,7 +156,7 @@ class RedirectRootTestCase(TestCase):
             return self
 
         def given_a_deep_link_domain(self, deep_link_domain):
-            settings.ANDROID_DEEPLINK_DOMAIN = deep_link_domain
+            settings.APP_DEEPLINK_DOMAIN = deep_link_domain
             return self
 
         def when_call_root_redirect(self):
