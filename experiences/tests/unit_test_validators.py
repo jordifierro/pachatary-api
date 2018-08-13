@@ -32,14 +32,14 @@ class TestExperienceValidator:
                 .given_an_experience(title='') \
                 .when_experience_is_validated() \
                 .then_error_should_be_raised(source='title', code='wrong_size',
-                                             message='Title must be between 1 and 30 chars')
+                                             message='Title must be between 1 and 80 chars')
 
     def test_large_title_experience_returns_error(self):
         TestExperienceValidator._ScenarioMaker() \
-                .given_an_experience(title='*'*31) \
+                .given_an_experience(title='*'*81) \
                 .when_experience_is_validated() \
                 .then_error_should_be_raised(source='title', code='wrong_size',
-                                             message='Title must be between 1 and 30 chars')
+                                             message='Title must be between 1 and 80 chars')
 
     def test_wrong_type_description_experience_returns_error(self):
         TestExperienceValidator._ScenarioMaker() \

@@ -232,7 +232,7 @@ class CreateExperienceTestCase(TestCase):
                            'error': {
                                         'source': 'title',
                                         'code': 'wrong_size',
-                                        'message': 'Title must be between 1 and 30 chars'
+                                        'message': 'Title must be between 1 and 80 chars'
                                     }
                        }
 
@@ -289,7 +289,7 @@ class ModifyExperienceTestCase(TestCase):
                            'error': {
                                         'source': 'title',
                                         'code': 'wrong_size',
-                                        'message': 'Title must be between 1 and 30 chars'
+                                        'message': 'Title must be between 1 and 80 chars'
                                     }
                        }
 

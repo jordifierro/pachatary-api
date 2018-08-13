@@ -6,7 +6,7 @@ from experiences.models import ORMExperience
 
 
 class ORMScene(models.Model):
-    title = models.CharField(max_length=30, blank=False)
+    title = models.CharField(max_length=80, blank=False)
     description = models.TextField(blank=True)
     picture = StdImageField(upload_to=UploadToUUID(path='scenes'),
                             variations={'large': (1280, 1280),

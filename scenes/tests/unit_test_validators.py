@@ -32,14 +32,14 @@ class TestSceneValidator:
                 .given_an_scene(title='') \
                 .when_scene_is_validated() \
                 .then_error_should_be_raise(source='title', code='wrong_size',
-                                            message='Title must be between 1 and 30 chars')
+                                            message='Title must be between 1 and 80 chars')
 
     def test_large_title_scene_returns_error(self):
         TestSceneValidator._ScenarioMaker() \
-                .given_an_scene(title='*'*31) \
+                .given_an_scene(title='*'*81) \
                 .when_scene_is_validated() \
                 .then_error_should_be_raise(source='title', code='wrong_size',
-                                            message='Title must be between 1 and 30 chars')
+                                            message='Title must be between 1 and 80 chars')
 
     def test_wrong_type_description_scene_returns_error(self):
         TestSceneValidator._ScenarioMaker() \

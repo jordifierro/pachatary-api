@@ -4,7 +4,7 @@ from pachatary.exceptions import InvalidEntityException, EntityDoesNotExistExcep
 class SceneValidator:
 
     MIN_TITLE_LENGHT = 1
-    MAX_TITLE_LENGHT = 30
+    MAX_TITLE_LENGHT = 80
     MIN_LATITUDE = -90
     MAX_LATITUDE = +90
     MIN_LONGITUDE = -180
@@ -20,7 +20,7 @@ class SceneValidator:
             raise InvalidEntityException(source='title', code='wrong_type', message='Title must be string')
         if len(scene.title) < SceneValidator.MIN_TITLE_LENGHT or len(scene.title) > SceneValidator.MAX_TITLE_LENGHT:
             raise InvalidEntityException(source='title', code='wrong_size',
-                                         message='Title must be between 1 and 30 chars')
+                                         message='Title must be between 1 and 80 chars')
 
         if scene.description is not None and type(scene.description) is not str:
             raise InvalidEntityException(source='description', code='wrong_type', message='Description must be string')

@@ -276,7 +276,7 @@ _422_
     "error": {
         "source": "title",
         "code": "wrong_size",
-        "message": "Title must be between 1 and 30 chars"
+        "message": "Title must be between 1 and 80 chars"
     }
 }
 ```
@@ -484,7 +484,7 @@ _422_
     "error": {
         "source": "title",
         "code": "wrong_size",
-        "message": "Title must be between 1 and 30 chars"
+        "message": "Title must be between 1 and 80 chars"
     }
 }
 ```
