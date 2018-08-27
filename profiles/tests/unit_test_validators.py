@@ -178,7 +178,7 @@ class TestProfileValidator:
             assert type(self.error) is InvalidEntityException
             assert self.error.source == 'username'
             assert self.error.code == 'wrong_size'
-            assert str(self.error) == 'Username length should be between 1 and 20 chars'
+            assert str(self.error) == 'Username length should be between 3 and 20 chars'
             return self
 
         def then_should_raise_invalid_entity_exception_for_wrong_bio(self):

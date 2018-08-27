@@ -19,7 +19,7 @@ class ProfileValidator:
         if len(profile.username) < ProfileValidator.USERNAME_MIN_LENGTH or \
                 len(profile.username) > ProfileValidator.USERNAME_MAX_LENGTH:
             raise InvalidEntityException(source='username', code='wrong_size',
-                                         message='Username length should be between 1 and 20 chars')
+                                         message='Username length should be between 3 and 20 chars')
         if not re.match(ProfileValidator.USERNAME_REGEX, profile.username):
             raise InvalidEntityException(source='username', code='not_allowed', message='Username not allowed')
         if self.project_name in profile.username:
