@@ -121,6 +121,7 @@ class IndexExperiencesInteractor:
             try:
                 experience = self.experience_repo.get_experience(str(i))
                 scenes = self.scene_repo.get_scenes(str(i))
-                self.experience_search_repo.index_experience_and_its_scenes(experience, scenes)
+                if len(scenes) > 0:
+                    self.experience_search_repo.index_experience_and_its_scenes(experience, scenes)
             except EntityDoesNotExistException:
                 pass

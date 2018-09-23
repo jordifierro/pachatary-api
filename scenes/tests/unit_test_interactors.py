@@ -542,6 +542,7 @@ class TestIndexExperiencesInteractor:
                 .given_an_experience(id='3') \
                 .given_an_scene(id='7', experience_id='3') \
                 .given_an_scene(id='8', experience_id='3') \
+                .given_an_experience(id='4') \
                 .given_an_experience_repo_that_returns_them() \
                 .when_index(from_id='1', to_id='10') \
                 .should_call_get_experiences_and_their_scenes() \
@@ -588,7 +589,7 @@ class TestIndexExperiencesInteractor:
 
         def should_call_get_experiences_and_their_scenes(self):
             assert self.repo.get_experience.mock_calls == [call(str(i)) for i in range(1, 11)]
-            assert self.scene_repo.get_scenes.mock_calls == [call('2'), call('3')]
+            assert self.scene_repo.get_scenes.mock_calls == [call('2'), call('3'), call('4')]
             return self
 
         def should_index_experiences_and_their_scenes(self):
