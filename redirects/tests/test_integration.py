@@ -2,6 +2,10 @@ from django.conf import settings
 from django.test import TestCase, Client
 from django.urls import reverse
 
+from experiences.models import ORMExperience
+from people.models import ORMPerson
+from profiles.models import ORMProfile
+
 
 class RedirectConfirmEmailTestCase(TestCase):
 
@@ -49,11 +53,13 @@ class RedirectExperienceTestCase(TestCase):
 
     def test_when_there_is_a_dynamic_link_wraps_public_domain_url(self):
         RedirectExperienceTestCase.ScenarioMaker() \
+                .given_an_experience_on_db(title='a', description='d', share_id='AsdE43E4') \
                 .given_a_public_domain('http://pachatary.com') \
                 .given_a_dynamic_link('http://dynamic.link/link={}&other=param') \
                 .when_call_experience_redirect('AsdE43E4') \
                 .then_response_should_be_a_redirect_to(
-                        'http://dynamic.link/link=http://pachatary.com/e/AsdE43E4&other=param')
+                    'http://dynamic.link/link=http://pachatary.com/e/AsdE43E4&other=param'
+                    '&st=a&sd=d&si=%2Fmedia%2Furl.small')
 
     def test_when_there_is_no_dynamic_link_returns_deep_link(self):
         RedirectExperienceTestCase.ScenarioMaker() \
@@ -63,6 +69,15 @@ class RedirectExperienceTestCase(TestCase):
                 .then_response_should_be_a_redirect_to('pachatary://app/experiences/AsdE43E4')
 
     class ScenarioMaker:
+
+        def given_an_experience_on_db(self, title, description, share_id):
+            orm_person = ORMPerson.objects.create()
+            ORMProfile.objects.create(person=orm_person, username='u')
+            experience = ORMExperience.objects.create(title=title, description=description,
+                                                      share_id=share_id, author=orm_person)
+            experience.picture = 'url'
+            experience.save()
+            return self
 
         def given_a_public_domain(self, public_domain):
             settings.PUBLIC_DOMAIN = public_domain
