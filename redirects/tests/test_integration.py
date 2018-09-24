@@ -53,7 +53,7 @@ class RedirectExperienceTestCase(TestCase):
 
     def test_when_there_is_a_dynamic_link_wraps_public_domain_url(self):
         RedirectExperienceTestCase.ScenarioMaker() \
-                .given_an_experience_on_db(title='a', description='d', share_id='AsdE43E4') \
+                .given_an_experience_on_db(title='a', description='d', share_id='AsdE43E4', pic='url') \
                 .given_a_public_domain('http://pachatary.com') \
                 .given_a_dynamic_link('http://dynamic.link/link={}&other=param') \
                 .when_call_experience_redirect('AsdE43E4') \
@@ -70,12 +70,12 @@ class RedirectExperienceTestCase(TestCase):
 
     class ScenarioMaker:
 
-        def given_an_experience_on_db(self, title, description, share_id):
+        def given_an_experience_on_db(self, title, description, share_id, pic):
             orm_person = ORMPerson.objects.create()
             ORMProfile.objects.create(person=orm_person, username='u')
             experience = ORMExperience.objects.create(title=title, description=description,
                                                       share_id=share_id, author=orm_person)
-            experience.picture = 'url'
+            experience.picture = pic
             experience.save()
             return self
 
@@ -106,11 +106,13 @@ class RedirectProfileTestCase(TestCase):
 
     def test_when_there_is_a_dynamic_link_wraps_public_domain_url(self):
         RedirectProfileTestCase.ScenarioMaker() \
+                .given_a_profile(username='a_b.c', bio='my info', pic='url') \
                 .given_a_public_domain('http://pachatary.com') \
                 .given_a_dynamic_link('http://dynamic.link/link={}&other=param') \
                 .when_call_profile_redirect('a_b.c') \
                 .then_response_should_be_a_redirect_to(
-                        'http://dynamic.link/link=http://pachatary.com/p/a_b.c&other=param')
+                        'http://dynamic.link/link=http://pachatary.com/p/a_b.c&other=param'
+                        '&st=%40a_b.c&sd=my+info&si=%2Fmedia%2Furl.small')
 
     def test_when_there_is_no_dynamic_link_returns_deep_link(self):
         RedirectProfileTestCase.ScenarioMaker() \
@@ -120,6 +122,13 @@ class RedirectProfileTestCase(TestCase):
                 .then_response_should_be_a_redirect_to('pachatary://app/profiles/a_b.c')
 
     class ScenarioMaker:
+
+        def given_a_profile(self, username, bio, pic):
+            orm_person = ORMPerson.objects.create()
+            profile = ORMProfile.objects.create(username=username, bio=bio, person=orm_person)
+            profile.picture = pic
+            profile.save()
+            return self
 
         def given_a_public_domain(self, public_domain):
             settings.PUBLIC_DOMAIN = public_domain

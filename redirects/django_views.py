@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.conf import settings
 
 from experiences.factories import create_get_experience_interactor
+from profiles.factories import create_get_profile_interactor
 
 EMAIL_CONFIRMATION_PATH = '/people/me/email-confirmation'
 LOGIN_PATH = '/people/me/login'
@@ -54,6 +55,12 @@ def profile_redirect(request, username):
     if len(dynamic_link) > 0:
         real_link = '{}{}/{}'.format(settings.PUBLIC_DOMAIN, PROFILE_PATH, username)
         link = dynamic_link.format(real_link)
+
+        get_profile_interactor = create_get_profile_interactor()
+        profile = get_profile_interactor.set_params(username=username, logged_person_id='-1').execute()
+        preview_content = {'st': '@{}'.format(profile.username), 'sd': profile.bio, 'si': profile.picture.small_url}
+        preview_encoded = urlencode(preview_content, quote_via=quote_plus)
+        link = '{}&{}'.format(link, preview_encoded)
     else:
         link = '{}{}/{}'.format(settings.APP_DEEPLINK_DOMAIN, PROFILE_DEEPLINK_PATH, username)
 
