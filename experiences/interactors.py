@@ -214,13 +214,14 @@ class IdGenerator:
         return ''.join(random.choice(IdGenerator.CHOICES) for _ in range(IdGenerator.LENGTH))
 
 
-class GetExperienceIdFromShareIdInteractor:
+class GetExperienceInteractor:
 
     def __init__(self, experience_repo, permissions_validator):
         self.experience_repo = experience_repo
         self.permissions_validator = permissions_validator
 
-    def set_params(self, experience_share_id, logged_person_id):
+    def set_params(self, experience_id=None, experience_share_id=None, logged_person_id=None):
+        self.experience_id = experience_id
         self.experience_share_id = experience_share_id
         self.logged_person_id = logged_person_id
         return self
@@ -228,21 +229,8 @@ class GetExperienceIdFromShareIdInteractor:
     def execute(self):
         self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
 
-        return self.experience_repo.get_experience(share_id=self.experience_share_id).id
-
-
-class GetExperienceInteractor:
-
-    def __init__(self, experience_repo, permissions_validator):
-        self.experience_repo = experience_repo
-        self.permissions_validator = permissions_validator
-
-    def set_params(self, experience_id, logged_person_id):
-        self.experience_id = experience_id
-        self.logged_person_id = logged_person_id
-        return self
-
-    def execute(self):
-        self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
-
-        return self.experience_repo.get_experience(id=self.experience_id, logged_person_id=self.logged_person_id)
+        if self.experience_id is not None:
+            return self.experience_repo.get_experience(id=self.experience_id, logged_person_id=self.logged_person_id)
+        elif self.experience_share_id is not None:
+            return self.experience_repo.get_experience(share_id=self.experience_share_id,
+                                                       logged_person_id=self.logged_person_id)

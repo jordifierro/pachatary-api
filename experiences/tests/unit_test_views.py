@@ -523,12 +523,12 @@ class TestTranslateExperienceShareIdView:
         def given_an_interactor_that_returns(self, id):
             self.interactor = Mock()
             self.interactor.set_params.return_value = self.interactor
-            self.interactor.execute.return_value = id
+            self.interactor.execute.return_value = Experience(id=id, title='', description='')
             return self
 
         def when_get_is_called(self, logged_person_id, experience_share_id):
             self.body, self.status = TranslateExperienceShareIdView(
-                get_experience_id_from_share_id_interactor=self.interactor) \
+                get_experience_interactor=self.interactor) \
                     .get(logged_person_id=logged_person_id, experience_share_id=experience_share_id)
             return self
 

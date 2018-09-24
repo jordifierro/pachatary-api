@@ -10,7 +10,7 @@ from .validators import ExperienceValidator, ExperiencePermissionsValidator
 from .interactors import GetExperiencesInteractor, CreateNewExperienceInteractor, \
         ModifyExperienceInteractor, UploadExperiencePictureInteractor, SaveUnsaveExperienceInteractor, \
         SearchExperiencesInteractor, GetOrCreateExperienceShareIdInteractor, IdGenerator, \
-        GetExperienceIdFromShareIdInteractor, GetExperienceInteractor
+        GetExperienceInteractor
 from .views import ExperiencesView, ExperienceView, UploadExperiencePictureView, SaveExperienceView, \
         SearchExperiencesView, ExperienceShareUrlView, TranslateExperienceShareIdView
 
@@ -74,11 +74,6 @@ def create_get_or_create_experience_share_id_interactor():
                                                   id_generator=create_id_generator())
 
 
-def create_get_experience_id_from_share_id_interactor():
-    return GetExperienceIdFromShareIdInteractor(experience_repo=create_experience_repo(),
-                                                permissions_validator=create_person_permissions_validator())
-
-
 def create_get_experience_interactor():
     return GetExperienceInteractor(experience_repo=create_experience_repo(),
                                    permissions_validator=create_person_permissions_validator())
@@ -116,5 +111,4 @@ def create_experience_share_url_view(request, **kwargs):
 
 
 def create_translate_experience_share_id_view(request, **kwargs):
-    return TranslateExperienceShareIdView(
-            get_experience_id_from_share_id_interactor=create_get_experience_id_from_share_id_interactor())
+    return TranslateExperienceShareIdView(get_experience_interactor=create_get_experience_interactor())
