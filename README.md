@@ -26,9 +26,9 @@ For the moment, the api is only consumed by
 
 ## Experiences
 
-### `GET /experiences?username=self&limit=20`
-### `GET /experiences?username=george&limit=20`
-### `GET /experiences?saved=true&limit=20`
+### `GET /experiences/?username=self&limit=20`
+### `GET /experiences/?username=george&limit=20`
+### `GET /experiences/?saved=true&limit=20`
 _Request:_
 You can specify `self` username param to fetch only experiences you have created,
 or target username to receive that person experiences.
