@@ -160,7 +160,7 @@ class RedirectRootTestCase(TestCase):
                 .given_a_public_domain('http://pachatary.com') \
                 .given_a_dynamic_link('http://dynamic.link/link={}&other=param') \
                 .when_call_root_redirect() \
-                .then_response_should_be_a_redirect_to('http://dynamic.link/link=http://pachatary.com&other=param')
+                .then_response_should_be_a_redirect_to('http://dynamic.link/link=http://pachatary.com/&other=param')
 
     def test_when_there_is_no_dynamic_link_returns_deep_link(self):
         RedirectRootTestCase.ScenarioMaker() \

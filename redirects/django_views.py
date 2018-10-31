@@ -72,7 +72,7 @@ def profile_redirect(request, username):
 def root_redirect(request):
     dynamic_link = settings.DYNAMIC_LINK
     if len(dynamic_link) > 0:
-        link = dynamic_link.format(settings.PUBLIC_DOMAIN)
+        link = dynamic_link.format('{}/'.format(settings.PUBLIC_DOMAIN))
     else:
         link = '{}/'.format(settings.APP_DEEPLINK_DOMAIN)
 
