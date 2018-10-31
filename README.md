@@ -776,6 +776,7 @@ _304_
 
 Location: `pachatary://app/people/me/email-confirmation?token=ABXZ`
 
+
 ### `GET /redirects/p/<username>`
 
 This endpoint is to let Android app catch url to redirect to profile.
@@ -793,6 +794,7 @@ Location: `pachatary://app/profiles/<username>`
 Location: `http://dynamic.link/link=http://pachatary.com/p/<username>&other=param`
 
 (Depending if dynamic link variable is set)
+
 
 ### `GET /redirects/e/<experience_share_id>`
 
@@ -812,6 +814,7 @@ Location: `http://dynamic.link/link=http://pachatary.com/e/<experience_share_id>
 
 (Depending if dynamic link variable is set)
 
+
 ### `GET /redirects`
 
 This endpoint is to let Android app catch url to redirect to app.
@@ -825,6 +828,23 @@ Location: `pachatary://app/`
 Location: `http://dynamic.link/link=http://pachatary.com&other=param`
 
 (Depending if dynamic link variable is set)
+
+
+### `GET /redirects/apple-app-site-association`
+
+Required by Apple to activate universal links.
+
+_Response:_
+
+_200_
+```json
+{
+	applinks: {
+		apps: [],
+		details: [{appID: "ASDF.com.pachatary.ios", paths: ["*"]}]
+	}
+}
+```
 
 
 

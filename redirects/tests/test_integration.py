@@ -1,3 +1,5 @@
+import json
+
 from django.conf import settings
 from django.test import TestCase, Client
 from django.urls import reverse
@@ -191,4 +193,29 @@ class RedirectRootTestCase(TestCase):
         def then_response_should_be_a_redirect_to(self, url):
             assert self.response.status_code == 302
             assert self.response['Location'] == url
+            return self
+
+
+class AASATestCase(TestCase):
+
+    def test_aasa_returns_json_with_appid(self):
+        AASATestCase.ScenarioMaker() \
+                .given_an_apple_appid('ASDF.com.myapp.ios') \
+                .when_call_aasa() \
+                .then_response_should_be_json(
+                    '{"applinks": {"apps": [], "details": [{"appID": "ASDF.com.myapp.ios", "paths": ["*"]}]}}')
+
+    class ScenarioMaker:
+
+        def given_an_apple_appid(self, appid):
+            settings.APPLE_APPID = appid
+            return self
+
+        def when_call_aasa(self):
+            client = Client()
+            self.response = client.get(reverse('aasa'))
+            return self
+
+        def then_response_should_be_json(self, json_string):
+            assert json.loads(self.response.content) == json.loads(json_string)
             return self

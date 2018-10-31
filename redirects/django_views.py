@@ -1,6 +1,6 @@
 from urllib.parse import urlencode, quote_plus
 
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 
 from experiences.factories import create_get_experience_interactor
@@ -79,3 +79,7 @@ def root_redirect(request):
     response = HttpResponse('', status=302)
     response['Location'] = link
     return response
+
+
+def aasa_redirect(request):
+    return JsonResponse({"applinks": {"apps": [], "details": [{"appID": settings.APPLE_APPID, "paths": ["*"]}]}})
