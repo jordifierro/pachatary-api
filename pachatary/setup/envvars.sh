@@ -33,6 +33,7 @@ export APPLE_APPID='ASDF.com.myapp.ios'
 
 # Remote deployment extra env vars
 # export HOST='domain.host.com'
+# export PUBLIC_HOST='domain.com'
 # export AWS_ACCESS_KEY_ID='amazon_key'
 # export AWS_SECRET_ACCESS_KEY='amazon_secret'
 # export AWS_STORAGE_BUCKET_NAME='pachatary-bucket'
