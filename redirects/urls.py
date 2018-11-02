@@ -4,11 +4,11 @@ from .django_views import email_confirmation_redirect, login_redirect, experienc
         root_redirect, aasa_redirect
 
 urlpatterns = [
-    url(r'^people/me/email-confirmation$',
+    url(r'^redirects/people/me/email-confirmation$',
         email_confirmation_redirect,
         name='email-confirmation-redirect'),
 
-    url(r'^people/me/login$',
+    url(r'^redirects/people/me/login$',
         login_redirect,
         name='login-redirect'),
 

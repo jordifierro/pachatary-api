@@ -5,8 +5,8 @@ from django.conf import settings
 
 class MailerService:
 
-    PUBLIC_EMAIL_CONFIRMATION_PATH = '/people/me/email-confirmation'
-    PUBLIC_LOGIN_EMAIL_PATH = '/people/me/login'
+    PUBLIC_EMAIL_CONFIRMATION_PATH = '/redirects/people/me/email-confirmation'
+    PUBLIC_LOGIN_EMAIL_PATH = '/redirects/people/me/login'
 
     def send_ask_confirmation_mail(self, confirmation_token, email, username):
         url = '{}{}?token={}'.format(settings.PUBLIC_DOMAIN,

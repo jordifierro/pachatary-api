@@ -18,7 +18,7 @@ urlpatterns = [
 
     url(r'^profiles/', include('profiles.urls')),
 
-    url(r'^redirects/', include('redirects.urls')),
+    url(r'^', include('redirects.urls')),
 
     url(r'^client-versions$', client_versions, name='client-versions'),
     url(r'^privacy-policy$', privacy_policy, name='privacy-policy'),

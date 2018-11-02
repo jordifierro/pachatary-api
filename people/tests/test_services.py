@@ -67,8 +67,8 @@ class TestMailerService(TestCase):
 
         def then_django_send_mail_should_be_called_with_correct_processed_params(self):
             assert mail.outbox[0].subject == 'Pachatary account confirmation'
-            confirmation_url = "{}/people/me/email-confirmation?token={}".format(self.public_domain,
-                                                                                 self.confirmation_token)
+            confirmation_url = "{}/redirects/people/me/email-confirmation?token={}".format(self.public_domain,
+                                                                                           self.confirmation_token)
             context_params = {'username': self.username, 'confirmation_url': confirmation_url}
             plain_text_message = get_template('ask_confirmation_email.txt').render(context_params)
             html_message = get_template('ask_confirmation_email.html').render(context_params)
@@ -80,7 +80,7 @@ class TestMailerService(TestCase):
 
         def then_django_send_login_mail_should_be_called_with_correct_processed_params(self):
             assert mail.outbox[0].subject == 'Pachatary login'
-            login_url = "{}/people/me/login?token={}".format(self.public_domain, self.login_token)
+            login_url = "{}/redirects/people/me/login?token={}".format(self.public_domain, self.login_token)
             context_params = {'username': self.username, 'login_url': login_url}
             plain_text_message = get_template('login_email.txt').render(context_params)
             html_message = get_template('login_email.html').render(context_params)
