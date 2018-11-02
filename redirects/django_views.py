@@ -69,12 +69,12 @@ def profile_redirect(request, username):
     return response
 
 
-def root_redirect(request):
+def open_redirect(request):
     dynamic_link = settings.DYNAMIC_LINK
     if len(dynamic_link) > 0:
-        link = dynamic_link.format('{}/'.format(settings.PUBLIC_DOMAIN))
+        link = dynamic_link.format('{}/open'.format(settings.PUBLIC_DOMAIN))
     else:
-        link = '{}/'.format(settings.APP_DEEPLINK_DOMAIN)
+        link = '{}/open'.format(settings.APP_DEEPLINK_DOMAIN)
 
     response = HttpResponse('', status=302)
     response['Location'] = link
