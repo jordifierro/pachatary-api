@@ -861,6 +861,9 @@ _200_
 {
     "android": {
         "min_version": 3
+    },
+    "ios": {
+        "min_version": 2
     }
 }
 ```

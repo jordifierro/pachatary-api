@@ -203,6 +203,7 @@ if not LOCAL_DEPLOY:
     rollbar.init(**ROLLBAR)
 
 ANDROID_MIN_VERSION = os.environ['ANDROID_MIN_VERSION']
+IOS_MIN_VERSION = os.environ['IOS_MIN_VERSION']
 
 LOCALE_PATHS = ('locale', )
 

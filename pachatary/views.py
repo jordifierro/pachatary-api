@@ -80,6 +80,9 @@ def client_versions(request):
     response = {
         'android': {
             'min_version': int(settings.ANDROID_MIN_VERSION)
+        },
+        'ios': {
+            'min_version': int(settings.IOS_MIN_VERSION)
         }
     }
 

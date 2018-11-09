@@ -22,6 +22,7 @@ export APP_DEEPLINK_DOMAIN='local-pachatary://app'
 export ELASTICSEARCH_URL='http://localhost:9200/'
 
 export ANDROID_MIN_VERSION='0'
+export IOS_MIN_VERSION='0'
 
 export PUBLIC_DOMAIN='pachatary.domain'
 
