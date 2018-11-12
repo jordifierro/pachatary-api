@@ -8,7 +8,7 @@ from django.test import Client
 from django.urls import reverse
 from django.conf import settings
 
-from experiences.models import ORMExperience, ORMSave
+from experiences.models import ORMExperience, ORMSave, ORMFlag
 from experiences.entities import Experience
 from experiences.repositories import ExperienceRepo
 from experiences.factories import create_experience_elastic_repo
@@ -634,4 +634,45 @@ class GetExperienceTestCase(TestCase):
                         'saves_count': self.experience.saves_count,
                     }
             assert self.response.status_code == 200
+            return self
+
+
+class FlagExperienceTestCase(TestCase):
+
+    def test_flag_post_returns_201_and_creates_flag_db_entry(self):
+        FlagExperienceTestCase.ScenarioMaker() \
+                .given_a_person_with_auth_token() \
+                .given_an_experience() \
+                .when_post_on_experience_flag(reason='Spam') \
+                .then_flag_entry_should_be_created_on_db(reason='Spam') \
+                .then_response_should_be_201()
+
+    class ScenarioMaker:
+
+        def given_a_person_with_auth_token(self):
+            self.orm_person = ORMPerson.objects.create()
+            self.orm_auth_token = ORMAuthToken.objects.create(person_id=self.orm_person.id)
+            ORMProfile.objects.create(person_id=self.orm_person.id, username='caller')
+            return self
+
+        def given_an_experience(self):
+            orm_author = ORMPerson.objects.create()
+            ORMProfile.objects.create(person_id=orm_author.id, username='creator')
+            self.orm_experience = ORMExperience.objects.create(title='T', description='', author=orm_author)
+            return self
+
+        def when_post_on_experience_flag(self, reason):
+            auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(self.orm_auth_token.access_token), }
+            client = Client()
+            self.response = client.post(reverse('experience-flag', args=[self.orm_experience.id]),
+                                        {'reason': reason}, **auth_headers)
+            return self
+
+        def then_flag_entry_should_be_created_on_db(self, reason):
+            assert ORMFlag.objects.filter(person=self.orm_person,
+                                          experience=self.orm_experience, reason=reason).exists()
+            return self
+
+        def then_response_should_be_201(self):
+            assert self.response.status_code == 201
             return self

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ORMExperience, ORMSave
+from .models import ORMExperience, ORMSave, ORMFlag
 
 
 class ExperienceAdmin(admin.ModelAdmin):
@@ -16,3 +16,11 @@ class SaveAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ORMSave, SaveAdmin)
+
+
+class FlagAdmin(admin.ModelAdmin):
+    list_display = ('person', 'experience', 'reason', 'is_solved')
+    search_fields = ('person', 'experience')
+
+
+admin.site.register(ORMFlag, FlagAdmin)

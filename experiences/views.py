@@ -157,3 +157,18 @@ class TranslateExperienceShareIdView:
         status = 200
 
         return body, status
+
+
+class FlagExperienceView:
+
+    def __init__(self, flag_experience_interactor):
+        self.flag_experience_interactor = flag_experience_interactor
+
+    @serialize_exceptions
+    def post(self, experience_id, logged_person_id, reason):
+        self.flag_experience_interactor \
+                .set_params(reason=reason,
+                            experience_id=experience_id, logged_person_id=logged_person_id).execute()
+        body = ''
+        status = 201
+        return body, status

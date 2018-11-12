@@ -45,3 +45,19 @@ class ORMSave(models.Model):
 
     def __str__(self):
         return "{} - {}".format(str(self.person), str(self.experience))
+
+
+class ORMFlag(models.Model):
+    person = models.ForeignKey(ORMPerson, on_delete=models.CASCADE)
+    experience = models.ForeignKey(ORMExperience, on_delete=models.CASCADE)
+    reason = models.CharField(max_length=80, blank=False)
+
+    is_solved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Flag'
+        verbose_name_plural = 'Flags'
+
+    def __str__(self):
+        return "{} - {}".format(str(self.person), str(self.experience))

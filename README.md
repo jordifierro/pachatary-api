@@ -315,7 +315,6 @@ _200_
 
 
 
-
 ### `POST /experiences/<experience_id>/save`
 
 Endpoint to save experience as favourite.
@@ -324,6 +323,8 @@ _Response:_
 
 _201_
 
+
+
 ### `DELETE /experiences/<experience_id>/save`
 
 Endpoint to unsave experience as favourite.
@@ -331,6 +332,24 @@ Endpoint to unsave experience as favourite.
 _Response:_
 
 _204_
+
+
+
+### `POST /experiences/<experience_id>/flag`
+
+
+_Request(application/x-www-form-urlencoded):_
+```json
+{
+    "reason": "Contains spam",
+}
+```
+Endpoint to flag experience as inappropiate.
+
+_Response:_
+
+_201_
+
 
 
 ### `POST /experiences/<experience_id>/picture`

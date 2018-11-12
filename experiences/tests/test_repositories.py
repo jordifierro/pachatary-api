@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from pachatary.exceptions import EntityDoesNotExistException, ConflictException
 from experiences.entities import Experience
-from experiences.models import ORMExperience, ORMSave
+from experiences.models import ORMExperience, ORMSave, ORMFlag
 from experiences.repositories import ExperienceRepo
 from experiences.factories import create_experience_elastic_repo
 from scenes.entities import Scene
@@ -195,6 +195,15 @@ class ExperienceRepoTestCase(TestCase):
                 .then_save_should_be_in_db(how_many_saves=0, person=1, experience=1) \
                 .then_experience_saves_count_should_be(experience=1, saves_count=0)
 
+    def test_flag_experience(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_a_person_in_db('other') \
+                .given_an_experience_in_db(created_by_person=2) \
+                .when_flag_experience(1, reason="Spam") \
+                .then_result_should_be_true() \
+                .then_flag_should_be_in_db(person=1, experience=1, reason="Spam")
+
     def test_search_experiences_populates_correcty(self):
         ExperienceRepoTestCase.ScenarioMaker() \
                 .given_a_person_in_db('me') \
@@ -323,6 +332,12 @@ class ExperienceRepoTestCase(TestCase):
                                                       experience_id=str(experience.id))
             return self
 
+        def when_flag_experience(self, position, reason):
+            self.result = self.repo.flag_experience(person_id=str(self.persons[0].id),
+                                                    experience_id=str(self.experiences[position-1].id),
+                                                    reason=reason)
+            return self
+
         def when_search_experiences(self):
             self.result = self.repo.search_experiences(str(self.persons[0].id), self.word,
                                                        self.location, self.offset, self.limit)
@@ -385,6 +400,14 @@ class ExperienceRepoTestCase(TestCase):
             orm_experience = self.experiences[experience-1]
             assert len(ORMSave.objects.filter(experience_id=orm_experience.id,
                                               person_id=orm_person.id)) == how_many_saves
+            return self
+
+        def then_flag_should_be_in_db(self, person, experience, reason):
+            orm_person = self.persons[person-1]
+            orm_experience = self.experiences[experience-1]
+            assert len(ORMFlag.objects.filter(experience_id=orm_experience.id,
+                                              person_id=orm_person.id,
+                                              reason=reason)) == 1
             return self
 
         def then_experience_saves_count_should_be(self, experience, saves_count):

@@ -6,7 +6,7 @@ from django.db import IntegrityError
 from pachatary.entities import Picture
 from pachatary.exceptions import EntityDoesNotExistException, ConflictException
 from profiles.entities import Profile
-from .models import ORMExperience, ORMSave
+from .models import ORMExperience, ORMSave, ORMFlag
 from .entities import Experience
 
 
@@ -143,6 +143,10 @@ class ExperienceRepo:
         if deleted[0] == 1:
             ORMExperience.objects.filter(id=experience_id).update(saves_count=F('saves_count') - 1)
 
+        return True
+
+    def flag_experience(self, person_id, experience_id, reason):
+        ORMFlag.objects.create(person_id=person_id, experience_id=experience_id, reason=reason)
         return True
 
     def search_experiences(self, logged_person_id, word, location=None, offset=0, limit=20):

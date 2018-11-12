@@ -234,3 +234,23 @@ class GetExperienceInteractor:
         elif self.experience_share_id is not None:
             return self.experience_repo.get_experience(share_id=self.experience_share_id,
                                                        logged_person_id=self.logged_person_id)
+
+
+class FlagExperienceInteractor:
+
+    def __init__(self, experience_repo, permissions_validator):
+        self.experience_repo = experience_repo
+        self.permissions_validator = permissions_validator
+
+    def set_params(self, logged_person_id, experience_id, reason):
+        self.logged_person_id = logged_person_id
+        self.experience_id = experience_id
+        self.reason = reason
+        return self
+
+    def execute(self):
+        self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
+
+        return self.experience_repo.flag_experience(person_id=self.logged_person_id,
+                                                    experience_id=self.experience_id,
+                                                    reason=self.reason)

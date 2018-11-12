@@ -7,7 +7,7 @@ from experiences.entities import Experience
 from experiences.interactors import GetExperiencesInteractor, CreateNewExperienceInteractor, \
         ModifyExperienceInteractor, UploadExperiencePictureInteractor, SaveUnsaveExperienceInteractor, \
         SearchExperiencesInteractor, GetOrCreateExperienceShareIdInteractor, IdGenerator, \
-        GetExperienceInteractor
+        GetExperienceInteractor, FlagExperienceInteractor
 
 
 class TestGetExperiences:
@@ -1082,6 +1082,70 @@ class TestGetExperienceInteractor:
 
         def then_should_return_experience(self):
             assert self.result == self.experience
+            return self
+
+        def then_should_let_no_logged_exception_pass(self):
+            assert type(self.error) == NoLoggedException
+            return self
+
+
+class TestFlagExperienceInteractor:
+
+    def test_if_no_logged_person_raises_no_logged_person(self):
+        TestFlagExperienceInteractor.ScenarioMaker() \
+                .given_a_permissions_validator_that_raises_no_logged() \
+                .given_an_experience_repo_that_returns_true_on_flag() \
+                .when_execute_interactor(logged_person_id='0', experience_id='5', reason='Spam') \
+                .then_should_validate_person(id='0') \
+                .then_should_let_no_logged_exception_pass()
+
+    def test_flags_experience(self):
+        TestFlagExperienceInteractor.ScenarioMaker() \
+                .given_a_permissions_validator_that_validates() \
+                .given_an_experience_repo_that_returns_true_on_flag() \
+                .when_execute_interactor(logged_person_id='8', experience_id='5', reason='Spam') \
+                .then_should_validate_person(id='8') \
+                .then_should_call_repo_flag_experience_with(person_id='8', experience_id='5', reason='Spam') \
+                .then_should_return_true()
+
+    class ScenarioMaker:
+
+        def given_a_permissions_validator_that_validates(self):
+            self.permissions_validator = Mock()
+            self.permissions_validator.return_value = True
+            return self
+
+        def given_a_permissions_validator_that_raises_no_logged(self):
+            self.permissions_validator = Mock()
+            self.permissions_validator.validate_permissions.side_effect = NoLoggedException()
+            return self
+
+        def given_an_experience_repo_that_returns_true_on_flag(self):
+            self.repo = Mock()
+            self.repo.flag_experience.return_value = True
+            return self
+
+        def when_execute_interactor(self, logged_person_id, experience_id, reason):
+            try:
+                self.result = FlagExperienceInteractor(experience_repo=self.repo,
+                                                       permissions_validator=self.permissions_validator) \
+                    .set_params(logged_person_id=logged_person_id, experience_id=experience_id, reason=reason).execute()
+            except Exception as e:
+                self.error = e
+            return self
+
+        def then_should_call_repo_flag_experience_with(self, person_id, experience_id, reason):
+            self.repo.flag_experience.assert_called_once_with(person_id=person_id,
+                                                              experience_id=experience_id, reason=reason)
+            return self
+
+        def then_should_validate_person(self, id):
+            self.permissions_validator.validate_permissions \
+                    .assert_called_once_with(logged_person_id=id)
+            return self
+
+        def then_should_return_true(self):
+            assert self.result is True
             return self
 
         def then_should_let_no_logged_exception_pass(self):

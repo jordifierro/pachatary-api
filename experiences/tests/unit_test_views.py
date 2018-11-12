@@ -4,7 +4,7 @@ from pachatary.entities import Picture
 from profiles.entities import Profile
 from experiences.entities import Experience
 from experiences.views import ExperiencesView, ExperienceView, UploadExperiencePictureView, SaveExperienceView, \
-        SearchExperiencesView, ExperienceShareUrlView, TranslateExperienceShareIdView
+        SearchExperiencesView, ExperienceShareUrlView, TranslateExperienceShareIdView, FlagExperienceView
 from experiences.serializers import serialize_experience, serialize_multiple_experiences
 from experiences.interactors import SaveUnsaveExperienceInteractor
 
@@ -541,4 +541,37 @@ class TestTranslateExperienceShareIdView:
         def then_response_should_be(self, body, status):
             assert self.body == body
             assert self.status == status
+            return self
+
+
+class TestFlagExperienceView:
+
+    def test_post_returns_201(self):
+        TestFlagExperienceView.ScenarioMaker() \
+                .given_an_interactor_that_returns_true() \
+                .when_post_is_called(person_id='2', experience_id='3', reason='Spam') \
+                .then_interactor_receives_params(person_id='2', experience_id='3', reason='Spam') \
+                .then_response_status_is_201()
+
+    class ScenarioMaker:
+
+        def given_an_interactor_that_returns_true(self):
+            self.interactor_mock = Mock()
+            self.interactor_mock.execute.return_value = True
+            return self
+
+        def when_post_is_called(self, person_id, experience_id, reason):
+            view = FlagExperienceView(flag_experience_interactor=self.interactor_mock)
+            self.body, self.status = view.post(experience_id=experience_id, logged_person_id=person_id,
+                                               reason=reason)
+            return self
+
+        def then_interactor_receives_params(self, person_id, experience_id, reason):
+            self.interactor_mock.set_params.assert_called_once_with(experience_id=experience_id,
+                                                                    logged_person_id=person_id,
+                                                                    reason=reason)
+            return self
+
+        def then_response_status_is_201(self):
+            assert self.status == 201
             return self

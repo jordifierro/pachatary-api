@@ -10,9 +10,9 @@ from .validators import ExperienceValidator, ExperiencePermissionsValidator
 from .interactors import GetExperiencesInteractor, CreateNewExperienceInteractor, \
         ModifyExperienceInteractor, UploadExperiencePictureInteractor, SaveUnsaveExperienceInteractor, \
         SearchExperiencesInteractor, GetOrCreateExperienceShareIdInteractor, IdGenerator, \
-        GetExperienceInteractor
+        GetExperienceInteractor, FlagExperienceInteractor
 from .views import ExperiencesView, ExperienceView, UploadExperiencePictureView, SaveExperienceView, \
-        SearchExperiencesView, ExperienceShareUrlView, TranslateExperienceShareIdView
+        SearchExperiencesView, ExperienceShareUrlView, TranslateExperienceShareIdView, FlagExperienceView
 
 
 def create_experience_elastic_repo():
@@ -64,6 +64,11 @@ def create_save_unsave_experience_interactor():
                                           permissions_validator=create_person_permissions_validator())
 
 
+def create_flag_experience_interactor():
+    return FlagExperienceInteractor(experience_repo=create_experience_repo(),
+                                    permissions_validator=create_person_permissions_validator())
+
+
 def create_id_generator():
     return IdGenerator()
 
@@ -102,6 +107,10 @@ def create_upload_experience_picture_view(request, **kwargs):
 
 def create_save_experience_view(request, **kwargs):
     return SaveExperienceView(save_unsave_experience_interactor=create_save_unsave_experience_interactor())
+
+
+def create_flag_experience_view(request, **kwargs):
+    return FlagExperienceView(flag_experience_interactor=create_flag_experience_interactor())
 
 
 def create_experience_share_url_view(request, **kwargs):
