@@ -1,4 +1,5 @@
 from elasticsearch.exceptions import NotFoundError
+import logging
 from mock import Mock
 
 from django.test import TestCase
@@ -624,6 +625,23 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(location=ExperienceElasticRepoTestCase.BARCELONA) \
                 .then_should_return_experiences_and_next_offset(['1', '3', '2'])
 
+    def test_delete_experience(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .given_an_experience(title='bike routes') \
+                .given_an_experience(title='mountain bike') \
+                .given_an_experience(title='barcelona restaurants') \
+                .given_an_experience(title='romanic monuments') \
+                .when_index_everything() \
+                .when_delete_experience(1) \
+                .when_search(word='bike') \
+                .then_should_return_experiences_and_next_offset(['2'])
+
+    def test_delete_unexistent_experience_does_not_raise_error(self):
+        ExperienceElasticRepoTestCase.ScenarioMaker() \
+                .when_index_everything() \
+                .when_delete_unexistent_experience() \
+                .then_should_not_raise_error()
+
     class ScenarioMaker:
 
         def __init__(self):
@@ -635,6 +653,7 @@ class ExperienceElasticRepoTestCase(TestCase):
             self.repo._create_experience_index()
             self.experiences = []
             self.scenes = []
+            logging.getLogger('elasticsearch').setLevel(logging.ERROR)
 
         def given_an_experience(self, title='', description='', saves_count=0):
             experience = Experience(id=str(len(self.experiences)+1), title=title,
@@ -657,7 +676,35 @@ class ExperienceElasticRepoTestCase(TestCase):
             self.result = self.repo.search_experiences(word=word, location=location, offset=offset, limit=limit)
             return self
 
+        def when_index_everything(self):
+            for experience in self.experiences:
+                experience_scenes = [scene for scene in self.scenes if scene.experience_id == experience.id]
+                self.repo.index_experience_and_its_scenes(experience, experience_scenes)
+            return self
+
+        def when_search(self, word=None, location=None, offset=0, limit=20):
+            self.repo._refresh_experience_index()
+            self.result = self.repo.search_experiences(word=word, location=location, offset=offset, limit=limit)
+            return self
+
+        def when_delete_experience(self, experience_index):
+            experience_to_delete = self.experiences[experience_index-1]
+            self.repo.delete_experience(experience_id=str(experience_to_delete.id))
+            return self
+
+        def when_delete_unexistent_experience(self):
+            self.error = None
+            try:
+                self.repo.delete_experience(experience_id="42")
+            except Exception as e:
+                self.error = e
+            return self
+
         def then_should_return_experiences_and_next_offset(self, experience_ids, next_offset=None):
             assert self.result['results'] == experience_ids
             assert self.result['next_offset'] == next_offset
+            return self
+
+        def then_should_not_raise_error(self):
+            assert self.error is None
             return self

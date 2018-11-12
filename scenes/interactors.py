@@ -123,5 +123,7 @@ class IndexExperiencesInteractor:
                 scenes = self.scene_repo.get_scenes(str(i))
                 if len(scenes) > 0:
                     self.experience_search_repo.index_experience_and_its_scenes(experience, scenes)
+                else:
+                    self.experience_search_repo.delete_experience(str(i))
             except EntityDoesNotExistException:
-                pass
+                self.experience_search_repo.delete_experience(str(i))

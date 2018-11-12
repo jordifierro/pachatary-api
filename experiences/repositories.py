@@ -1,3 +1,5 @@
+from elasticsearch import NotFoundError as ElasticSearchNotFoundError
+
 from django.db.models import F, Case, When
 from django.db import IntegrityError
 
@@ -214,6 +216,14 @@ class ExperienceSearchRepo(object):
         self.elastic_client.index(index=ExperienceSearchRepo.EXPERIENCE_INDEX,
                                   doc_type=ExperienceSearchRepo.EXPERIENCE_DOC_TYPE,
                                   body=doc, id=experience.id)
+
+    def delete_experience(self, experience_id):
+        try:
+            self.elastic_client.delete(index=ExperienceSearchRepo.EXPERIENCE_INDEX,
+                                       doc_type=ExperienceSearchRepo.EXPERIENCE_DOC_TYPE,
+                                       id=experience_id)
+        except ElasticSearchNotFoundError:
+            pass
 
     def search_experiences(self, word=None, location=None, offset=0, limit=20):
         search_query = {

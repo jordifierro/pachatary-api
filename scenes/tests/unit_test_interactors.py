@@ -534,7 +534,7 @@ class TestUploadScenePictureInteractor:
 
 class TestIndexExperiencesInteractor:
 
-    def test_indexes_existent_with_their_scenes_and_ignore_others(self):
+    def test_indexes_existent_with_their_scenes_and_deletes_others(self):
         TestIndexExperiencesInteractor.ScenarioMaker() \
                 .given_an_experience(id='2') \
                 .given_an_scene(id='5', experience_id='2') \
@@ -546,7 +546,8 @@ class TestIndexExperiencesInteractor:
                 .given_an_experience_repo_that_returns_them() \
                 .when_index(from_id='1', to_id='10') \
                 .should_call_get_experiences_and_their_scenes() \
-                .should_index_experiences_and_their_scenes()
+                .should_index_experiences_and_their_scenes() \
+                .should_delete_experiences([1, 4, 5, 6, 7, 8, 9, 10])
 
     class ScenarioMaker:
 
@@ -596,4 +597,9 @@ class TestIndexExperiencesInteractor:
             assert self.search_repo.index_experience_and_its_scenes.mock_calls == \
                 [call(self.experiences[0], [self.scenes[0], self.scenes[1]]),
                  call(self.experiences[1], [self.scenes[2], self.scenes[3]])]
+            return self
+
+        def should_delete_experiences(self, experience_indexes):
+            assert self.search_repo.delete_experience.mock_calls == \
+                    [call(str(index)) for index in experience_indexes]
             return self
