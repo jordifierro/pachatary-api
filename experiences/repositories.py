@@ -50,6 +50,7 @@ class ExperienceRepo:
         db_saves_and_experiences = ORMSave.objects \
                                           .order_by('-id') \
                                           .select_related('experience', 'experience__author__profile') \
+                                          .exclude(experience__is_deleted=True) \
                                           .filter(person_id=logged_person_id)
 
         paginated_db_saves = db_saves_and_experiences[offset:offset+limit+1]
@@ -64,6 +65,7 @@ class ExperienceRepo:
 
     def get_person_experiences(self, logged_person_id, target_person_id, offset=0, limit=100, mine=False, saved=False):
         person_db_experiences = ORMExperience.objects \
+                                                .exclude(is_deleted=True) \
                                                 .order_by('-id') \
                                                 .select_related('author__profile') \
                                                 .filter(author_id=target_person_id)
@@ -88,9 +90,13 @@ class ExperienceRepo:
     def get_experience(self, id=None, share_id=None, logged_person_id=None):
         try:
             if id is not None:
-                db_experience = ORMExperience.objects.select_related('author__profile').get(id=id)
+                db_experience = ORMExperience.objects \
+                                                .exclude(is_deleted=True) \
+                                                .select_related('author__profile').get(id=id)
             else:
-                db_experience = ORMExperience.objects.select_related('author__profile').get(share_id=share_id)
+                db_experience = ORMExperience.objects \
+                                                .exclude(is_deleted=True) \
+                                                .select_related('author__profile').get(share_id=share_id)
             is_mine = (logged_person_id == db_experience.author_id)
             is_saved = False
             if logged_person_id is not None and not is_mine:

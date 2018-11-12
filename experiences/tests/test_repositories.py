@@ -25,11 +25,13 @@ class ExperienceRepoTestCase(TestCase):
                 .given_an_experience_in_db(created_by_person=2) \
                 .given_an_experience_in_db(created_by_person=2) \
                 .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=2, is_deleted=True) \
                 .given_an_experience_in_db(created_by_person=1) \
                 .given_I_save_experience(experience=3) \
                 .given_I_save_experience(experience=5) \
                 .given_I_save_experience(experience=1) \
                 .given_I_save_experience(experience=6) \
+                .given_I_save_experience(experience=7) \
                 .when_get_saved_experiences(offset=0, limit=2) \
                 .then_result_should_be_experiences_and_offset([6, 1], 2) \
                 .when_get_saved_experiences(offset=2, limit=1) \
@@ -48,6 +50,7 @@ class ExperienceRepoTestCase(TestCase):
                 .given_an_experience_in_db(created_by_person=2) \
                 .given_an_experience_in_db(created_by_person=1) \
                 .given_an_experience_in_db(created_by_person=1) \
+                .given_an_experience_in_db(created_by_person=1, is_deleted=True) \
                 .given_I_save_experience(experience=5) \
                 .when_get_person_experiences(target_person=1, offset=0, limit=2) \
                 .then_result_should_be_experiences_and_offset([7, 6], 2) \
@@ -67,6 +70,7 @@ class ExperienceRepoTestCase(TestCase):
                 .given_an_experience_in_db(created_by_person=2) \
                 .given_an_experience_in_db(created_by_person=1) \
                 .given_an_experience_in_db(created_by_person=2) \
+                .given_an_experience_in_db(created_by_person=2, is_deleted=True) \
                 .given_I_save_experience(experience=7) \
                 .given_I_save_experience(experience=4) \
                 .when_get_person_experiences(target_person=2, offset=0, limit=2) \
@@ -100,12 +104,26 @@ class ExperienceRepoTestCase(TestCase):
                 .when_get_experience(1, person=1) \
                 .then_repo_should_return_experience(1, person_logged=1, saved=True)
 
+    def test_get_deleted_experience_returns_raises_entity_does_not_exist_error(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_an_experience_in_db(created_by_person=1, is_deleted=True) \
+                .when_get_experience(1, person=1) \
+                .then_entity_does_not_exists_should_be_raised()
+
     def test_get_experience_by_share_id_returns_experience(self):
         ExperienceRepoTestCase.ScenarioMaker() \
                 .given_a_person_in_db('me') \
                 .given_an_experience_in_db(created_by_person=1, share_id='sdREwe43') \
                 .when_get_experience_by_share_id('sdREwe43', person=1) \
                 .then_repo_should_return_experience(1, person_logged=1, saved=False)
+
+    def test_get_deleted_experience_by_share_id_raises_entity_does_not_exist_error(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_an_experience_in_db(created_by_person=1, share_id='sdREwe43', is_deleted=True) \
+                .when_get_experience_by_share_id('sdREwe43', person=1) \
+                .then_entity_does_not_exists_should_be_raised()
 
     def test_get_unexistent_experience_raises_error(self):
         ExperienceRepoTestCase.ScenarioMaker() \
@@ -219,9 +237,10 @@ class ExperienceRepoTestCase(TestCase):
             self.profiles.append(ORMProfile.objects.create(person=self.persons[len(self.persons)-1], username=username))
             return self
 
-        def given_an_experience_in_db(self, created_by_person, share_id=None):
+        def given_an_experience_in_db(self, created_by_person, share_id=None, is_deleted=False):
             author_id = self.persons[created_by_person-1].id
-            self.experiences.append(ORMExperience.objects.create(author_id=author_id, share_id=share_id))
+            self.experiences.append(ORMExperience.objects.create(author_id=author_id, share_id=share_id,
+                                                                 is_deleted=is_deleted))
             return self
 
         def given_I_save_experience(self, experience):
@@ -254,12 +273,19 @@ class ExperienceRepoTestCase(TestCase):
             return self
 
         def when_get_experience(self, position, person=0):
-            self.result = self.repo.get_experience(id=str(self.experiences[position-1].id),
-                                                   logged_person_id=str(self.persons[person-1].id))
+            try:
+                self.result = self.repo.get_experience(id=str(self.experiences[position-1].id),
+                                                       logged_person_id=str(self.persons[person-1].id))
+            except EntityDoesNotExistException as e:
+                self.entity_does_not_exist_exception = e
             return self
 
         def when_get_experience_by_share_id(self, share_id, person=0):
-            self.result = self.repo.get_experience(share_id=share_id, logged_person_id=str(self.persons[person-1].id))
+            try:
+                self.result = self.repo.get_experience(share_id=share_id,
+                                                       logged_person_id=str(self.persons[person-1].id))
+            except EntityDoesNotExistException as e:
+                self.entity_does_not_exist_exception = e
             return self
 
         def when_get_unexistent_experience(self):

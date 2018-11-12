@@ -19,6 +19,8 @@ class ORMExperience(models.Model):
     saves_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    is_deleted = models.BooleanField(default=False)
+
     class Meta:
         verbose_name = 'Experience'
         verbose_name_plural = 'Experiences'

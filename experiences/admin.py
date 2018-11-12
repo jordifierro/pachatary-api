@@ -3,7 +3,7 @@ from .models import ORMExperience, ORMSave
 
 
 class ExperienceAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'saves_count', 'share_id')
+    list_display = ('title', 'author', 'saves_count', 'share_id', 'is_deleted')
     search_fields = ('title', 'description')
 
 
