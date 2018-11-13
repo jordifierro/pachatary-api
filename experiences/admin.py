@@ -1,10 +1,15 @@
 from django.contrib import admin
 from .models import ORMExperience, ORMSave, ORMFlag
+from scenes.factories import create_index_experiences_interactor
 
 
 class ExperienceAdmin(admin.ModelAdmin):
     list_display = ('title', 'author', 'saves_count', 'share_id', 'is_deleted')
     search_fields = ('title', 'description')
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        create_index_experiences_interactor().set_params(obj.id, obj.id).execute()
 
 
 admin.site.register(ORMExperience, ExperienceAdmin)
