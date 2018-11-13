@@ -242,9 +242,10 @@ class GetExperienceInteractor:
 
 class FlagExperienceInteractor:
 
-    def __init__(self, experience_repo, permissions_validator):
+    def __init__(self, experience_repo, permissions_validator, get_experience_interactor):
         self.experience_repo = experience_repo
         self.permissions_validator = permissions_validator
+        self.get_experience_interactor = get_experience_interactor
 
     def set_params(self, logged_person_id, experience_id, reason):
         self.logged_person_id = logged_person_id
@@ -254,6 +255,9 @@ class FlagExperienceInteractor:
 
     def execute(self):
         self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
+
+        self.get_experience_interactor.set_params(experience_id=self.experience_id,
+                                                  logged_person_id=self.logged_person_id).execute()
 
         return self.experience_repo.flag_experience(person_id=self.logged_person_id,
                                                     experience_id=self.experience_id,

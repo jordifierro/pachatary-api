@@ -1123,10 +1123,15 @@ class TestFlagExperienceInteractor:
                 .given_an_experience_repo_that_returns_true_on_flag() \
                 .when_execute_interactor(logged_person_id='8', experience_id='5', reason='Spam') \
                 .then_should_validate_person(id='8') \
+                .then_should_call_get_experience_interactor(experience_id='5', logged_person_id='8') \
                 .then_should_call_repo_flag_experience_with(person_id='8', experience_id='5', reason='Spam') \
                 .then_should_return_true()
 
     class ScenarioMaker:
+
+        def __init__(self):
+            self.get_experience_interactor = Mock()
+            self.get_experience_interactor.set_params.return_value = self.get_experience_interactor
 
         def given_a_permissions_validator_that_validates(self):
             self.permissions_validator = Mock()
@@ -1146,7 +1151,8 @@ class TestFlagExperienceInteractor:
         def when_execute_interactor(self, logged_person_id, experience_id, reason):
             try:
                 self.result = FlagExperienceInteractor(experience_repo=self.repo,
-                                                       permissions_validator=self.permissions_validator) \
+                                                       permissions_validator=self.permissions_validator,
+                                                       get_experience_interactor=self.get_experience_interactor) \
                     .set_params(logged_person_id=logged_person_id, experience_id=experience_id, reason=reason).execute()
             except Exception as e:
                 self.error = e
@@ -1160,6 +1166,12 @@ class TestFlagExperienceInteractor:
         def then_should_validate_person(self, id):
             self.permissions_validator.validate_permissions \
                     .assert_called_once_with(logged_person_id=id)
+            return self
+
+        def then_should_call_get_experience_interactor(self, experience_id, logged_person_id):
+            self.get_experience_interactor.set_params.assert_called_once_with(experience_id=experience_id,
+                                                                              logged_person_id=logged_person_id)
+            self.get_experience_interactor.execute.assert_called_once_with()
             return self
 
         def then_should_return_true(self):
