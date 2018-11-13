@@ -61,7 +61,8 @@ def create_upload_experience_picture_interactor():
 
 def create_save_unsave_experience_interactor():
     return SaveUnsaveExperienceInteractor(experience_repo=create_experience_repo(),
-                                          permissions_validator=create_person_permissions_validator())
+                                          permissions_validator=create_person_permissions_validator(),
+                                          get_experience_interactor=create_get_experience_interactor())
 
 
 def create_flag_experience_interactor():

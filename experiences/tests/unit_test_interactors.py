@@ -715,7 +715,8 @@ class TestSaveUnsaveExperienceInteractor:
     def test_unauthorized_raises_no_logged_exception(self):
         TestSaveUnsaveExperienceInteractor.ScenarioMaker() \
                 .given_a_permissions_validator_that_raises_no_permissions_exception() \
-                .given_an_experience_repo_that_returns_true_on_save_and_others_experience() \
+                .given_an_experience_repo_that_returns_true_on_save() \
+                .given_a_get_experience_interactor_that_returns_others_experience() \
                 .when_interactor_is_executed(action=SaveUnsaveExperienceInteractor.Action.SAVE) \
                 .then_should_not_call_repo_save_experience() \
                 .then_should_raise_no_logged_exception()
@@ -725,10 +726,11 @@ class TestSaveUnsaveExperienceInteractor:
                 .given_a_logged_person_id() \
                 .given_a_permissions_validator_that_returns_true() \
                 .given_an_experience_id() \
-                .given_an_experience_repo_that_returns_own_experience() \
+                .given_a_get_experience_interactor_that_returns_own_experience() \
+                .given_an_experience_repo_that_returns_true_on_save() \
                 .when_interactor_is_executed(action=SaveUnsaveExperienceInteractor.Action.SAVE) \
                 .then_should_validate_permissions() \
-                .then_should_call_repo_get_experience_with_experience_id() \
+                .then_should_call_interactor_with_experience_id_and_logged_person_id() \
                 .then_should_not_call_repo_save_experience() \
                 .then_should_raise_conflict_exception()
 
@@ -737,10 +739,11 @@ class TestSaveUnsaveExperienceInteractor:
                 .given_a_logged_person_id() \
                 .given_a_permissions_validator_that_returns_true() \
                 .given_an_experience_id() \
-                .given_an_experience_repo_that_returns_true_on_save_and_others_experience() \
+                .given_an_experience_repo_that_returns_true_on_save() \
+                .given_a_get_experience_interactor_that_returns_others_experience() \
                 .when_interactor_is_executed(action=SaveUnsaveExperienceInteractor.Action.SAVE) \
                 .then_should_validate_permissions() \
-                .then_should_call_repo_get_experience_with_experience_id() \
+                .then_should_call_interactor_with_experience_id_and_logged_person_id() \
                 .then_should_call_repo_save_experience_with_person_id() \
                 .then_should_return_true()
 
@@ -749,10 +752,11 @@ class TestSaveUnsaveExperienceInteractor:
                 .given_a_logged_person_id() \
                 .given_a_permissions_validator_that_returns_true() \
                 .given_an_experience_id() \
-                .given_an_experience_repo_that_returns_true_on_save_and_others_experience() \
+                .given_an_experience_repo_that_returns_true_on_save() \
+                .given_a_get_experience_interactor_that_returns_others_experience() \
                 .when_interactor_is_executed(action=SaveUnsaveExperienceInteractor.Action.UNSAVE) \
                 .then_should_validate_permissions() \
-                .then_should_call_repo_get_experience_with_experience_id() \
+                .then_should_call_interactor_with_experience_id_and_logged_person_id() \
                 .then_should_call_repo_unsave_experience_with_person_id() \
 
 
@@ -776,17 +780,23 @@ class TestSaveUnsaveExperienceInteractor:
             self.permissions_validator.validate_permissions.side_effect = NoLoggedException
             return self
 
-        def given_an_experience_repo_that_returns_true_on_save_and_others_experience(self):
-            others_experience = Experience(id='4', title='t', description='d', author_id='3')
+        def given_an_experience_repo_that_returns_true_on_save(self):
             self.experience_repo = Mock()
             self.experience_repo.save_experience.return_value = True
-            self.experience_repo.get_experience.return_value = others_experience
             return self
 
-        def given_an_experience_repo_that_returns_own_experience(self):
-            others_experience = Experience(id='4', title='t', description='d', author_id=self.logged_person_id)
-            self.experience_repo = Mock()
-            self.experience_repo.get_experience.return_value = others_experience
+        def given_a_get_experience_interactor_that_returns_own_experience(self):
+            own_experience = Experience(id='4', title='t', description='d', author_id=self.logged_person_id)
+            self.get_experience_interactor = Mock()
+            self.get_experience_interactor.set_params.return_value = self.get_experience_interactor
+            self.get_experience_interactor.execute.return_value = own_experience
+            return self
+
+        def given_a_get_experience_interactor_that_returns_others_experience(self):
+            others_experience = Experience(id='4', title='t', description='d', author_id='3')
+            self.get_experience_interactor = Mock()
+            self.get_experience_interactor.set_params.return_value = self.get_experience_interactor
+            self.get_experience_interactor.execute.return_value = others_experience
             return self
 
         def given_an_experience_repo_that_returns_true_on_unsave(self):
@@ -801,7 +811,8 @@ class TestSaveUnsaveExperienceInteractor:
         def when_interactor_is_executed(self, action):
             try:
                 interactor = SaveUnsaveExperienceInteractor(experience_repo=self.experience_repo,
-                                                            permissions_validator=self.permissions_validator)
+                                                            permissions_validator=self.permissions_validator,
+                                                            get_experience_interactor=self.get_experience_interactor)
                 self.result = interactor.set_params(action=action, experience_id=self.experience_id,
                                                     logged_person_id=self.logged_person_id).execute()
             except Exception as e:
@@ -813,8 +824,10 @@ class TestSaveUnsaveExperienceInteractor:
                     .assert_called_once_with(logged_person_id=self.logged_person_id)
             return self
 
-        def then_should_call_repo_get_experience_with_experience_id(self):
-            self.experience_repo.get_experience.assert_called_once_with(id=self.experience_id)
+        def then_should_call_interactor_with_experience_id_and_logged_person_id(self):
+            self.get_experience_interactor.set_params.assert_called_once_with(experience_id=self.experience_id,
+                                                                              logged_person_id=self.logged_person_id)
+            self.get_experience_interactor.execute.assert_called_once_with()
             return self
 
         def then_should_call_repo_save_experience_with_person_id(self):
