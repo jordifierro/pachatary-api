@@ -1,7 +1,7 @@
 from django.conf.urls import url
 
 from .django_views import email_confirmation_redirect, login_redirect, experience_redirect, profile_redirect, \
-        open_redirect, aasa_redirect
+        open_redirect
 
 urlpatterns = [
     url(r'^redirects/people/me/email-confirmation$',
@@ -19,10 +19,6 @@ urlpatterns = [
     url(r'^p/(?P<username>[a-zA-Z0-9._]+)$',
         profile_redirect,
         name='profile-redirect'),
-
-    url(r'^apple-app-site-association$',
-        aasa_redirect,
-        name='aasa'),
 
     url(r'^open$',
         open_redirect,

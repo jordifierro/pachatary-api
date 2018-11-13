@@ -2,7 +2,7 @@ import json
 import urllib.parse
 
 from django.template.loader import get_template
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django.conf import settings
 
@@ -95,3 +95,7 @@ def privacy_policy(request):
 
 def terms_and_conditions(request):
     return HttpResponse(get_template('terms_and_conditions.html').render())
+
+
+def aasa_redirect(request):
+    return JsonResponse({"applinks": {"apps": [], "details": [{"appID": settings.APPLE_APPID, "paths": ["*"]}]}})

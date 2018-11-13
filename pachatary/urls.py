@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 
-from .views import client_versions, privacy_policy, terms_and_conditions
+from .views import client_versions, privacy_policy, terms_and_conditions, aasa_redirect
 
 app_name = 'pachatary'
 urlpatterns = [
@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^', include('redirects.urls')),
 
     url(r'^client-versions$', client_versions, name='client-versions'),
+    url(r'^apple-app-site-association$', aasa_redirect, name='aasa'),
     url(r'^privacy-policy$', privacy_policy, name='privacy-policy'),
     url(r'^terms-and-conditions$', terms_and_conditions, name='terms-and-conditions'),
 ]
