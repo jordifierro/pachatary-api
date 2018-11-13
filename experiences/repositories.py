@@ -110,17 +110,29 @@ class ExperienceRepo:
     def create_experience(self, experience):
         db_experience = ORMExperience.objects.create(title=experience.title,
                                                      description=experience.description,
-                                                     author_id=experience.author_id)
+                                                     author_id=experience.author_id,
+                                                     is_deleted=False)
         return self._decode_db_experience(db_experience, str(db_experience.author_id))
 
     def attach_picture_to_experience(self, experience_id, picture):
-        experience = ORMExperience.objects.get(id=experience_id)
+        try:
+            experience = ORMExperience.objects \
+                                        .exclude(is_deleted=True) \
+                                        .get(id=experience_id)
+        except ORMExperience.DoesNotExist:
+            raise EntityDoesNotExistException()
+
         experience.picture = picture
         experience.save()
         return self._decode_db_experience(experience, str(experience.author_id))
 
     def update_experience(self, experience, logged_person_id=None):
-        orm_experience = ORMExperience.objects.get(id=experience.id)
+        try:
+            orm_experience = ORMExperience.objects \
+                                            .exclude(is_deleted=True) \
+                                            .get(id=experience.id)
+        except ORMExperience.DoesNotExist:
+            raise EntityDoesNotExistException()
 
         orm_experience.title = experience.title
         orm_experience.description = experience.description

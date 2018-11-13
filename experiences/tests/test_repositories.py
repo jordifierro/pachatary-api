@@ -163,6 +163,13 @@ class ExperienceRepoTestCase(TestCase):
                 .when_update_experience(experience=1, title='n', description='u', share_id='Ab3') \
                 .then_should_raise_conflict_exception()
 
+    def test_update_deleted_experience(self):
+        ExperienceRepoTestCase.ScenarioMaker() \
+                .given_a_person_in_db('me') \
+                .given_an_experience_in_db(created_by_person=1, is_deleted=True) \
+                .when_update_experience(experience=1, title='n', description='u', share_id='Ab3') \
+                .then_entity_does_not_exists_should_be_raised()
+
     def test_save_experience(self):
         ExperienceRepoTestCase.ScenarioMaker() \
                 .given_a_person_in_db('me') \
@@ -312,11 +319,14 @@ class ExperienceRepoTestCase(TestCase):
             return self
 
         def when_update_experience(self, experience, title, description, share_id=None):
-            experience = self.repo.get_experience(id=str(self.experiences[experience-1].id),
-                                                  logged_person_id=str(self.persons[0].id))
+            experience = self.repo._decode_db_experience(
+                    ORMExperience.objects.get(id=str(self.experiences[experience-1].id)),
+                    logged_person_id=str(self.persons[0].id))
             updated_experience = experience.builder().title(title).description(description).share_id(share_id).build()
             try:
                 self.result = self.repo.update_experience(updated_experience, logged_person_id=str(self.persons[0].id))
+            except EntityDoesNotExistException as e:
+                self.entity_does_not_exist_exception = e
             except Exception as e:
                 self.error = e
             return self
