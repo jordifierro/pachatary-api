@@ -77,7 +77,8 @@ def create_id_generator():
 def create_get_or_create_experience_share_id_interactor():
     return GetOrCreateExperienceShareIdInteractor(experience_repo=create_experience_repo(),
                                                   permissions_validator=create_person_permissions_validator(),
-                                                  id_generator=create_id_generator())
+                                                  id_generator=create_id_generator(),
+                                                  get_experience_interactor=create_get_experience_interactor())
 
 
 def create_get_experience_interactor():

@@ -866,7 +866,7 @@ class TestGetOrCreateExperienceShareIdInteractor:
         TestGetOrCreateExperienceShareIdInteractor.ScenarioMaker() \
                 .given_a_logged_person_id('0') \
                 .given_a_permissions_validator_that_raises_no_logged() \
-                .given_an_experience_on_repo(id='4') \
+                .given_an_experience_on_interactor(id='4') \
                 .when_execute_interactor() \
                 .then_should_let_no_logged_exception_pass()
 
@@ -874,7 +874,7 @@ class TestGetOrCreateExperienceShareIdInteractor:
         TestGetOrCreateExperienceShareIdInteractor.ScenarioMaker() \
                 .given_a_logged_person_id('5') \
                 .given_a_permissions_validator_that_validates() \
-                .given_an_experience_on_repo(id='4', share_id='asdf') \
+                .given_an_experience_on_interactor(id='4', share_id='asdf') \
                 .when_execute_interactor() \
                 .then_should_get_experience(id='4') \
                 .then_should_validate_person(id='5') \
@@ -884,7 +884,7 @@ class TestGetOrCreateExperienceShareIdInteractor:
         TestGetOrCreateExperienceShareIdInteractor.ScenarioMaker() \
                 .given_a_logged_person_id('5') \
                 .given_a_permissions_validator_that_validates() \
-                .given_an_experience_on_repo(id='4') \
+                .given_an_experience_on_interactor(id='4') \
                 .given_a_share_id_generator_that_returns(share_ids=['qwerty']) \
                 .given_an_experience_repo_that_raises_conflict_when_update(share_id='none') \
                 .when_execute_interactor() \
@@ -897,7 +897,7 @@ class TestGetOrCreateExperienceShareIdInteractor:
         TestGetOrCreateExperienceShareIdInteractor.ScenarioMaker() \
                 .given_a_logged_person_id('5') \
                 .given_a_permissions_validator_that_validates() \
-                .given_an_experience_on_repo(id='4') \
+                .given_an_experience_on_interactor(id='4') \
                 .given_a_share_id_generator_that_returns(share_ids=['qwerty', 'other']) \
                 .given_an_experience_repo_that_raises_conflict_when_update(share_id='qwerty') \
                 .when_execute_interactor() \
@@ -925,9 +925,11 @@ class TestGetOrCreateExperienceShareIdInteractor:
             self.permissions_validator.validate_permissions.side_effect = NoLoggedException()
             return self
 
-        def given_an_experience_on_repo(self, id, share_id=None):
+        def given_an_experience_on_interactor(self, id, share_id=None):
             self.experience = Experience(id=id, title='as', description='er', author_id='9', share_id=share_id)
-            self.repo.get_experience.return_value = self.experience
+            self.get_experience_interactor = Mock()
+            self.get_experience_interactor.set_params.return_value = self.get_experience_interactor
+            self.get_experience_interactor.execute.return_value = self.experience
             return self
 
         def given_a_share_id_generator_that_returns(self, share_ids):
@@ -949,7 +951,8 @@ class TestGetOrCreateExperienceShareIdInteractor:
                 self.result = \
                     GetOrCreateExperienceShareIdInteractor(experience_repo=self.repo,
                                                            permissions_validator=self.permissions_validator,
-                                                           id_generator=self.id_generator) \
+                                                           id_generator=self.id_generator,
+                                                           get_experience_interactor=self.get_experience_interactor) \
                     .set_params(experience_id=self.experience.id, logged_person_id=self.logged_person_id).execute()
             except Exception as e:
                 self.error = e
@@ -961,7 +964,9 @@ class TestGetOrCreateExperienceShareIdInteractor:
             return self
 
         def then_should_get_experience(self, id):
-            self.repo.get_experience.assert_called_once_with(id=id)
+            self.get_experience_interactor.set_params.assert_called_once_with(experience_id=id,
+                                                                              logged_person_id=self.logged_person_id)
+            self.get_experience_interactor.execute.assert_called_once_with()
             return self
 
         def then_should_return(self, share_id):

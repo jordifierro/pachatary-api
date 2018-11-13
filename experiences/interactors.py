@@ -177,10 +177,11 @@ class SaveUnsaveExperienceInteractor:
 
 class GetOrCreateExperienceShareIdInteractor:
 
-    def __init__(self, experience_repo, permissions_validator, id_generator):
+    def __init__(self, experience_repo, permissions_validator, id_generator, get_experience_interactor):
         self.experience_repo = experience_repo
         self.permissions_validator = permissions_validator
         self.id_generator = id_generator
+        self.get_experience_interactor = get_experience_interactor
 
     def set_params(self, experience_id, logged_person_id):
         self.experience_id = experience_id
@@ -190,7 +191,8 @@ class GetOrCreateExperienceShareIdInteractor:
     def execute(self):
         self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
 
-        experience = self.experience_repo.get_experience(id=self.experience_id)
+        experience = self.get_experience_interactor.set_params(experience_id=self.experience_id,
+                                                               logged_person_id=self.logged_person_id).execute()
         if experience.share_id is not None:
             return experience.share_id
 
