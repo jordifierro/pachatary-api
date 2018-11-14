@@ -1,7 +1,7 @@
 import random
 from enum import Enum
 
-from pachatary.exceptions import ConflictException
+from pachatary.exceptions import ConflictException, BlockedContentException
 from experiences.entities import Experience
 
 
@@ -220,8 +220,9 @@ class IdGenerator:
 
 class GetExperienceInteractor:
 
-    def __init__(self, experience_repo, permissions_validator):
+    def __init__(self, experience_repo, block_repo, permissions_validator):
         self.experience_repo = experience_repo
+        self.block_repo = block_repo
         self.permissions_validator = permissions_validator
 
     def set_params(self, experience_id=None, experience_share_id=None, logged_person_id=None):
@@ -234,10 +235,16 @@ class GetExperienceInteractor:
         self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
 
         if self.experience_id is not None:
-            return self.experience_repo.get_experience(id=self.experience_id, logged_person_id=self.logged_person_id)
+            experience = self.experience_repo.get_experience(id=self.experience_id,
+                                                             logged_person_id=self.logged_person_id)
         elif self.experience_share_id is not None:
-            return self.experience_repo.get_experience(share_id=self.experience_share_id,
-                                                       logged_person_id=self.logged_person_id)
+            experience = self.experience_repo.get_experience(share_id=self.experience_share_id,
+                                                             logged_person_id=self.logged_person_id)
+
+        if self.block_repo.block_exists(creator_id=self.logged_person_id, target_id=experience.author_id):
+            raise BlockedContentException
+        else:
+            return experience
 
 
 class FlagExperienceInteractor:

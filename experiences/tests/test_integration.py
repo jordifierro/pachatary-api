@@ -13,7 +13,7 @@ from experiences.entities import Experience
 from experiences.repositories import ExperienceRepo
 from experiences.factories import create_experience_elastic_repo
 from experiences.serializers import serialize_multiple_experiences
-from people.models import ORMPerson, ORMAuthToken
+from people.models import ORMPerson, ORMAuthToken, ORMBlock
 from profiles.models import ORMProfile
 from scenes.entities import Scene
 from profiles.entities import Profile
@@ -599,6 +599,14 @@ class GetExperienceTestCase(TestCase):
                 .when_get_is_called_for_experience() \
                 .then_response_should_be_experience_and_200()
 
+    def test_block_author_experience_returns_exception_and_403(self):
+        GetExperienceTestCase.ScenarioMaker() \
+                .given_a_person_with_auth_token() \
+                .given_another_person_blocked_by_first() \
+                .given_an_experience_in_db_from_second_person() \
+                .when_get_is_called_for_experience() \
+                .then_response_should_be_403_blocked_content_exception()
+
     class ScenarioMaker:
 
         def given_a_person_with_auth_token(self):
@@ -607,8 +615,18 @@ class GetExperienceTestCase(TestCase):
             ORMProfile.objects.create(person_id=self.orm_person.id, username='a')
             return self
 
+        def given_another_person_blocked_by_first(self):
+            self.second_orm_person = ORMPerson.objects.create()
+            ORMProfile.objects.create(person_id=self.second_orm_person.id, username='b')
+            ORMBlock.objects.create(creator=self.orm_person, target=self.second_orm_person)
+            return self
+
         def given_an_experience_in_db(self):
             self.experience = ORMExperience.objects.create(author=self.orm_person)
+            return self
+
+        def given_an_experience_in_db_from_second_person(self):
+            self.experience = ORMExperience.objects.create(author=self.second_orm_person)
             return self
 
         def when_get_is_called_for_experience(self):
@@ -634,6 +652,17 @@ class GetExperienceTestCase(TestCase):
                         'saves_count': self.experience.saves_count,
                     }
             assert self.response.status_code == 200
+            return self
+
+        def then_response_should_be_403_blocked_content_exception(self):
+            assert json.loads(self.response.content) == {
+                    'error': {
+                        'source': 'content',
+                        'code': 'blocked',
+                        'message': 'Content is blocked'
+                    }
+                }
+            assert self.response.status_code == 403
             return self
 
 

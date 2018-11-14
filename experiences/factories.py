@@ -3,7 +3,7 @@ from elasticsearch import Elasticsearch
 from django.urls import reverse
 from django.conf import settings
 
-from people.basic_factories import create_person_permissions_validator
+from people.basic_factories import create_person_permissions_validator, create_block_repo
 from profiles.factories import create_get_profile_interactor
 from .repositories import ExperienceRepo, ExperienceSearchRepo
 from .validators import ExperienceValidator, ExperiencePermissionsValidator
@@ -85,6 +85,7 @@ def create_get_or_create_experience_share_id_interactor():
 
 def create_get_experience_interactor():
     return GetExperienceInteractor(experience_repo=create_experience_repo(),
+                                   block_repo=create_block_repo(),
                                    permissions_validator=create_person_permissions_validator())
 
 

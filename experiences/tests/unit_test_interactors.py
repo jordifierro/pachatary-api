@@ -1,7 +1,7 @@
 from mock import Mock, call
 
 from pachatary.exceptions import InvalidEntityException, EntityDoesNotExistException, NoLoggedException, \
-        NoPermissionException, ConflictException
+        NoPermissionException, ConflictException, BlockedContentException
 from profiles.entities import Profile
 from experiences.entities import Experience
 from experiences.interactors import GetExperiencesInteractor, CreateNewExperienceInteractor, \
@@ -1025,6 +1025,7 @@ class TestGetExperienceInteractor:
                 .given_a_logged_person_id('0') \
                 .given_a_permissions_validator_that_raises_no_logged() \
                 .given_an_experience_on_repo(id='4') \
+                .given_a_block_repo_that_returns(False) \
                 .when_execute_interactor(id='4') \
                 .then_should_validate_person(id='0') \
                 .then_should_let_no_logged_exception_pass()
@@ -1033,20 +1034,36 @@ class TestGetExperienceInteractor:
         TestGetExperienceInteractor.ScenarioMaker() \
                 .given_a_logged_person_id('8') \
                 .given_a_permissions_validator_that_validates() \
-                .given_an_experience_on_repo(id='4') \
+                .given_an_experience_on_repo(id='4', author_id='10') \
+                .given_a_block_repo_that_returns(False) \
                 .when_execute_interactor(id='4') \
                 .then_should_validate_person(id='8') \
                 .then_should_call_repo_get_experience_with(id='4') \
+                .then_should_check_block_exists('8', '10') \
                 .then_should_return_experience()
+
+    def test_given_a_blocked_author_raises_exception(self):
+        TestGetExperienceInteractor.ScenarioMaker() \
+                .given_a_logged_person_id('8') \
+                .given_a_permissions_validator_that_validates() \
+                .given_an_experience_on_repo(id='4', author_id='10') \
+                .given_a_block_repo_that_returns(True) \
+                .when_execute_interactor(id='4') \
+                .then_should_validate_person(id='8') \
+                .then_should_call_repo_get_experience_with(id='4') \
+                .then_should_check_block_exists('8', '10') \
+                .then_should_raise_blocked_content_exception()
 
     def test_given_a_share_id_returns_experience(self):
         TestGetExperienceInteractor.ScenarioMaker() \
                 .given_a_logged_person_id('3') \
                 .given_a_permissions_validator_that_validates() \
-                .given_an_experience_on_repo(share_id='s8H') \
+                .given_an_experience_on_repo(share_id='s8H', author_id='10') \
+                .given_a_block_repo_that_returns(False) \
                 .when_execute_interactor(share_id='s8H') \
                 .then_should_validate_person(id='3') \
                 .then_should_call_repo_get_experience_with(share_id='s8H') \
+                .then_should_check_block_exists('3', '10') \
                 .then_should_return_experience()
 
     class ScenarioMaker:
@@ -1065,23 +1082,31 @@ class TestGetExperienceInteractor:
             self.permissions_validator.validate_permissions.side_effect = NoLoggedException()
             return self
 
-        def given_an_experience_on_repo(self, id=None, share_id=None):
+        def given_an_experience_on_repo(self, id=None, share_id=None, author_id='9'):
             if id is not None:
-                self.experience = Experience(id=id, title='as', description='er', author_id='9')
+                self.experience = Experience(id=id, title='as', description='er', author_id=author_id)
             elif share_id is not None:
-                self.experience = Experience(id='789', title='as', description='er', author_id='9', share_id=share_id)
+                self.experience = Experience(id='789', title='as', description='er',
+                                             author_id=author_id, share_id=share_id)
             self.repo = Mock()
             self.repo.get_experience.return_value = self.experience
+            return self
+
+        def given_a_block_repo_that_returns(self, exists):
+            self.block_repo = Mock()
+            self.block_repo.block_exists.return_value = exists
             return self
 
         def when_execute_interactor(self, id=None, share_id=None):
             try:
                 if id is not None:
                     self.result = GetExperienceInteractor(experience_repo=self.repo,
+                                                          block_repo=self.block_repo,
                                                           permissions_validator=self.permissions_validator) \
                         .set_params(experience_id=id, logged_person_id=self.logged_person_id).execute()
                 elif share_id is not None:
                     self.result = GetExperienceInteractor(experience_repo=self.repo,
+                                                          block_repo=self.block_repo,
                                                           permissions_validator=self.permissions_validator) \
                         .set_params(experience_share_id=share_id, logged_person_id=self.logged_person_id).execute()
             except Exception as e:
@@ -1101,12 +1126,20 @@ class TestGetExperienceInteractor:
                     .assert_called_once_with(logged_person_id=self.logged_person_id)
             return self
 
+        def then_should_check_block_exists(self, creator_id, target_id):
+            self.block_repo.block_exists.assert_called_once_with(creator_id=creator_id, target_id=target_id)
+            return self
+
         def then_should_return_experience(self):
             assert self.result == self.experience
             return self
 
         def then_should_let_no_logged_exception_pass(self):
             assert type(self.error) == NoLoggedException
+            return self
+
+        def then_should_raise_blocked_content_exception(self):
+            assert type(self.error) == BlockedContentException
             return self
 
 
