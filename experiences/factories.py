@@ -4,7 +4,7 @@ from django.urls import reverse
 from django.conf import settings
 
 from people.basic_factories import create_person_permissions_validator
-from profiles.factories import create_profile_repo
+from profiles.factories import create_get_profile_interactor
 from .repositories import ExperienceRepo, ExperienceSearchRepo
 from .validators import ExperienceValidator, ExperiencePermissionsValidator
 from .interactors import GetExperiencesInteractor, CreateNewExperienceInteractor, \
@@ -34,7 +34,8 @@ def create_experience_permissions_validator():
 
 
 def create_get_experiences_interactor():
-    return GetExperiencesInteractor(experience_repo=create_experience_repo(), profile_repo=create_profile_repo(),
+    return GetExperiencesInteractor(experience_repo=create_experience_repo(),
+                                    get_profile_interactor=create_get_profile_interactor(),
                                     permissions_validator=create_experience_permissions_validator())
 
 
