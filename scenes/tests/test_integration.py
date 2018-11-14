@@ -9,7 +9,7 @@ from django.urls import reverse
 from experiences.models import ORMExperience
 from scenes.models import ORMScene
 from profiles.models import ORMProfile
-from people.models import ORMPerson, ORMAuthToken
+from people.models import ORMPerson, ORMAuthToken, ORMBlock
 
 
 class ExperienceDetailTestCase(TestCase):
@@ -50,6 +50,36 @@ class ExperienceDetailTestCase(TestCase):
                                 'experience_id': str(exp_c.id),
                             },
                        ]
+
+    def test_scenes_from_blocked_user_raises_exception(self):
+        orm_person = ORMPerson.objects.create()
+        orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
+        ORMProfile.objects.create(person_id=orm_person.id, username='usr')
+
+        orm_blocked_person = ORMPerson.objects.create()
+        ORMProfile.objects.create(person_id=orm_blocked_person.id, username='blocked')
+
+        ORMBlock.objects.create(creator=orm_person, target=orm_blocked_person)
+
+        exp_c = ORMExperience.objects.create(title='Exp c', description='stuffs', author=orm_blocked_person)
+        ORMScene.objects.create(title='Scene d', description='D',
+                                latitude=Decimal('1.2'), longitude=Decimal('-3.4'), experience=exp_c)
+        ORMScene.objects.create(title='Scene e', description='E',
+                                latitude=Decimal('5.6'), longitude=Decimal('-7.8'), experience=exp_c)
+
+        client = Client()
+        auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }
+        response = client.get(reverse('scenes'), {'experience': str(exp_c.id)}, **auth_headers)
+
+        assert response.status_code == 403
+        body = json.loads(response.content)
+        assert body == {
+                'error': {
+                    'source': 'content',
+                    'code': 'blocked',
+                    'message': 'Content is blocked'
+                }
+            }
 
 
 class CreateSceneTestCase(TestCase):

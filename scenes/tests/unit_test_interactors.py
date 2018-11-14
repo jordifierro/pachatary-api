@@ -16,16 +16,19 @@ class TestGetScenesFromExperience:
                 .given_a_permissions_validator_that_returns_true() \
                 .given_two_scenes() \
                 .given_scene_repo_that_returns_both() \
+                .given_a_get_experience_interactor() \
                 .given_an_experience_id() \
                 .when_interactor_is_executed() \
                 .then_permissions_should_be_validated() \
                 .then_get_scenes_should_be_called_with_experience_id() \
+                .then_should_call_get_experience_interactor() \
                 .then_result_should_be_both_scenes_sorted_by_id()
 
     def test_no_logged_returns_exception(self):
         TestGetScenesFromExperience.ScenarioMaker() \
                 .given_a_logged_person_id() \
                 .given_a_permissions_validator_that_raises_no_logged_exception() \
+                .given_a_get_experience_interactor() \
                 .given_two_scenes() \
                 .given_scene_repo_that_returns_both() \
                 .given_an_experience_id() \
@@ -49,6 +52,11 @@ class TestGetScenesFromExperience:
             self.permissions_validator.validate_permissions.side_effect = NoLoggedException()
             return self
 
+        def given_a_get_experience_interactor(self):
+            self.get_experience_interactor = Mock()
+            self.get_experience_interactor.set_params.return_value = self.get_experience_interactor
+            return self
+
         def given_two_scenes(self):
             self.scene_a = Scene(id=3, title='', description='', picture=None, latitude=1, longitude=0, experience_id=1)
             self.scene_b = Scene(id=2, title='', description='', picture=None, latitude=1, longitude=0, experience_id=1)
@@ -65,7 +73,7 @@ class TestGetScenesFromExperience:
 
         def when_interactor_is_executed(self):
             try:
-                self.result = GetScenesFromExperienceInteractor(self.scene_repo,
+                self.result = GetScenesFromExperienceInteractor(self.scene_repo, self.get_experience_interactor,
                                                                 permissions_validator=self.permissions_validator) \
                         .set_params(experience_id=self.experience_id, logged_person_id=self.logged_person_id).execute()
             except Exception as e:
@@ -74,6 +82,12 @@ class TestGetScenesFromExperience:
 
         def then_get_scenes_should_be_called_with_experience_id(self):
             self.scene_repo.get_scenes.assert_called_once_with(experience_id=self.experience_id)
+            return self
+
+        def then_should_call_get_experience_interactor(self):
+            self.get_experience_interactor.set_params.assert_called_once_with(logged_person_id=self.logged_person_id,
+                                                                              experience_id=self.experience_id)
+            self.get_experience_interactor.execute.assert_called_once_with()
             return self
 
         def then_result_should_be_both_scenes_sorted_by_id(self):

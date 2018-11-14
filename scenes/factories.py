@@ -1,7 +1,7 @@
 from django_rq import job
 
 from experiences.factories import create_experience_repo, create_experience_permissions_validator, \
-        create_experience_elastic_repo
+        create_experience_elastic_repo, create_get_experience_interactor
 from .repositories import SceneRepo
 from .interactors import GetScenesFromExperienceInteractor, CreateNewSceneInteractor, ModifySceneInteractor, \
         UploadScenePictureInteractor, IndexExperiencesInteractor
@@ -24,6 +24,7 @@ def create_scene_permissions_validator():
 
 def create_get_scenes_from_experience_interactor():
     return GetScenesFromExperienceInteractor(scene_repo=create_scene_repo(),
+                                             get_experience_interactor=create_get_experience_interactor(),
                                              permissions_validator=create_experience_permissions_validator())
 
 

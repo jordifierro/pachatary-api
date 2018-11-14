@@ -4,8 +4,9 @@ from .entities import Scene
 
 class GetScenesFromExperienceInteractor:
 
-    def __init__(self, scene_repo, permissions_validator):
+    def __init__(self, scene_repo, get_experience_interactor, permissions_validator):
         self.scene_repo = scene_repo
+        self.get_experience_interactor = get_experience_interactor
         self.permissions_validator = permissions_validator
 
     def set_params(self, experience_id, logged_person_id):
@@ -15,6 +16,10 @@ class GetScenesFromExperienceInteractor:
 
     def execute(self):
         self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
+
+        self.get_experience_interactor.set_params(logged_person_id=self.logged_person_id,
+                                                  experience_id=self.experience_id).execute()
+
         scenes = self.scene_repo.get_scenes(experience_id=self.experience_id)
         scenes.sort(key=lambda x: x.id, reverse=False)
         return scenes
