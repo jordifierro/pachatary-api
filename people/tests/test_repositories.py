@@ -4,7 +4,7 @@ from django.test import TestCase
 
 from pachatary.exceptions import EntityDoesNotExistException
 from people.models import ORMPerson, ORMAuthToken, ORMConfirmationToken, ORMLoginToken
-from people.repositories import PersonRepo, AuthTokenRepo, ConfirmationTokenRepo, LoginTokenRepo
+from people.repositories import PersonRepo, AuthTokenRepo, ConfirmationTokenRepo, LoginTokenRepo, BlockRepo
 from people.entities import Person
 
 
@@ -365,3 +365,77 @@ class LoginTokenRepoTestCase(TestCase):
         def then_should_raise_entity_does_not_exist(self):
             assert type(self.error) is EntityDoesNotExistException
             return self
+
+
+class BlockRepoTestCase(TestCase):
+
+    def test_block_exists_returns_true_when_there_is_block(self):
+        BlockRepoTestCase.ScenarioMaker() \
+            .given_a_person() \
+            .given_a_person() \
+            .given_a_block(creator=1, target=2) \
+            .when_block_exists(creator=1, target=2) \
+            .then_result_should_be(True)
+
+    def test_block_exists_returns_false_when_there_is_no_block(self):
+        BlockRepoTestCase.ScenarioMaker() \
+            .given_a_person() \
+            .given_a_person() \
+            .when_block_exists(creator=1, target=2) \
+            .then_result_should_be(False)
+
+    def test_blocked_people_returns_ids_list(self):
+        BlockRepoTestCase.ScenarioMaker() \
+            .given_a_person() \
+            .given_a_person() \
+            .given_a_person() \
+            .given_a_person() \
+            .given_a_person() \
+            .given_a_person() \
+            .given_a_block(creator=1, target=2) \
+            .given_a_block(creator=1, target=3) \
+            .given_a_block(creator=4, target=1) \
+            .given_a_block(creator=1, target=5) \
+            .given_a_block(creator=1, target=6) \
+            .given_a_block(creator=6, target=1) \
+            .given_a_block(creator=2, target=3) \
+            .when_blocked_people(person=1) \
+            .then_result_should_be_ids_from_people([2, 3, 5, 6])
+
+    def test_no_blocked_people_returns_empty_list(self):
+        BlockRepoTestCase.ScenarioMaker() \
+            .given_a_person() \
+            .when_blocked_people(person=1) \
+            .then_result_should_be_ids_from_people([])
+
+    class ScenarioMaker:
+
+        def __init__(self):
+            self.repo = BlockRepo()
+            self.persons = []
+
+        def given_a_person(self):
+            self.persons.append(PersonRepo().create_guest_person())
+            return self
+
+        def given_a_block(self, creator, target):
+            self.repo.block(creator_id=self.persons[creator-1].id,
+                            target_id=self.persons[target-1].id)
+            return self
+
+        def when_block_exists(self, creator, target):
+            self.result = self.repo.block_exists(creator_id=self.persons[creator-1].id,
+                                                 target_id=self.persons[target-1].id)
+            return self
+
+        def when_blocked_people(self, person):
+            self.result = self.repo.get_blocked_people(person_id=self.persons[person-1].id)
+            return self
+
+        def then_result_should_be(self, expected_result):
+            assert self.result == expected_result
+            return self
+
+        def then_result_should_be_ids_from_people(self, people):
+            people_ids = [self.persons[person-1].id for person in people]
+            assert self.result == people_ids

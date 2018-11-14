@@ -61,3 +61,19 @@ class ORMLoginToken(models.Model):
 
     def __str__(self):
         return str(self.token)
+
+
+class ORMBlock(models.Model):
+    creator = models.ForeignKey('ORMPerson', related_name='creator_person',
+                                db_index=True, on_delete=models.CASCADE)
+    target = models.ForeignKey('ORMPerson', related_name='target_person',
+                               db_index=True, on_delete=models.CASCADE)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Block'
+        verbose_name_plural = 'Blocks'
+
+    def __str__(self):
+        return '{} -> {}'.format(self.author, self.target)

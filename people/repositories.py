@@ -1,5 +1,5 @@
 from pachatary.exceptions import EntityDoesNotExistException
-from .models import ORMPerson, ORMAuthToken, ORMConfirmationToken, ORMLoginToken
+from .models import ORMPerson, ORMAuthToken, ORMConfirmationToken, ORMLoginToken, ORMBlock
 from .entities import Person, AuthToken
 
 
@@ -88,3 +88,15 @@ class LoginTokenRepo:
     def delete_login_tokens(self, person_id):
         ORMLoginToken.objects.filter(person_id=person_id).delete()
         return True
+
+
+class BlockRepo:
+
+    def block(self, creator_id, target_id):
+        ORMBlock.objects.create(creator_id=creator_id, target_id=target_id)
+
+    def block_exists(self, creator_id, target_id):
+        return ORMBlock.objects.filter(creator_id=creator_id, target_id=target_id).exists()
+
+    def get_blocked_people(self, person_id):
+        return [str(id) for id in ORMBlock.objects.filter(creator_id=person_id).values_list('target_id', flat=True)]
