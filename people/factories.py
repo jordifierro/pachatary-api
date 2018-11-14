@@ -4,8 +4,8 @@ from django.conf import settings
 
 from profiles.factories import create_profile_repo, create_profile_validator
 from experiences.factories import create_experience_repo, create_save_unsave_experience_interactor
-from .basic_factories import create_person_repo, create_person_permissions_validator
-from .repositories import AuthTokenRepo, ConfirmationTokenRepo, LoginTokenRepo, BlockRepo
+from .basic_factories import create_person_repo, create_person_permissions_validator, create_block_repo
+from .repositories import AuthTokenRepo, ConfirmationTokenRepo, LoginTokenRepo
 from .validators import ClientSecretKeyValidator, PersonValidator
 from .interactors import CreateGuestPersonAndReturnAuthTokenInteractor, RegisterUsernameAndEmailInteractor, \
         AuthenticateInteractor, ConfirmEmailInteractor, LoginEmailInteractor, LoginInteractor, BlockInteractor
@@ -23,10 +23,6 @@ def create_confirmation_token_repo():
 
 def create_login_token_repo():
     return LoginTokenRepo()
-
-
-def create_block_repo():
-    return BlockRepo()
 
 
 def create_client_secret_key_validator():

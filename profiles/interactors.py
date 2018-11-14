@@ -1,10 +1,11 @@
-from pachatary.exceptions import InvalidEntityException
+from pachatary.exceptions import InvalidEntityException, BlockedContentException
 
 
 class GetProfileInteractor:
 
-    def __init__(self, profile_repo, permissions_validator):
+    def __init__(self, profile_repo, block_repo, permissions_validator):
         self.profile_repo = profile_repo
+        self.block_repo = block_repo
         self.permissions_validator = permissions_validator
 
     def set_params(self, username, logged_person_id):
@@ -18,7 +19,12 @@ class GetProfileInteractor:
         if self.username == 'self':
             return self.profile_repo.get_profile(person_id=self.logged_person_id,
                                                  logged_person_id=self.logged_person_id)
-        return self.profile_repo.get_profile(username=self.username, logged_person_id=self.logged_person_id)
+        else:
+            profile = self.profile_repo.get_profile(username=self.username, logged_person_id=self.logged_person_id)
+            if self.block_repo.block_exists(creator_id=self.logged_person_id, target_id=profile.person_id):
+                raise BlockedContentException
+            else:
+                return profile
 
 
 class ModifyProfileInteractor:

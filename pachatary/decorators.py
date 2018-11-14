@@ -1,5 +1,5 @@
 from .exceptions import InvalidEntityException, EntityDoesNotExistException, ConflictException, \
-        PachataryException, NoLoggedException, NoPermissionException
+        PachataryException, NoLoggedException, NoPermissionException, BlockedContentException
 from .serializers import serialize_exception
 
 exception_status_code_mapper = {
@@ -8,7 +8,8 @@ exception_status_code_mapper = {
         ConflictException: 409,
         NoLoggedException: 401,
         NoPermissionException: 403,
-        }
+        BlockedContentException: 403,
+    }
 
 
 def serialize_exceptions(func):

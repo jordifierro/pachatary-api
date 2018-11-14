@@ -1,6 +1,6 @@
 from mock import Mock
 
-from pachatary.exceptions import NoLoggedException, InvalidEntityException
+from pachatary.exceptions import NoLoggedException, InvalidEntityException, BlockedContentException
 from profiles.entities import Profile
 from profiles.interactors import GetProfileInteractor, ModifyProfileInteractor, UploadProfilePictureInteractor
 
@@ -11,7 +11,7 @@ class TestGetProfileInteractor:
         TestGetProfileInteractor.ScenarioMaker() \
                 .given_a_logged_person_id('0') \
                 .given_a_permissions_validator_that_validates(False) \
-                .given_a_profile_on_repo() \
+                .given_a_profile_on_repo('9') \
                 .when_execute_interactor(username='usernm') \
                 .then_should_validate_person(id='0') \
                 .then_should_not_call_repo_get_profile() \
@@ -21,7 +21,7 @@ class TestGetProfileInteractor:
         TestGetProfileInteractor.ScenarioMaker() \
                 .given_a_logged_person_id('8') \
                 .given_a_permissions_validator_that_validates(True) \
-                .given_a_profile_on_repo() \
+                .given_a_profile_on_repo('8') \
                 .when_execute_interactor(username='self') \
                 .then_should_validate_person(id='8') \
                 .then_should_call_repo_get_profile_with(person_id='8') \
@@ -31,13 +31,30 @@ class TestGetProfileInteractor:
         TestGetProfileInteractor.ScenarioMaker() \
                 .given_a_logged_person_id('8') \
                 .given_a_permissions_validator_that_validates(True) \
-                .given_a_profile_on_repo() \
+                .given_a_profile_on_repo('9') \
+                .given_a_block_repo_that_returns_on_block_exists(False) \
                 .when_execute_interactor(username='friend') \
                 .then_should_validate_person(id='8') \
                 .then_should_call_repo_get_profile_with(username='friend') \
+                .then_should_check_if_block_exists('8', '9') \
                 .then_should_return_profile()
 
+    def test_get_others_profile_blocked_raises_blocked_content_exception(self):
+        TestGetProfileInteractor.ScenarioMaker() \
+                .given_a_logged_person_id('8') \
+                .given_a_permissions_validator_that_validates(True) \
+                .given_a_profile_on_repo('9') \
+                .given_a_block_repo_that_returns_on_block_exists(True) \
+                .when_execute_interactor(username='friend') \
+                .then_should_validate_person(id='8') \
+                .then_should_call_repo_get_profile_with(username='friend') \
+                .then_should_check_if_block_exists('8', '9') \
+                .then_should_raise_blocked_content()
+
     class ScenarioMaker:
+
+        def __init__(self):
+            self.block_repo = Mock()
 
         def given_a_logged_person_id(self, id):
             self.logged_person_id = id
@@ -51,15 +68,20 @@ class TestGetProfileInteractor:
                 self.permissions_validator.validate_permissions.side_effect = NoLoggedException()
             return self
 
-        def given_a_profile_on_repo(self):
-            self.profile = Profile(person_id='9', username='u', bio='o')
+        def given_a_profile_on_repo(self, id):
+            self.profile = Profile(person_id=id, username='u', bio='o')
             self.repo = Mock()
             self.repo.get_profile.return_value = self.profile
+            return self
+
+        def given_a_block_repo_that_returns_on_block_exists(self, exists):
+            self.block_repo.block_exists.return_value = exists
             return self
 
         def when_execute_interactor(self, username):
             try:
                 self.result = GetProfileInteractor(profile_repo=self.repo,
+                                                   block_repo=self.block_repo,
                                                    permissions_validator=self.permissions_validator) \
                     .set_params(username=username, logged_person_id=self.logged_person_id).execute()
             except Exception as e:
@@ -84,12 +106,20 @@ class TestGetProfileInteractor:
                     .assert_called_once_with(logged_person_id=self.logged_person_id)
             return self
 
+        def then_should_check_if_block_exists(self, creator_id, target_id):
+            self.block_repo.block_exists.assert_called_once_with(creator_id=creator_id, target_id=target_id)
+            return self
+
         def then_should_return_profile(self):
             assert self.result == self.profile
             return self
 
         def then_should_let_no_logged_exception_pass(self):
             assert type(self.error) == NoLoggedException
+            return self
+
+        def then_should_raise_blocked_content(self):
+            assert type(self.error) == BlockedContentException
             return self
 
 

@@ -2,7 +2,7 @@ import json
 
 from django.conf import settings
 
-from people.basic_factories import create_person_permissions_validator
+from people.basic_factories import create_person_permissions_validator, create_block_repo
 from .repositories import ProfileRepo
 from .interactors import GetProfileInteractor, ModifyProfileInteractor, \
         UploadProfilePictureInteractor
@@ -30,7 +30,7 @@ def create_profile_validator():
 
 
 def create_get_profile_interactor():
-    return GetProfileInteractor(profile_repo=create_profile_repo(),
+    return GetProfileInteractor(profile_repo=create_profile_repo(), block_repo=create_block_repo(),
                                 permissions_validator=create_person_permissions_validator())
 
 

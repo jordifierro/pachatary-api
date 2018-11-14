@@ -44,3 +44,9 @@ class NoPermissionException(PachataryException):
 
     def __init__(self):
         super().__init__(source='permission', code='denied', message='Permission denied')
+
+
+class BlockedContentException(PachataryException):
+
+    def __init__(self):
+        super().__init__(source='content', code='blocked', message='Content is blocked')
