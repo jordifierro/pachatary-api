@@ -371,8 +371,8 @@ class SearchExperiencesTestCase(TestCase):
         SearchExperiencesTestCase.ScenarioMaker() \
                 .given_a_person_with_auth_token() \
                 .given_an_experience(title='bike routes') \
-                .given_an_experience(title='mountain bike routes lot') \
-                .given_an_experience(title='mountain', description='mountain') \
+                .given_an_experience(title='mountayn bike routes with typo and lot of text to decrease importance') \
+                .given_an_experience(title='mountain best sites', description='mountain') \
                 .given_an_experience(title='barcelona restaurants') \
                 .given_an_experience(title='romanic monuments') \
                 .when_index_everything_and_search(word='mountain', offset=0, limit=1) \
