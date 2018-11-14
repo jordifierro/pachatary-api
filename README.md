@@ -834,7 +834,7 @@ Location: `http://dynamic.link/link=http://pachatary.com/e/<experience_share_id>
 (Depending if dynamic link variable is set)
 
 
-### `GET /`
+### `GET /open`
 
 This endpoint is to let Android app catch url to redirect to app.
 
@@ -842,32 +842,16 @@ _Response:_
 
 _304_
 
-Location: `pachatary://app/`
+Location: `pachatary://app/open`
 
-Location: `http://dynamic.link/link=http://pachatary.com&other=param`
+Location: `http://dynamic.link/link=http://pachatary.com/open&other=param`
 
 (Depending if dynamic link variable is set)
 
 
-### `GET /apple-app-site-association`
-
-Required by Apple to activate universal links.
-
-_Response:_
-
-_200_
-```json
-{
-	applinks: {
-		apps: [],
-		details: [{appID: "ASDF.com.pachatary.ios", paths: ["*"]}]
-	}
-}
-```
-
-
 
 ## Settings
+
 
 ### `GET /client-versions`
 
@@ -887,8 +871,27 @@ _200_
 }
 ```
 
+
+### `GET /apple-app-site-association`
+
+Required by Apple to activate universal links.
+
+_Response:_
+
+_200_
+```json
+{
+	applinks: {
+		apps: [],
+		details: [{appID: "ASDF.com.pachatary.ios", paths: ["*"]}]
+	}
+}
+```
+
+
 ### `GET /privacy-policy`
 Get privacy policy html.
+
 
 ### `GET /terms-and-conditions`
 Get terms and conditions html.
