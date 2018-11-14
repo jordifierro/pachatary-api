@@ -76,4 +76,4 @@ class ORMBlock(models.Model):
         verbose_name_plural = 'Blocks'
 
     def __str__(self):
-        return '{} -> {}'.format(self.author, self.target)
+        return '{} -> {}'.format(self.creator, self.target)
