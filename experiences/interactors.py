@@ -50,8 +50,9 @@ class SearchExperiencesInteractor:
 
     MAX_PAGINATION_LIMIT = 20
 
-    def __init__(self, experience_repo, permissions_validator):
+    def __init__(self, experience_repo, block_repo, permissions_validator):
         self.experience_repo = experience_repo
+        self.block_repo = block_repo
         self.permissions_validator = permissions_validator
 
     def set_params(self, word, location, logged_person_id, limit, offset):
@@ -70,7 +71,13 @@ class SearchExperiencesInteractor:
         result = self.experience_repo.search_experiences(self.logged_person_id,
                                                          word=self.word, location=self.location,
                                                          limit=self.limit, offset=self.offset)
-        result.update({"next_limit": self.limit})
+
+        blocked_people = self.block_repo.get_blocked_people(person_id=self.logged_person_id)
+        if len(blocked_people) > 0:
+            filtered_experiences = [x for x in result['results'] if x.author_id not in blocked_people]
+            result.update({'results': filtered_experiences})
+
+        result.update({'next_limit': self.limit})
         return result
 
 

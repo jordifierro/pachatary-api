@@ -41,6 +41,7 @@ def create_get_experiences_interactor():
 
 def create_search_experiences_interactor():
     return SearchExperiencesInteractor(experience_repo=create_experience_repo(),
+                                       block_repo=create_block_repo(),
                                        permissions_validator=create_experience_permissions_validator())
 
 

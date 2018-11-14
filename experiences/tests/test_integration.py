@@ -380,6 +380,20 @@ class SearchExperiencesTestCase(TestCase):
                 .when_index_everything_and_search(word='mountain', offset=1, limit=1) \
                 .then_should_return_experiences_and_next_url_null(['2'])
 
+    def test_search_experiences_filters_blocked_persons_experiences(self):
+        SearchExperiencesTestCase.ScenarioMaker() \
+                .given_a_person_with_auth_token() \
+                .given_a_blocked_person() \
+                .given_an_experience(title='bike routes') \
+                .given_an_experience(title='mountayn bike routes with typo and lot of text to decrease importance') \
+                .given_an_experience(title='mountain best sites', description='mountain') \
+                .given_an_experience(title='barcelona restaurants') \
+                .given_an_experience(title='romanic monuments') \
+                .given_an_experience_from_blocked_person(title='mountayn 2') \
+                .given_an_experience_from_blocked_person(title='mountain best places', description='mountain') \
+                .when_index_everything_and_search(word='mountain', offset=0, limit=10) \
+                .then_should_return_experiences_and_next_url_null(['3', '2'])
+
     def test_search_with_location(self):
         SearchExperiencesTestCase.ScenarioMaker() \
                 .given_a_person_with_auth_token() \
@@ -426,12 +440,33 @@ class SearchExperiencesTestCase(TestCase):
             self.orm_profile = ORMProfile.objects.create(person_id=self.orm_person.id, username='u', bio='b')
             return self
 
+        def given_a_blocked_person(self):
+            self.orm_blocked_person = ORMPerson.objects.create()
+            ORMProfile.objects.create(person_id=self.orm_blocked_person.id, username='blo', bio='cked')
+            ORMBlock.objects.create(creator=self.orm_person, target=self.orm_blocked_person)
+            return self
+
         def given_an_experience(self, title='', description='', saves_count=0):
             experience = Experience(id=str(len(self.experiences)+1), title=title,
                                     description=description, author_id=self.orm_person.id,
                                     author_profile=Profile(person_id=self.orm_person.id, username='u',
                                                            bio='b', picture=None, is_me=True),
                                     saves_count=saves_count, is_mine=True)
+
+            db_experience = ExperienceRepo().create_experience(experience)
+            ORMExperience.objects.filter(id=db_experience.id).update(saves_count=saves_count)
+
+            experience = experience.builder().id(db_experience.id).build()
+            self.experiences.append(experience)
+
+            return self
+
+        def given_an_experience_from_blocked_person(self, title='', description='', saves_count=0):
+            experience = Experience(id=str(len(self.experiences)+1), title=title,
+                                    description=description, author_id=self.orm_blocked_person.id,
+                                    author_profile=Profile(person_id=self.orm_blocked_person.id, username='blo',
+                                                           bio='cked', picture=None, is_me=False),
+                                    saves_count=saves_count, is_mine=False)
 
             db_experience = ExperienceRepo().create_experience(experience)
             ORMExperience.objects.filter(id=db_experience.id).update(saves_count=saves_count)

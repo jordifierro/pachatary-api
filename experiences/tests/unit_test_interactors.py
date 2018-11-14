@@ -149,6 +149,24 @@ class TestSearchExperiences:
                 .given_another_experience() \
                 .given_a_next_offset() \
                 .given_a_repo_that_returns_both_experiences_and_next_offset() \
+                .given_a_block_repo_that_returns_on_get_blocked_people([]) \
+                .when_interactor_is_executed() \
+                .then_should_call_search_experiences_word_location_and_limit_and_offset() \
+                .then_validate_permissions_should_be_called_with_logged_person_id() \
+                .then_result_should_be_both_experiences_and_next_offset_and_same_limit()
+
+    def test_filters_experiences_from_blocked_people(self):
+        TestSearchExperiences.ScenarioMaker() \
+                .given_a_logged_person_id() \
+                .given_a_search_word() \
+                .given_a_location() \
+                .given_a_pagination_limit_and_offset() \
+                .given_a_permission_validator_that_returns_true() \
+                .given_an_experience() \
+                .given_another_experience() \
+                .given_a_next_offset() \
+                .given_a_repo_that_returns_both_experiences_and_next_offset_and_other_experiences_from('44') \
+                .given_a_block_repo_that_returns_on_get_blocked_people(['44']) \
                 .when_interactor_is_executed() \
                 .then_should_call_search_experiences_word_location_and_limit_and_offset() \
                 .then_validate_permissions_should_be_called_with_logged_person_id() \
@@ -165,6 +183,7 @@ class TestSearchExperiences:
                 .given_another_experience() \
                 .given_a_next_offset() \
                 .given_a_repo_that_returns_both_experiences_and_next_offset() \
+                .given_a_block_repo_that_returns_on_get_blocked_people([]) \
                 .when_interactor_is_executed() \
                 .then_should_call_search_experiences_with_params_but_limit_at_20() \
                 .then_validate_permissions_should_be_called_with_logged_person_id() \
@@ -173,6 +192,7 @@ class TestSearchExperiences:
     def test_no_logged_raises_exception(self):
         TestSearchExperiences.ScenarioMaker() \
                 .given_a_permission_validator_that_raises_exception() \
+                .given_a_block_repo_that_returns_on_get_blocked_people([]) \
                 .when_interactor_is_executed() \
                 .then_validate_permissions_should_be_called_with_logged_person_id() \
                 .then_should_raise_no_logged_exception()
@@ -237,13 +257,33 @@ class TestSearchExperiences:
                                                                     "next_offset": self.next_offset}
             return self
 
+        def given_a_repo_that_returns_both_experiences_and_next_offset_and_other_experiences_from(self, author_id):
+            exp_a = Experience(id=5, title='T1', description='d1', picture=None, author_id=author_id)
+            exp_b = Experience(id=6, title='T2', description='d2', picture=None, author_id=author_id)
+            exp_c = Experience(id=7, title='T3', description='d3', picture=None, author_id=author_id)
+            self.experience_repo = Mock()
+            self.experience_repo.search_experiences.return_value = {
+                    "results": [exp_a, self.experience_a, exp_b, self.experience_b, exp_c],
+                    "next_offset": self.next_offset
+                }
+            return self
+
+        def given_a_block_repo_that_returns_on_get_blocked_people(self, people):
+            self.block_repo = Mock()
+            self.block_repo.get_blocked_people.return_value = people
+            return self
+
         def when_interactor_is_executed(self):
             try:
                 self.response = SearchExperiencesInteractor(experience_repo=self.experience_repo,
+                                                            block_repo=self.block_repo,
                                                             permissions_validator=self.permissions_validator) \
                         .set_params(word=self.word, location=self.location, logged_person_id=self.logged_person_id,
                                     limit=self.limit, offset=self.offset).execute()
             except Exception as e:
+                print()
+                print(e)
+                print()
                 self.error = e
             return self
 
