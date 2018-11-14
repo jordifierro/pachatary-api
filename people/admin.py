@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ORMPerson, ORMAuthToken, ORMConfirmationToken, ORMLoginToken
+from .models import ORMPerson, ORMAuthToken, ORMConfirmationToken, ORMLoginToken, ORMBlock
 
 
 class PersonAdmin(admin.ModelAdmin):
@@ -32,3 +32,11 @@ class LoginTokenAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ORMLoginToken, LoginTokenAdmin)
+
+
+class BlockAdmin(admin.ModelAdmin):
+    list_display = ('creator', 'target')
+    search_fields = ('creator__username', 'target__username')
+
+
+admin.site.register(ORMBlock, BlockAdmin)
