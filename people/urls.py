@@ -2,7 +2,7 @@ from django.conf.urls import url
 
 from pachatary.views import ViewWrapper
 from .factories import create_people_view, create_person_view, create_email_confirmation_view, \
-        create_login_email_view, create_login_view
+        create_login_email_view, create_login_view, create_block_view
 
 urlpatterns = [
     url(r'^$',
@@ -25,4 +25,7 @@ urlpatterns = [
         ViewWrapper.as_view(view_creator_func=create_login_view),
         name='login'),
 
+    url(r'^(?P<person_id>[0-9]+)/block$',
+        ViewWrapper.as_view(view_creator_func=create_block_view),
+        name='person-block'),
 ]

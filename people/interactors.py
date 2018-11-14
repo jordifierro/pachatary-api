@@ -2,6 +2,7 @@ from pachatary.exceptions import EntityDoesNotExistException, ConflictException,
         InvalidEntityException
 from people.entities import Person
 from profiles.entities import Profile
+from experiences.interactors import SaveUnsaveExperienceInteractor
 
 
 class CreateGuestPersonAndReturnAuthTokenInteractor:
@@ -169,3 +170,33 @@ class LoginInteractor:
         self.login_token_repo.delete_login_tokens(person_id=person_id)
         auth_token = self.auth_token_repo.get_auth_token(person_id=person_id)
         return auth_token
+
+
+class BlockInteractor:
+
+    def __init__(self, permissions_validator, block_repo, experience_repo, save_unsave_experience_interactor):
+        self.permissions_validator = permissions_validator
+        self.block_repo = block_repo
+        self.experience_repo = experience_repo
+        self.save_unsave_experience_interactor = save_unsave_experience_interactor
+
+    def set_params(self, logged_person_id, target_id):
+        self.logged_person_id = logged_person_id
+        self.target_id = target_id
+        return self
+
+    def execute(self):
+        self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
+
+        if self.block_repo.block_exists(creator_id=self.logged_person_id, target_id=self.target_id):
+            return True
+
+        saved_experiences = self.experience_repo.get_saved_experiences(logged_person_id=self.logged_person_id,
+                                                                       offset=0, limit=1000000)['results']
+        for experience in saved_experiences:
+            if experience.author_id == self.target_id:
+                self.save_unsave_experience_interactor.set_params(action=SaveUnsaveExperienceInteractor.Action.UNSAVE,
+                                                                  experience_id=experience.id,
+                                                                  logged_person_id=self.logged_person_id).execute()
+
+        return self.block_repo.block(creator_id=self.logged_person_id, target_id=self.target_id)

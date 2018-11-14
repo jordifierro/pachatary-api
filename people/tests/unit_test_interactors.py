@@ -1,11 +1,14 @@
-from mock import Mock
+from mock import Mock, call
 
 from pachatary.exceptions import InvalidEntityException, EntityDoesNotExistException, ConflictException, \
         NoLoggedException
 from people.entities import Person, AuthToken
 from people.interactors import CreateGuestPersonAndReturnAuthTokenInteractor, AuthenticateInteractor, \
-        RegisterUsernameAndEmailInteractor, ConfirmEmailInteractor, LoginEmailInteractor, LoginInteractor
+        RegisterUsernameAndEmailInteractor, ConfirmEmailInteractor, LoginEmailInteractor, LoginInteractor, \
+        BlockInteractor
 from profiles.entities import Profile
+from experiences.entities import Experience
+from experiences.interactors import SaveUnsaveExperienceInteractor
 
 
 class TestCreateGuestPersonAndReturnAuthToken:
@@ -759,4 +762,121 @@ class TestLoginInteractor:
 
         def then_should_return_auth_token(self):
             self.result == self.auth_token
+            return self
+
+
+class TestBlockIntearctor:
+
+    def test_block_interactor_raises_not_logged(self):
+        TestBlockIntearctor.ScenarioMaker() \
+            .given_a_permissions_validator_that_raises_no_logged() \
+            .when_block(logged_person_id='4', target_id='33') \
+            .then_should_call_permissions_validator('4') \
+            .then_should_not_call_block() \
+            .then_should_raise_no_logged_exception()
+
+    def test_already_blocked_returns_true(self):
+        TestBlockIntearctor.ScenarioMaker() \
+            .given_a_permissions_validator_that_validates() \
+            .given_a_block_repo_that_returns_to_block_exists(True) \
+            .when_block(logged_person_id='4', target_id='33') \
+            .then_should_call_permissions_validator('4') \
+            .then_should_call_block_exists('4', '33') \
+            .then_should_not_call_block() \
+            .then_should_return_true()
+
+    def test_block_unsaves_target_id_experiences_block_and_returns_true(self):
+        TestBlockIntearctor.ScenarioMaker() \
+            .given_a_permissions_validator_that_validates() \
+            .given_a_block_repo_that_returns_to_block_exists(False) \
+            .given_a_block_repo_that_returns_to_block(True) \
+            .given_a_experience_repo_that_returns([
+                Experience('t', 'd', id='11', author_id='9'),
+                Experience('t', 'd', id='12', author_id='33'),
+                Experience('t', 'd', id='13', author_id='9'),
+                Experience('t', 'd', id='14', author_id='33'),
+                Experience('t', 'd', id='15', author_id='9'),
+                Experience('t', 'd', id='16', author_id='9')]) \
+            .when_block(logged_person_id='4', target_id='33') \
+            .then_should_call_permissions_validator('4') \
+            .then_should_call_block_exists('4', '33') \
+            .then_should_get_saved_experiences('4') \
+            .then_should_unsave('4', ['12', '14']) \
+            .then_should_call_block('4', '33') \
+            .then_should_return_true()
+
+    class ScenarioMaker:
+
+        def __init__(self):
+            self.permissions_validator = Mock()
+            self.block_repo = Mock()
+            self.experience_repo = Mock()
+            self.unsave_experience_interactor = Mock()
+            self.unsave_experience_interactor.set_params.return_value = self.unsave_experience_interactor
+
+        def given_a_permissions_validator_that_validates(self):
+            self.permissions_validator.return_value = True
+            return self
+
+        def given_a_permissions_validator_that_raises_no_logged(self):
+            self.permissions_validator.validate_permissions.side_effect = NoLoggedException()
+            return self
+
+        def given_a_block_repo_that_returns_to_block_exists(self, exists):
+            self.block_repo.block_exists.return_value = exists
+            return self
+
+        def given_a_block_repo_that_returns_to_block(self, exists):
+            self.block_repo.block.return_value = exists
+            return self
+
+        def given_a_experience_repo_that_returns(self, experiences):
+            self.experience_repo.get_saved_experiences.return_value = {'results': experiences, 'next_offset': None}
+            return self
+
+        def when_block(self, logged_person_id, target_id):
+            try:
+                self.result = BlockInteractor(permissions_validator=self.permissions_validator,
+                                              block_repo=self.block_repo,
+                                              experience_repo=self.experience_repo,
+                                              save_unsave_experience_interactor=self.unsave_experience_interactor) \
+                        .set_params(logged_person_id=logged_person_id, target_id=target_id).execute()
+            except Exception as e:
+                self.error = e
+            return self
+
+        def then_should_call_permissions_validator(self, person_id):
+            self.permissions_validator.validate_permissions.assert_called_once_with(logged_person_id=person_id)
+            return self
+
+        def then_should_call_block_exists(self, creator_id, target_id):
+            self.block_repo.block_exists.assert_called_once_with(creator_id=creator_id, target_id=target_id)
+            return self
+
+        def then_should_not_call_block(self):
+            self.block_repo.block.assert_not_called()
+            return self
+
+        def then_should_get_saved_experiences(self, person_id):
+            self.experience_repo.get_saved_experiences.assert_called_once_with(logged_person_id=person_id,
+                                                                               offset=0, limit=1000000)
+            return self
+
+        def then_should_unsave(self, person_id, experiences_ids):
+            self.unsave_experience_interactor.set_params.assert_has_calls(
+                [call(action=SaveUnsaveExperienceInteractor.Action.UNSAVE,
+                      experience_id=id, logged_person_id=person_id) for id in experiences_ids])
+            self.unsave_experience_interactor.execute.assert_has_calls([call() for id in experiences_ids])
+            return self
+
+        def then_should_call_block(self, creator_id, target_id):
+            self.block_repo.block.assert_called_once_with(creator_id=creator_id, target_id=target_id)
+            return self
+
+        def then_should_raise_no_logged_exception(self):
+            assert type(self.error) is NoLoggedException
+            return self
+
+        def then_should_return_true(self):
+            assert self.result is True
             return self

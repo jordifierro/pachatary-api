@@ -8,8 +8,9 @@ from django.urls import reverse
 from django.core import mail
 from django.template.loader import get_template
 
-from people.models import ORMAuthToken, ORMPerson, ORMConfirmationToken, ORMLoginToken
+from people.models import ORMAuthToken, ORMPerson, ORMConfirmationToken, ORMLoginToken, ORMBlock
 from profiles.models import ORMProfile
+from experiences.models import ORMExperience, ORMSave
 
 
 class CreatePersonTestCase(TestCase):
@@ -443,4 +444,62 @@ class LoginTestCase(TestCase):
 
         def then_login_token_should_be_deleted_for_that_person(self):
             assert len(ORMLoginToken.objects.filter(person_id=self.orm_person.id)) == 0
+            return self
+
+
+class BlockTestCase(TestCase):
+
+    def test_block(self):
+        BlockTestCase.ScenarioMaker() \
+                .given_a_person() \
+                .given_a_person() \
+                .given_an_experience(person=2) \
+                .given_a_save_experience(person=1, experience=1) \
+                .when_block(logged_person=1, target=2) \
+                .then_response_status_should_be_empty_body_and_201() \
+                .then_save_should_not_exist(person=1, experience=1) \
+                .then_block_should_be_created(creator=1, target=2)
+
+    class ScenarioMaker:
+
+        def __init__(self):
+            self.persons = []
+            self.experiences = []
+
+        def given_a_person(self):
+            self.persons.append(ORMPerson.objects.create(email='e@m.c{}'.format(len(self.persons)),
+                                                         is_email_confirmed=True))
+            ORMProfile.objects.create(person_id=self.persons[len(self.persons)-1].id,
+                                      username='{}'.format(len(self.persons)), bio='b')
+            return self
+
+        def given_an_experience(self, person):
+            self.experiences.append(ORMExperience.objects.create(title='t', description='d',
+                                                                 author_id=self.persons[person-1].id))
+            return self
+
+        def given_a_save_experience(self, person, experience):
+            ORMSave.objects.create(person=self.persons[person-1], experience=self.experiences[experience-1])
+            return self
+
+        def when_block(self, logged_person, target):
+            client = Client()
+            orm_auth_token = ORMAuthToken.objects.create(person_id=self.persons[logged_person-1].id)
+            auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }
+            self.response = client.post(reverse('person-block', args=[str(self.persons[target-1].id)]), **auth_headers)
+            return self
+
+        def then_response_status_should_be_empty_body_and_201(self):
+            assert len(self.response.content) == 0
+            assert self.response.status_code == 201
+            return self
+
+        def then_save_should_not_exist(self, person, experience):
+            assert ORMSave.objects.filter(person_id=self.persons[person-1].id,
+                                          experience_id=self.experiences[experience-1].id).exists() is False
+            return self
+
+        def then_block_should_be_created(self, creator, target):
+            assert ORMBlock.objects.filter(creator_id=self.persons[creator-1].id,
+                                           target_id=self.persons[target-1].id)
             return self

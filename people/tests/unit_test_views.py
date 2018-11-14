@@ -1,7 +1,7 @@
 from mock import Mock
 
 from people.entities import AuthToken, Person
-from people.views import PeopleView, PersonView, EmailConfirmationView, LoginEmailView, LoginView
+from people.views import PeopleView, PersonView, EmailConfirmationView, LoginEmailView, LoginView, BlockView
 from people.serializers import serialize_auth_token
 
 
@@ -253,4 +253,38 @@ class TestLoginView:
 
         def then_response_content_is_auth_token_serialized(self):
             assert self.body == serialize_auth_token(self.auth_token)
+            return self
+
+
+class TestBlockView:
+
+    def test_block_returns_201(self):
+        TestBlockView.ScenarioMaker() \
+                .given_an_interactor_that_returns_true() \
+                .when_post_is_called_with(logged_person_id='5', person_id='33') \
+                .then_interactor_receives(logged_person_id='5', target_id='33') \
+                .then_response_status_is_201()
+
+    class ScenarioMaker:
+
+        def given_an_interactor_that_returns_true(self):
+            self.interactor_mock = Mock()
+            self.interactor_mock.set_params.return_value = self.interactor_mock
+            self.interactor_mock.execute.return_value = True
+            return self
+
+        def when_post_is_called_with(self, logged_person_id, person_id):
+            view = BlockView(block_interactor=self.interactor_mock)
+            self.body, self.status = view.post(logged_person_id=logged_person_id, person_id=person_id)
+            return self
+
+        def then_interactor_receives(self, logged_person_id, target_id):
+            self.interactor_mock.set_params.assert_called_once_with(logged_person_id=logged_person_id,
+                                                                    target_id=target_id)
+            self.interactor_mock.execute.assert_called_once_with()
+            return self
+
+        def then_response_status_is_201(self):
+            assert self.status == 201
+            assert self.body is None
             return self

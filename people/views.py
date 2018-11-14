@@ -73,3 +73,17 @@ class LoginView:
         body = serialize_auth_token(auth_token)
         status = 200
         return body, status
+
+
+class BlockView:
+
+    def __init__(self, block_interactor=None):
+        self.block_interactor = block_interactor
+
+    @serialize_exceptions
+    def post(self, person_id, logged_person_id):
+        self.block_interactor.set_params(logged_person_id=logged_person_id, target_id=person_id).execute()
+
+        body = None
+        status = 201
+        return body, status
