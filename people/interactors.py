@@ -188,6 +188,9 @@ class BlockInteractor:
     def execute(self):
         self.permissions_validator.validate_permissions(logged_person_id=self.logged_person_id)
 
+        if self.logged_person_id == self.target_id:
+            raise ConflictException(source='person', code='conflict', message='Cannot block yourself')
+
         if self.block_repo.block_exists(creator_id=self.logged_person_id, target_id=self.target_id):
             return True
 

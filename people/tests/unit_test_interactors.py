@@ -785,6 +785,15 @@ class TestBlockIntearctor:
             .then_should_not_call_block() \
             .then_should_return_true()
 
+    def test_self_block_raises_conflict_exception(self):
+        TestBlockIntearctor.ScenarioMaker() \
+            .given_a_permissions_validator_that_validates() \
+            .given_a_block_repo_that_returns_to_block_exists(False) \
+            .when_block(logged_person_id='4', target_id='4') \
+            .then_should_call_permissions_validator('4') \
+            .then_should_not_call_block() \
+            .then_should_raise_conflict_exception()
+
     def test_block_unsaves_target_id_experiences_block_and_returns_true(self):
         TestBlockIntearctor.ScenarioMaker() \
             .given_a_permissions_validator_that_validates() \
@@ -875,6 +884,11 @@ class TestBlockIntearctor:
 
         def then_should_raise_no_logged_exception(self):
             assert type(self.error) is NoLoggedException
+            return self
+
+        def then_should_raise_conflict_exception(self):
+            assert type(self.error) is ConflictException
+            assert self.error == ConflictException(source='person', code='conflict', message='Cannot block yourself')
             return self
 
         def then_should_return_true(self):
