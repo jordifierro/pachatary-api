@@ -25,7 +25,7 @@ urlpatterns = [
         ViewWrapper.as_view(view_creator_func=create_login_view),
         name='login'),
 
-    url(r'^(?P<person_id>[0-9]+)/block$',
+    url(r'^(?P<username>[a-z0-9._]+)/block$',
         ViewWrapper.as_view(view_creator_func=create_block_view),
         name='person-block'),
 ]

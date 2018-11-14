@@ -770,7 +770,7 @@ class TestBlockIntearctor:
     def test_block_interactor_raises_not_logged(self):
         TestBlockIntearctor.ScenarioMaker() \
             .given_a_permissions_validator_that_raises_no_logged() \
-            .when_block(logged_person_id='4', target_id='33') \
+            .when_block(logged_person_id='4', target_username='blocked') \
             .then_should_call_permissions_validator('4') \
             .then_should_not_call_block() \
             .then_should_raise_no_logged_exception()
@@ -779,8 +779,10 @@ class TestBlockIntearctor:
         TestBlockIntearctor.ScenarioMaker() \
             .given_a_permissions_validator_that_validates() \
             .given_a_block_repo_that_returns_to_block_exists(True) \
-            .when_block(logged_person_id='4', target_id='33') \
+            .given_a_profile_repo_that_returns_profile_with_person_id('33') \
+            .when_block(logged_person_id='4', target_username='blocked') \
             .then_should_call_permissions_validator('4') \
+            .then_should_get_profile_with(username='blocked', logged_person_id='4') \
             .then_should_call_block_exists('4', '33') \
             .then_should_not_call_block() \
             .then_should_return_true()
@@ -789,8 +791,10 @@ class TestBlockIntearctor:
         TestBlockIntearctor.ScenarioMaker() \
             .given_a_permissions_validator_that_validates() \
             .given_a_block_repo_that_returns_to_block_exists(False) \
-            .when_block(logged_person_id='4', target_id='4') \
+            .given_a_profile_repo_that_returns_profile_with_person_id('4') \
+            .when_block(logged_person_id='4', target_username='myself') \
             .then_should_call_permissions_validator('4') \
+            .then_should_get_profile_with(username='myself', logged_person_id='4') \
             .then_should_not_call_block() \
             .then_should_raise_conflict_exception()
 
@@ -806,10 +810,12 @@ class TestBlockIntearctor:
                 Experience('t', 'd', id='14', author_id='33'),
                 Experience('t', 'd', id='15', author_id='9'),
                 Experience('t', 'd', id='16', author_id='9')]) \
-            .when_block(logged_person_id='4', target_id='33') \
+            .given_a_profile_repo_that_returns_profile_with_person_id('33') \
+            .when_block(logged_person_id='4', target_username='blocked') \
             .then_should_call_permissions_validator('4') \
             .then_should_call_block_exists('4', '33') \
             .then_should_get_saved_experiences('4') \
+            .then_should_get_profile_with(username='blocked', logged_person_id='4') \
             .then_should_unsave('4', ['12', '14']) \
             .then_should_call_block('4', '33') \
             .then_should_return_true()
@@ -820,6 +826,7 @@ class TestBlockIntearctor:
             self.permissions_validator = Mock()
             self.block_repo = Mock()
             self.experience_repo = Mock()
+            self.profile_repo = Mock()
             self.unsave_experience_interactor = Mock()
             self.unsave_experience_interactor.set_params.return_value = self.unsave_experience_interactor
 
@@ -839,17 +846,22 @@ class TestBlockIntearctor:
             self.block_repo.block.return_value = exists
             return self
 
+        def given_a_profile_repo_that_returns_profile_with_person_id(self, person_id):
+            self.profile_repo.get_profile.return_value = Profile(person_id=person_id)
+            return self
+
         def given_a_experience_repo_that_returns(self, experiences):
             self.experience_repo.get_saved_experiences.return_value = {'results': experiences, 'next_offset': None}
             return self
 
-        def when_block(self, logged_person_id, target_id):
+        def when_block(self, logged_person_id, target_username):
             try:
                 self.result = BlockInteractor(permissions_validator=self.permissions_validator,
                                               block_repo=self.block_repo,
                                               experience_repo=self.experience_repo,
+                                              profile_repo=self.profile_repo,
                                               save_unsave_experience_interactor=self.unsave_experience_interactor) \
-                        .set_params(logged_person_id=logged_person_id, target_id=target_id).execute()
+                        .set_params(logged_person_id=logged_person_id, target_username=target_username).execute()
             except Exception as e:
                 self.error = e
             return self
@@ -880,6 +892,10 @@ class TestBlockIntearctor:
 
         def then_should_call_block(self, creator_id, target_id):
             self.block_repo.block.assert_called_once_with(creator_id=creator_id, target_id=target_id)
+            return self
+
+        def then_should_get_profile_with(self, username, logged_person_id):
+            self.profile_repo.get_profile.assert_called_once_with(username=username, logged_person_id=logged_person_id)
             return self
 
         def then_should_raise_no_logged_exception(self):

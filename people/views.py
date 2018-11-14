@@ -81,8 +81,8 @@ class BlockView:
         self.block_interactor = block_interactor
 
     @serialize_exceptions
-    def post(self, person_id, logged_person_id):
-        self.block_interactor.set_params(logged_person_id=logged_person_id, target_id=person_id).execute()
+    def post(self, username, logged_person_id):
+        self.block_interactor.set_params(logged_person_id=logged_person_id, target_username=username).execute()
 
         body = None
         status = 201

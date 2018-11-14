@@ -85,6 +85,7 @@ def create_block_interactor():
     return BlockInteractor(permissions_validator=create_person_permissions_validator(),
                            block_repo=create_block_repo(),
                            experience_repo=create_experience_repo(),
+                           profile_repo=create_profile_repo(),
                            save_unsave_experience_interactor=create_save_unsave_experience_interactor())
 
 

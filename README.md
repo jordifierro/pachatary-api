@@ -674,7 +674,7 @@ _200_
 _(You can assume register is completed if success)_
 
 
-### `POST /people/<person_id>/block`
+### `POST /people/<username>/block`
 
 This endpoint allows a person to block another
 and stop seeing her content on the app.

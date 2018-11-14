@@ -470,7 +470,7 @@ class BlockTestCase(TestCase):
             self.persons.append(ORMPerson.objects.create(email='e@m.c{}'.format(len(self.persons)),
                                                          is_email_confirmed=True))
             ORMProfile.objects.create(person_id=self.persons[len(self.persons)-1].id,
-                                      username='{}'.format(len(self.persons)), bio='b')
+                                      username='u.s_r{}'.format(len(self.persons)), bio='b')
             return self
 
         def given_an_experience(self, person):
@@ -486,7 +486,8 @@ class BlockTestCase(TestCase):
             client = Client()
             orm_auth_token = ORMAuthToken.objects.create(person_id=self.persons[logged_person-1].id)
             auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }
-            self.response = client.post(reverse('person-block', args=[str(self.persons[target-1].id)]), **auth_headers)
+            self.response = client.post(reverse('person-block', args=[str(self.persons[target-1].profile.username)]),
+                                        **auth_headers)
             return self
 
         def then_response_status_should_be_empty_body_and_201(self):
