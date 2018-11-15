@@ -1,6 +1,6 @@
 from django.db import models
 from stdimage.models import StdImageField
-from stdimage.utils import UploadToUUID, pre_delete_delete_callback, pre_save_delete_callback
+from stdimage.utils import UploadToUUID
 
 from people.models import ORMPerson
 
@@ -23,7 +23,3 @@ class ORMProfile(models.Model):
 
     def __str__(self):
         return self.username
-
-
-models.signals.post_delete.connect(pre_delete_delete_callback, sender=ORMProfile)
-models.signals.pre_save.connect(pre_save_delete_callback, sender=ORMProfile)
