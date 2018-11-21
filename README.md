@@ -19,8 +19,9 @@ A registered person has a `profile`.
 
 A `person` can `save` their favourite `experiences`.
 
-For the moment, the api is only consumed by
-[pachatary-android](https://github.com/jordifierro/pachatary-android) project.
+Api clients:
+* [android](https://github.com/jordifierro/pachatary-android)
+* [ios](https://github.com/jordifierro/pachatary-ios)
 
 ## API Endpoints
 
