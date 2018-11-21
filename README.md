@@ -892,9 +892,9 @@ _Response:_
 _200_
 ```json
 {
-	applinks: {
-		apps: [],
-		details: [{appID: "ASDF.com.pachatary.ios", paths: ["*"]}]
+	"applinks": {
+		"apps": [],
+		"details": [{"appID": "ASDF.com.pachatary.ios", "paths": ["*"]}]
 	}
 }
 ```
