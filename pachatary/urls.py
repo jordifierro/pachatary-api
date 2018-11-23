@@ -4,6 +4,7 @@ from django.urls import include, path
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic.base import RedirectView
 
 from .views import client_versions, privacy_policy, terms_and_conditions, aasa_redirect
 
@@ -21,6 +22,8 @@ urlpatterns = [
 
     url(r'^', include('redirects.urls')),
 
+
+    url(r'^$', RedirectView.as_view(url=settings.LANDING_URL, permanent=False), name='index'),
     url(r'^client-versions$', client_versions, name='client-versions'),
     url(r'^apple-app-site-association$', aasa_redirect, name='aasa'),
     url(r'^privacy-policy$', privacy_policy, name='privacy-policy'),

@@ -32,6 +32,8 @@ export DYNAMIC_LINK=''
 
 export APPLE_APPID='ASDF.com.myapp.ios'
 
+export LANDING_URL='https://localhost.com/landing'
+
 # Remote deployment extra env vars
 # export HOST='domain.host.com'
 # export PUBLIC_HOST='domain.com'

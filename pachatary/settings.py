@@ -213,3 +213,5 @@ RQ_QUEUES = {'default': {'URL': REDIS_URL}}
 DYNAMIC_LINK = os.environ['DYNAMIC_LINK']
 
 APPLE_APPID = os.environ['APPLE_APPID']
+
+LANDING_URL = os.environ['LANDING_URL']
