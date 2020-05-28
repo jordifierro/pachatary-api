@@ -33,5 +33,3 @@ urlpatterns = [
 
 if settings.LOCAL_DEPLOY:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
-urlpatterns += [path('django-rq/', include('django_rq.urls'))]

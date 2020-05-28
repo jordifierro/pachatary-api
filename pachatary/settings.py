@@ -50,7 +50,6 @@ EXTERN_APPS = [
     'django.contrib.staticfiles',
     'stdimage',
     'storages',
-    'django_rq',
 ]
 
 PROJECT_APPS = [
@@ -109,8 +108,8 @@ if LOCAL_DEPLOY:
             'NAME': os.environ['DATABASE_NAME'],
             'USER': os.environ['DATABASE_USER'],
             'PASSWORD': os.environ['DATABASE_PASS'],
-            'HOST': '',
-            'PORT': '',
+            'HOST': os.environ['DATABASE_HOST'],
+            'PORT': os.environ['DATABASE_PORT'],
         }
     }
 else:
@@ -206,9 +205,6 @@ ANDROID_MIN_VERSION = os.environ['ANDROID_MIN_VERSION']
 IOS_MIN_VERSION = os.environ['IOS_MIN_VERSION']
 
 LOCALE_PATHS = ('locale', )
-
-REDIS_URL = os.environ['REDIS_URL']
-RQ_QUEUES = {'default': {'URL': REDIS_URL}}
 
 DYNAMIC_LINK = os.environ['DYNAMIC_LINK']
 
