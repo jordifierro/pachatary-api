@@ -3,8 +3,7 @@ from elasticsearch.exceptions import NotFoundError
 import urllib.parse
 from mock import Mock
 
-from django.test import TestCase, TransactionTestCase
-from django.test import Client
+from django.test import TestCase, TransactionTestCase, Client, tag
 from django.urls import reverse
 from django.conf import settings
 
@@ -367,6 +366,7 @@ class SearchExperiencesTestCase(TestCase):
     BERLIN = (52.520007, 13.404954)
     CUSCO = (-13.531950, -71.967463)
 
+    @tag('elasticsearch')
     def test_search_experiences_returns_them_pagination_and_200(self):
         SearchExperiencesTestCase.ScenarioMaker() \
                 .given_a_person_with_auth_token() \
@@ -380,6 +380,7 @@ class SearchExperiencesTestCase(TestCase):
                 .when_index_everything_and_search(word='mountain', offset=1, limit=1) \
                 .then_should_return_experiences_and_next_url_null(['2'])
 
+    @tag('elasticsearch')
     def test_search_experiences_filters_blocked_persons_experiences(self):
         SearchExperiencesTestCase.ScenarioMaker() \
                 .given_a_person_with_auth_token() \
@@ -394,6 +395,7 @@ class SearchExperiencesTestCase(TestCase):
                 .when_index_everything_and_search(word='mountain', offset=0, limit=10) \
                 .then_should_return_experiences_and_next_url_null(['3', '2'])
 
+    @tag('elasticsearch')
     def test_search_with_location(self):
         SearchExperiencesTestCase.ScenarioMaker() \
                 .given_a_person_with_auth_token() \

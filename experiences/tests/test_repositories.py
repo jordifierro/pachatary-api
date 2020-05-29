@@ -2,7 +2,7 @@ from elasticsearch.exceptions import NotFoundError
 import logging
 from mock import Mock
 
-from django.test import TestCase
+from django.test import TestCase, tag
 
 from pachatary.exceptions import EntityDoesNotExistException, ConflictException
 from experiences.entities import Experience
@@ -441,6 +441,7 @@ class ExperienceElasticRepoTestCase(TestCase):
     BERLIN = (52.520007, 13.404954)
     CUSCO = (-13.531950, -71.967463)
 
+    @tag('elasticsearch')
     def test_search_by_title(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience(title='bike routes') \
@@ -450,6 +451,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='mountain') \
                 .then_should_return_experiences_and_next_offset(['2'])
 
+    @tag('elasticsearch')
     def test_search_by_description(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience(description='bike routes') \
@@ -459,6 +461,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='mountain') \
                 .then_should_return_experiences_and_next_offset(['2'])
 
+    @tag('elasticsearch')
     def test_search_by_scene_title(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience() \
@@ -470,6 +473,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='eco') \
                 .then_should_return_experiences_and_next_offset(['1'])
 
+    @tag('elasticsearch')
     def test_search_by_scene_description(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience() \
@@ -481,6 +485,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='eco') \
                 .then_should_return_experiences_and_next_offset(['1'])
 
+    @tag('elasticsearch')
     def test_search_by_title_accepts_typos(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience(title='bike routes') \
@@ -490,6 +495,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='mountain') \
                 .then_should_return_experiences_and_next_offset(['2'])
 
+    @tag('elasticsearch')
     def test_search_by_description_accepts_typos(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience(description='bike routes') \
@@ -499,6 +505,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='mountain') \
                 .then_should_return_experiences_and_next_offset(['2'])
 
+    @tag('elasticsearch')
     def test_search_by_scene_title_accepts_typos(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience() \
@@ -510,6 +517,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='eco') \
                 .then_should_return_experiences_and_next_offset(['1'])
 
+    @tag('elasticsearch')
     def test_search_by_scene_description_accepts_typos(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience() \
@@ -521,6 +529,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='eco') \
                 .then_should_return_experiences_and_next_offset(['1'])
 
+    @tag('elasticsearch')
     def test_search_by_title_sorts_by_length(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience(title='bike routes') \
@@ -531,6 +540,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='mountain') \
                 .then_should_return_experiences_and_next_offset(['3', '2'])
 
+    @tag('elasticsearch')
     def test_search_by_description_sorts_by_length(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience(description='mountain bike routes') \
@@ -541,6 +551,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='mountain') \
                 .then_should_return_experiences_and_next_offset(['3', '1'])
 
+    @tag('elasticsearch')
     def test_search_by_scene_title_sorts_by_length(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience() \
@@ -554,6 +565,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='eco') \
                 .then_should_return_experiences_and_next_offset(['1', '2'])
 
+    @tag('elasticsearch')
     def test_search_by_scene_description_sorts_by_length(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience() \
@@ -567,6 +579,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='eco') \
                 .then_should_return_experiences_and_next_offset(['4', '1'])
 
+    @tag('elasticsearch')
     def test_search_boosts_by_saves_count(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience(title='bike shopping center', saves_count=1000) \
@@ -575,6 +588,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='bike') \
                 .then_should_return_experiences_and_next_offset(['3', '1', '2'])
 
+    @tag('elasticsearch')
     def test_search_boosts_by_location_proximity(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience() \
@@ -589,6 +603,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='eco', location=ExperienceElasticRepoTestCase.BARCELONA) \
                 .then_should_return_experiences_and_next_offset(['1', '3', '2'])
 
+    @tag('elasticsearch')
     def test_search_location_boost_is_more_important_than_saves(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience(saves_count=1000) \
@@ -607,6 +622,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                                                   location=ExperienceElasticRepoTestCase.BARCELONA) \
                 .then_should_return_experiences_and_next_offset(['1', '3', '2'])
 
+    @tag('elasticsearch')
     def test_search_pagination(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience(title='bike routes') \
@@ -619,6 +635,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(word='mountain', offset=1, limit=1) \
                 .then_should_return_experiences_and_next_offset(['2'], None)
 
+    @tag('elasticsearch')
     def test_search_without_word_boosts_by_saves_count(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience(title='shopping center', saves_count=1000) \
@@ -627,6 +644,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search() \
                 .then_should_return_experiences_and_next_offset(['3', '1', '2'])
 
+    @tag('elasticsearch')
     def test_search_without_word_boosts_by_location_proximity(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience() \
@@ -641,6 +659,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(location=ExperienceElasticRepoTestCase.BARCELONA) \
                 .then_should_return_experiences_and_next_offset(['1', '3', '2'])
 
+    @tag('elasticsearch')
     def test_search_without_word_location_boost_is_more_important_than_saves(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience(saves_count=1000) \
@@ -658,6 +677,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_index_everything_and_search(location=ExperienceElasticRepoTestCase.BARCELONA) \
                 .then_should_return_experiences_and_next_offset(['1', '3', '2'])
 
+    @tag('elasticsearch')
     def test_delete_experience(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .given_an_experience(title='bike routes') \
@@ -669,6 +689,7 @@ class ExperienceElasticRepoTestCase(TestCase):
                 .when_search(word='bike') \
                 .then_should_return_experiences_and_next_offset(['2'])
 
+    @tag('elasticsearch')
     def test_delete_unexistent_experience_does_not_raise_error(self):
         ExperienceElasticRepoTestCase.ScenarioMaker() \
                 .when_index_everything() \

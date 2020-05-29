@@ -2,8 +2,7 @@ import json
 from decimal import Decimal
 import urllib.parse
 
-from django.test import TestCase
-from django.test import Client
+from django.test import TestCase, Client, tag
 from django.urls import reverse
 
 from experiences.models import ORMExperience
@@ -84,6 +83,7 @@ class ExperienceDetailTestCase(TestCase):
 
 class CreateSceneTestCase(TestCase):
 
+    @tag('elasticsearch')
     def test_create_scene_creates_and_returns_scene(self):
         orm_person = ORMPerson.objects.create()
         orm_auth_token = ORMAuthToken.objects.create(person=orm_person)
