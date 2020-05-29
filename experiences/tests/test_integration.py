@@ -67,7 +67,7 @@ class ExperiencesTestCase(TestCase):
                                'saves_count': 0
                            },
                        ],
-                'next_url': 'http://testserver/experiences/?username=self&limit=2&offset=2'
+                'next_url': 'https://testserver/experiences/?username=self&limit=2&offset=2'
             }
 
     def test_others_experiences_returns_others_experiences(self):
@@ -120,7 +120,7 @@ class ExperiencesTestCase(TestCase):
                                'saves_count': 0
                            },
                        ],
-                'next_url': 'http://testserver/experiences/?username=other&limit=2&offset=2'
+                'next_url': 'https://testserver/experiences/?username=other&limit=2&offset=2'
             }
 
         auth_headers = {'HTTP_AUTHORIZATION': 'Token {}'.format(orm_auth_token.access_token), }
@@ -510,7 +510,7 @@ class SearchExperiencesTestCase(TestCase):
         def then_should_return_experiences_and_next_url(self, experiences_ids, word,
                                                         offset, limit, latitude=None, longitude=None):
             experiences = [self.experiences[int(i)-1] for i in experiences_ids]
-            next_url = 'http://testserver/experiences/search?offset={}&limit={}&word={}'.format(offset, limit, word)
+            next_url = 'https://testserver/experiences/search?offset={}&limit={}&word={}'.format(offset, limit, word)
             if latitude is not None:
                 next_url = "{}&latitude={}".format(next_url, latitude)
             if longitude is not None:

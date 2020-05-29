@@ -92,13 +92,15 @@ def create_get_experience_interactor():
 
 def create_experiences_view(request, **kwargs):
     return ExperiencesView(get_experiences_interactor=create_get_experiences_interactor(),
-                           get_experiences_base_url=request.build_absolute_uri(reverse('experiences')),
+                           get_experiences_base_url=request.build_absolute_uri(reverse('experiences')) \
+                                   .replace("http://", "https://"),
                            create_new_experience_interactor=create_create_new_experience_interactor())
 
 
 def create_search_experiences_view(request, **kwargs):
     return SearchExperiencesView(search_experiences_interactor=create_search_experiences_interactor(),
-                                 search_experiences_base_url=request.build_absolute_uri(reverse('search-experiences')))
+                                 search_experiences_base_url=request.build_absolute_uri(reverse('search-experiences')) \
+                                         .replace("http://", "https://"))
 
 
 def create_experience_view(request, **kwargs):
