@@ -10,7 +10,6 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
-import dj_database_url
 
 PROJECT_ROOT = os.path.realpath(os.path.dirname(__file__))
 PROJECT_NAME = os.path.basename(PROJECT_ROOT)
@@ -101,20 +100,16 @@ WSGI_APPLICATION = 'pachatary.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-if LOCAL_DEPLOY:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'NAME': os.environ['DATABASE_NAME'],
-            'USER': os.environ['DATABASE_USER'],
-            'PASSWORD': os.environ['DATABASE_PASS'],
-            'HOST': os.environ['DATABASE_HOST'],
-            'PORT': os.environ['DATABASE_PORT'],
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.environ['DATABASE_NAME'],
+        'USER': os.environ['DATABASE_USER'],
+        'PASSWORD': os.environ['DATABASE_PASS'],
+        'HOST': os.environ['DATABASE_HOST'],
+        'PORT': os.environ['DATABASE_PORT'],
     }
-else:
-    db_from_env = dj_database_url.config()
-    DATABASES = {'default': db_from_env}
+}
 
 
 # S3 media storage
