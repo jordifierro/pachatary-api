@@ -1,4 +1,5 @@
 from elasticsearch import Elasticsearch
+import certifi
 
 from django.urls import reverse
 from django.conf import settings
@@ -16,7 +17,10 @@ from .views import ExperiencesView, ExperienceView, UploadExperiencePictureView,
 
 
 def create_experience_elastic_repo():
-    elastic_client = Elasticsearch([settings.ELASTICSEARCH_URL])
+    if not settings.LOCAL_DEPLOY:
+        elastic_client = Elasticsearch([settings.ELASTICSEARCH_URL], use_ssl=True, ca_certs=certifi.where())
+    else:
+        elastic_client = Elasticsearch([settings.ELASTICSEARCH_URL])
     return ExperienceSearchRepo(elastic_client)
 
 
