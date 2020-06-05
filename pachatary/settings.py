@@ -71,8 +71,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.locale.LocaleMiddleware',
 
-    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware',
-
     'pachatary.middlewares.LoggingMiddleware'
 ]
 
@@ -186,15 +184,6 @@ EMAIL_HOST_ORIGIN = os.environ['EMAIL_HOST_ORIGIN']
 EMAIL_PORT = int(os.environ['EMAIL_PORT'])
 
 ELASTICSEARCH_URL = os.environ['ELASTICSEARCH_URL']
-
-if not LOCAL_DEPLOY:
-    ROLLBAR = {
-        'access_token': os.environ['ROLLBAR_ACCESS_TOKEN'],
-        'environment': 'development' if DEBUG else 'production',
-        'root': BASE_DIR,
-    }
-    import rollbar
-    rollbar.init(**ROLLBAR)
 
 ANDROID_MIN_VERSION = os.environ['ANDROID_MIN_VERSION']
 IOS_MIN_VERSION = os.environ['IOS_MIN_VERSION']
