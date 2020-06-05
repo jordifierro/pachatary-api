@@ -17,6 +17,8 @@ class LoggingMiddleware:
 
     def print_log(self, request, response):
         ip = request.META['REMOTE_ADDR']
+        if 'HTTP_X_REAL_IP' in request.META:
+            ip = request.META['HTTP_X_REAL_IP']
         try:
             person = "{:06}".format(int(request.logged_person_id))
         except (AttributeError, TypeError):
