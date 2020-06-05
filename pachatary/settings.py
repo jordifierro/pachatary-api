@@ -206,3 +206,6 @@ DYNAMIC_LINK = os.environ['DYNAMIC_LINK']
 APPLE_APPID = os.environ['APPLE_APPID']
 
 LANDING_URL = os.environ['LANDING_URL']
+
+ADMINS = [('Admin', os.environ['ADMIN_EMAIL'])]
+SERVER_EMAIL = os.environ['SERVER_EMAIL']
