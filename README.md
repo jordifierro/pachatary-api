@@ -941,59 +941,24 @@ Follow these instructions to start working locally on the project:
 * Download code cloning this repo:
 ```bash
 git clone https://github.com/jordifierro/pachatary-api.git
+cd pachatary-api
 ```
-* Install postgres and run:
+
+* Run docker-compose
 ```bash
-./pachatary/setup/postgres.sh
+docker-compose up -d
 ```
-to create user and database.
-* Run postgres:
-```bash
-postgres -D /usr/local/var/postgres &
-```
-* Download elasticsearch-6.2.4, extract it inside `../env` folder
-and then run:
-```bash
-../env/elasticsearch-6.2.4/bin/elasticsearch &
-```
-* Download redis-4.0.10, extract it inside `../env` folder
-and then run:
-```bash
-../env/redis-4.0.10/src/redis-server &
-```
-* Install python version specified on `runtime.txt`
-and run:
-```bash
-virtualenv -p `which python3.7` ../env
-```
-* Add this to the end of `../env/bin/activate` file:
-```bash
-source pachatary/setup/envvars.sh
-```
-* Get into the environment:
-```bash
-source ../env/bin/activate
-```
-and install dependencies:
-```bash
-pip install -r requirements.txt
-```
+
 * Migrate database:
 ```bash
-python manage.py migrate
+docker-compose run api bash -c "python manage.py migrate"
 ```
 * Create django admin super user:
 ```bash
-python manage.py createsuperuser
+docker-compose run api bash -c "python manage.py createsuperuser"
 ```
 * Finally, you should be able to run unit and integration tests:
 ```bash
-pytest                # python tests
-python manage.py test # django tests
+docker-compose run api bash -c "pytest && python manage.py test"
 ```
-
-Once we have made the first time setup,
-we can start everything up running:
-```bash
-source pachatary/setup/startup.sh
-```
+(add `--exclude-tag=elasticsearch` to avoid elasticsearch uptime errors)
