@@ -32,7 +32,7 @@ CLIENT_SECRET_KEY = os.environ['CLIENT_SECRET_KEY']
 DEBUG = bool(int(os.environ['DEBUG']))
 
 if not LOCAL_DEPLOY:
-    ALLOWED_HOSTS = [os.environ['HOST'], os.environ['PUBLIC_HOST']]
+    ALLOWED_HOSTS = [os.environ['HOST'], os.environ['PUBLIC_HOST'], os.environ['INTERNAL_IP']]
 
 APP_DEEPLINK_DOMAIN = os.environ['APP_DEEPLINK_DOMAIN']
 
